@@ -1,5 +1,12 @@
 # Active context
 
+## Monitoreo local — 2026-09-19
+
+Exportación semanal Silk agrupada y sin SQL/valores URL para el módulo de
+monitoreo de ProjectApp. Muestreo acotado y cuerpos HTTP deshabilitados; no se
+modificó `.env` ni se activó Silk. El rollout pertenece al deploy autorizado y
+mantiene el correo. Detalle: `docs/monitoring-export.md`.
+
 ## Current task
 
 Publicar correctamente los payloads RSC del static export. El helper nuevo

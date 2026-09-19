@@ -246,13 +246,15 @@ THUMBNAIL_ALIASES = {
 ENABLE_SILK = config('ENABLE_SILK', default=False, cast=bool)
 
 if ENABLE_SILK:
+    from .monitoring_export import should_profile
+
     INSTALLED_APPS += ['silk']
     MIDDLEWARE.insert(0, 'silk.middleware.SilkyMiddleware')
 
     SILKY_PYTHON_PROFILER = False
     SILKY_PYTHON_PROFILER_BINARY = False
     SILKY_META = False
-    SILKY_ANALYZE_QUERIES = True
+    SILKY_ANALYZE_QUERIES = False
 
     SILKY_AUTHENTICATION = True
     SILKY_AUTHORISATION = True
@@ -262,9 +264,11 @@ if ENABLE_SILK:
 
     SILKY_PERMISSIONS = silk_permissions
 
-    SILKY_MAX_RECORDED_REQUESTS = 10_000
+    SILKY_MAX_RECORDED_REQUESTS = 1_000
     SILKY_MAX_RECORDED_REQUESTS_CHECK_PERCENT = 10
-    SILKY_INTERCEPT_PERCENT = 50
+    MONITORING_SILK_SAMPLE_PERCENT = max(0, min(100, config('MONITORING_SILK_SAMPLE_PERCENT', default=5, cast=int)))
+    SILKY_INTERCEPT_FUNC = should_profile
+    SILKY_SENSITIVE_KEYS = {'username', 'api', 'token', 'key', 'secret', 'password', 'signature', 'cookie', 'authorization'}
 
     SILKY_IGNORE_PATHS = ['/admin/', '/static/', '/media/', '/silk/']
 

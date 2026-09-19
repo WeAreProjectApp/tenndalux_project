@@ -79,6 +79,9 @@ def weekly_slow_queries_report():
         start_time__gte=week_ago,
     ).annotate(qc=Count('queries')).filter(qc__gte=n1_threshold).order_by('-qc')[:20]
 
+    from .monitoring_export import export_report_safely
+    export_report_safely(slow, n1, count_attribute='qc')
+
     lines = ['=' * 60, f'WEEKLY QUERY REPORT - {timezone.now():%Y-%m-%d}', '=' * 60, '',
              f'## SLOW QUERIES (>{threshold_ms}ms)', '-' * 40]
     for sq in slow:
