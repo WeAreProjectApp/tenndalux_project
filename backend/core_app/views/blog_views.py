@@ -16,7 +16,7 @@ class PostViewSet(viewsets.ModelViewSet):
     lookup_field = 'slug'
 
     def get_queryset(self):
-        qs = Post.objects.all()
+        qs = Post.objects.select_related('cover_image__primary_attachment').prefetch_related('tags')
         if not self.request.user.is_authenticated:
             qs = qs.filter(is_published=True)
         return qs

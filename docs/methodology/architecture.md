@@ -194,6 +194,21 @@ Client Component renders
 
 ---
 
+## Serialización y validación de la ronda 2 (2026-10-02)
+
+La validación de bloques es común a modelos, serializers y revisión del admin.
+Los objetos anidados declaran textos obligatorios, campos opcionales y claves
+permitidas; el esquema y la guía se generan desde esas mismas reglas.
+
+La persistencia del contacto es el resultado principal del POST. El despacho
+a Huey es secundario: su fallo conserva el contacto y produce una señal local
+saneada. Esta política no promete entrega posterior de la notificación.
+
+Los listados precargan las relaciones que serializan. Proyectos y posts usan
+un ListSerializer común que resuelve las imágenes de bloques por página, con
+un mapa limitado a la representación actual y fallback para objetos sueltos.
+No hay caché global ni cambios de permisos, paginación o respuesta.
+
 ## Key Architectural Invariants
 
 1. **Single business app**: All models, views, serializers, and tests in `core_app`. No second app.
