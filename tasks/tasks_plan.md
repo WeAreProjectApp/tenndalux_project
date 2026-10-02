@@ -1,5 +1,16 @@
 # Task Plan — Tenndalux
 
+## Ronda de mejora — 2026-10-02
+
+- [x] Aplicar permisos por rol a las operaciones del CMS.
+- [x] Rechazar campos internos en la captura pública de contactos.
+- [x] Conservar refresh rotado y compartir recuperación entre solicitudes.
+- [x] Incorporar pruebas conductuales de las tres causas y actualizar el mapa de flujos.
+
+La ejecución final sobre el commit limpio y la entrega se acreditan en el
+reporte `improvement-20261002` del toolkit: artefactos por capa, revisión de
+pruebas, PR abierto y CI. El merge y el deploy pertenecen al operador.
+
 ## Ready for merge — static-export payload publication
 
 - [x] Copiar recursivamente los `.txt` de Next conservando rutas.
