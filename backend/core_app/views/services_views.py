@@ -1,12 +1,13 @@
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets
 
 from core_app.models import Service, ProcessStep
+from core_app.permissions import IsContentEditorOrReadOnly
 from core_app.serializers import ServiceSerializer, ProcessStepSerializer
 
 
 class ServiceViewSet(viewsets.ModelViewSet):
     serializer_class = ServiceSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [IsContentEditorOrReadOnly]
 
     def get_queryset(self):
         qs = Service.objects.all()
@@ -17,7 +18,7 @@ class ServiceViewSet(viewsets.ModelViewSet):
 
 class ProcessStepViewSet(viewsets.ModelViewSet):
     serializer_class = ProcessStepSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [IsContentEditorOrReadOnly]
 
     def get_queryset(self):
         qs = ProcessStep.objects.all()

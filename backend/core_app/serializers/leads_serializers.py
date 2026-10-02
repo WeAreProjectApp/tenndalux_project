@@ -1,3 +1,5 @@
+from collections.abc import Mapping
+
 from rest_framework import serializers
 
 from core_app.models import LeadStatus, Lead, Category, Space
@@ -65,3 +67,23 @@ class LeadSerializer(serializers.ModelSerializer):
             'updated_at',
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
+
+
+class LeadCaptureSerializer(LeadSerializer):
+    """Capture public contact details without accepting internal CRM fields."""
+
+    class Meta(LeadSerializer.Meta):
+        fields = [
+            field for field in LeadSerializer.Meta.fields
+            if field not in ('status', 'status_id', 'notes')
+        ]
+
+    def to_internal_value(self, data):
+        if isinstance(data, Mapping):
+            errors = {
+                field: ['Este campo está reservado a la administración.']
+                for field in ('status', 'status_id', 'notes') if field in data
+            }
+            if errors:
+                raise serializers.ValidationError(errors)
+        return super().to_internal_value(data)
