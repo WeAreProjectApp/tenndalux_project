@@ -1,3 +1,7 @@
+"""Notification boundary contracts for public lead capture."""
+
+from unittest.mock import patch
+
 import pytest
 from django.core import mail
 from django.core.mail.backends.base import BaseEmailBackend
@@ -6,7 +10,6 @@ from django.urls import reverse
 from rest_framework import status
 
 from core_app.models import Lead
-
 
 LOCMEM = 'django.core.mail.backends.locmem.EmailBackend'
 LOCMEM_MAILERS = {'default': {'BACKEND': LOCMEM}}
@@ -26,6 +29,7 @@ PAYLOAD = {
     MAILERS=LOCMEM_MAILERS,
 )
 def test_lead_create_notifies_the_configured_addresses(api_client):
+    """Falla si un contacto guardado deja de llegar al destinatario configurado."""
     response = api_client.post(reverse('lead-list'), PAYLOAD, format='json')
 
     assert response.status_code == status.HTTP_201_CREATED
@@ -45,6 +49,7 @@ def test_lead_create_notifies_the_configured_addresses(api_client):
     MAILERS=LOCMEM_MAILERS,
 )
 def test_lead_notification_reaches_every_configured_address(api_client):
+    """Falla si un destinatario configurado deja de recibir la notificación del contacto."""
     api_client.post(reverse('lead-list'), PAYLOAD, format='json')
 
     assert mail.outbox[0].to == ['ventas@tenndalux.com', 'gerencia@tenndalux.com']
@@ -79,5 +84,53 @@ def test_lead_survives_a_broken_mail_server(api_client):
 
 
 class BrokenEmailBackend(BaseEmailBackend):
+    """Mail boundary that always fails so the view resilience path can be observed."""
+
     def send_messages(self, email_messages):
+        """Raise the fixed transport failure used by the resilience regression test."""
         raise OSError('smtp unreachable')
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize('error_class', [RuntimeError, ConnectionError, TimeoutError])
+def test_dispatch_failure_preserves_the_lead_without_contact_data_in_logs(
+    api_client, caplog, error_class,
+):
+    """Falla si una cola caída convierte un contacto guardado en 500 o filtra sus datos al log."""
+    dispatch_error = error_class(f"queue rejected {PAYLOAD['email']} {PAYLOAD['full_name']} {PAYLOAD['message']}")
+
+    with patch('core_app.views.leads_views.send_lead_notification', side_effect=dispatch_error) as notify:
+        response = api_client.post(reverse('lead-list'), PAYLOAD, format='json')
+
+    lead = Lead.objects.get()
+    assert (response.status_code, Lead.objects.count(), lead.email) == (
+        status.HTTP_201_CREATED,
+        1,
+        PAYLOAD['email'],
+    )
+    notify.assert_called_once_with(lead.pk)
+    assert caplog.records[-1].getMessage() == (
+        f'Lead notification dispatch failed: error_type={error_class.__name__}'
+    )
+    assert (caplog.records[-1].error_type, caplog.records[-1].exc_info) == (error_class.__name__, None)
+    assert (
+        PAYLOAD['email'] not in caplog.text,
+        PAYLOAD['full_name'] not in caplog.text,
+        PAYLOAD['message'] not in caplog.text,
+        'queue rejected' not in caplog.text,
+        'Traceback' not in caplog.text,
+    ) == (True, True, True, True, True)
+
+
+@pytest.mark.django_db
+def test_invalid_lead_input_is_not_persisted(api_client):
+    """Falla si el manejo de errores posterior al guardado alcanza una solicitud inválida."""
+    invalid_payload = {**PAYLOAD, 'email': 'not-an-email'}
+
+    with patch('core_app.views.leads_views.send_lead_notification') as notify:
+        response = api_client.post(reverse('lead-list'), invalid_payload, format='json')
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert 'email' in response.data
+    assert Lead.objects.count() == 0
+    notify.assert_not_called()
