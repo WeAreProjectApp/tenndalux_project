@@ -33,7 +33,9 @@ class ProjectViewSet(viewsets.ModelViewSet):
     lookup_field = 'slug'
 
     def get_queryset(self):
-        qs = Project.objects.all()
+        qs = Project.objects.select_related('gallery__primary_attachment').prefetch_related(
+            'categories', 'styles', 'spaces',
+        )
         if not self.request.user.is_authenticated:
             qs = qs.filter(is_published=True)
         return qs

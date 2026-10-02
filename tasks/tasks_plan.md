@@ -1,5 +1,13 @@
 # Task Plan — Tenndalux
 
+## Ronda de mejora 2 — 2026-10-02
+
+- [x] Descubrir cinco frentes y seleccionar tres causas con el motor canónico.
+- [x] Medir consultas reales en SQLite en memoria, sin producción.
+- [x] Aplicar contrato de bloques, aislamiento de notificación y precarga de listas.
+- [ ] Cerrar una sola QA de backend y gate sobre el SHA definitivo.
+- [ ] Publicar registros y entregar PR abierto con CI verde, sin merge/deploy.
+
 ## Ready for merge — static-export payload publication
 
 - [x] Copiar recursivamente los `.txt` de Next conservando rutas.
