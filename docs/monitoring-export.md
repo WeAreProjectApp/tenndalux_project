@@ -6,6 +6,9 @@ Agrupa consultas lentas y posibles N+1 por la ruta parametrizada del resolver;
 exporta duración máxima/conteo, nunca SQL ni valores de URL. Un fallo al escribir
 el export se registra y no impide generar el reporte legado.
 
+El reporte textual legado también conserva sólo métricas y rutas parametrizadas,
+sin SQL ni valores concretos de URL. Esto no sanea los archivos históricos.
+
 No hay HTTP, credenciales nuevas ni dependencia de ProjectApp en el request de
 Tenndalux. El transporte y los reintentos corresponden a la cola SQLite del VPS.
 `ENABLE_SILK` sigue desactivado por defecto. Cuando el operador autorice el rollout,

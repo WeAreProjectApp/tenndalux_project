@@ -27,7 +27,7 @@ type GalleryItem = {
 const galleryItems: GalleryItem[] = [
   {
     type: 'image',
-    src: '/home/gallery/cortina-ondessence.png',
+    src: '/home/gallery/cortina-ondessence.webp',
     alt: 'Cortina Ondessence ondas de lujo',
     className: 'row-span-2'
   },
@@ -40,25 +40,25 @@ const galleryItems: GalleryItem[] = [
   },
   {
     type: 'image',
-    src: '/home/gallery/cortina-classic.png',
+    src: '/home/gallery/cortina-classic.webp',
     alt: 'Cortina Classic elegante',
     className: 'row-span-1'
   },
   {
     type: 'image',
-    src: '/home/gallery/enrollable-screen.png',
+    src: '/home/gallery/enrollable-screen.webp',
     alt: 'Enrollable screen premium',
     className: 'row-span-2'
   },
   {
     type: 'image',
-    src: '/home/gallery/ejemplo-uso-general.png',
+    src: '/home/gallery/ejemplo-uso-general.webp',
     alt: 'Ambiente decorado con cortinas de lujo',
     className: 'row-span-2'
   },
   {
     type: 'image',
-    src: '/home/gallery/cortina-celular-blackout.png',
+    src: '/home/gallery/cortina-celular-blackout.webp',
     alt: 'Cortina celular tejido blackout',
     className: 'row-span-1'
   },
