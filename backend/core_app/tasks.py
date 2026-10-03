@@ -61,8 +61,12 @@ def send_lead_notification(lead_id: int) -> None:
 
     try:
         message.send()
-    except Exception:
+    except Exception as exc:
         # Huey runs immediately outside production, so an SMTP error here would
         # surface as a 500 to the visitor whose lead was already saved. The lead
         # matters more than the notification: log and move on.
-        logger.exception('Could not deliver the notification for lead %s', lead_id)
+        # SMTP exception messages and tracebacks may contain private addresses.
+        logger.error(
+            'Lead notification delivery failed; error_type=%s',
+            type(exc).__name__,
+        )
