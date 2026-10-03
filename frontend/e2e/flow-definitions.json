@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "lastUpdated": "2026-07-27",
+  "lastUpdated": "2026-10-03",
   "flows": {
     "auth-login": {
       "name": "Login",
@@ -24,7 +24,7 @@
         "user"
       ],
       "priority": "P2",
-      "description": "View the public home/landing page.",
+      "description": "View the public home/landing page, including responsive gallery images and the project-video modal.",
       "outcomes": [
         "display"
       ]

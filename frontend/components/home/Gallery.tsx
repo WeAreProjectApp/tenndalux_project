@@ -190,6 +190,7 @@ export default function Gallery() {
 
   const GalleryCard = ({ item }: { item: GalleryItem }) => (
     <div
+      data-testid={item.type === 'video' ? 'gallery-video-card' : undefined}
       className={`relative w-full h-full overflow-hidden rounded-2xl sm:rounded-3xl group ${item.type === 'video' ? 'cursor-pointer' : ''}`}
       onClick={() => item.type === 'video' && item.videoSrc && setSelectedVideo(item.videoSrc)}
     >
