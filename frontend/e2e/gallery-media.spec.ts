@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Locator, type Page } from '@playwright/test';
 
 type GalleryPhoto = {
   alt: string;
@@ -59,17 +59,33 @@ for (const photo of galleryPhotos) {
   });
 }
 
-const videoViewports = [
-  { name: 'compact', size: { width: 412, height: 915 }, bug: 'mobile carousel media or its existing pointer/touch modal flow breaks' },
-  { name: 'portrait', size: { width: 835, height: 1194 }, bug: 'the md layout hides gallery media or breaks the full-video modal' },
-  { name: 'landscape', size: { width: 1195, height: 835 }, bug: 'the lg layout breaks the gallery/video interaction' },
-  { name: 'desktop', size: { width: 1440, height: 900 }, bug: 'desktop grid styling hides media or detaches the existing modal flow' },
-  { name: 'wide', size: { width: 2560, height: 1440 }, bug: 'wide layout hides gallery media or breaks the existing modal flow' },
-] as const;
-
 const galleryHeading = 'Espacios que inspiran';
 const galleryVideoLabel = 'Instalación de cortinas motorizadas';
 const fullVideoPath = '/videos/optimized/c56462c7c6fd441d8cebe16d51ee5336.webm';
+
+async function scrollGalleryIntoView(_page: Page, galleryImage: Locator) {
+  await galleryImage.scrollIntoViewIfNeeded();
+}
+
+async function swipeToNextGalleryItem(page: Page, galleryImage: Locator) {
+  await galleryImage.scrollIntoViewIfNeeded();
+  const box = await galleryImage.boundingBox();
+  expect(box).not.toBeNull();
+
+  const centerY = box!.y + box!.height / 2;
+  await page.mouse.move(box!.x + box!.width * 0.8, centerY);
+  await page.mouse.down();
+  await page.mouse.move(box!.x + box!.width * 0.2, centerY, { steps: 10 });
+  await page.mouse.up();
+}
+
+const videoViewports = [
+  { name: 'compact', size: { width: 412, height: 915 }, prepareVideo: swipeToNextGalleryItem },
+  { name: 'portrait', size: { width: 835, height: 1194 }, prepareVideo: scrollGalleryIntoView },
+  { name: 'landscape', size: { width: 1195, height: 835 }, prepareVideo: scrollGalleryIntoView },
+  { name: 'desktop', size: { width: 1440, height: 900 }, prepareVideo: scrollGalleryIntoView },
+  { name: 'wide', size: { width: 2560, height: 1440 }, prepareVideo: scrollGalleryIntoView },
+] as const;
 
 for (const viewport of videoViewports) {
   test.describe(`gallery video at ${viewport.name}`, () => {
@@ -86,14 +102,16 @@ for (const viewport of videoViewports) {
         has: page.getByRole('heading', { name: galleryHeading, exact: true }),
       });
       const galleryImage = gallery.getByAltText('Cortina Ondessence ondas de lujo', { exact: true }).filter({ visible: true });
-      const videoCard = gallery.getByTestId('gallery-video-card').filter({
-        has: page.getByLabel(galleryVideoLabel, { exact: true }),
-      }).filter({ visible: true });
 
-      await galleryImage.scrollIntoViewIfNeeded();
+      await viewport.prepareVideo(page, galleryImage);
       await expect(galleryImage).toBeVisible();
       await expect(galleryImage).toHaveAttribute('src', '/home/gallery/cortina-ondessence.webp');
-      await videoCard.click();
+      const visibleVideo = gallery.getByLabel(galleryVideoLabel, { exact: true }).filter({ visible: true });
+      // quality: allow-fragile-selector (the labelled video has an overlay; its nearest explicitly marked card is the stable click target across Swiper and grid copies)
+      const videoCard = visibleVideo.locator('xpath=ancestor::*[@data-testid="gallery-video-card"][1]');
+      await expect(visibleVideo).toBeInViewport({ ratio: 0.9 });
+      const cardBox = (await videoCard.boundingBox())!;
+      await page.mouse.click(cardBox.x + cardBox.width / 2, cardBox.y + cardBox.height / 2);
 
       const closeButton = page.getByRole('button', { name: 'Cerrar video', exact: true });
       const modalVideo = page.locator('video[controls]');
@@ -101,7 +119,8 @@ for (const viewport of videoViewports) {
       await expect(closeButton).toBeVisible();
       await expect(webmSource).toHaveCount(1);
       await expect(webmSource).toHaveAttribute('src', fullVideoPath);
-      await closeButton.click();
+      const closeBox = (await closeButton.boundingBox())!;
+      await page.mouse.click(closeBox.x + closeBox.width / 2, closeBox.y + closeBox.height / 2);
       await expect(modalVideo).toHaveCount(0);
     });
   });
