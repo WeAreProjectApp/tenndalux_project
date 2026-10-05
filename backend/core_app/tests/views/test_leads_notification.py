@@ -2,6 +2,7 @@
 
 import logging
 from smtplib import SMTPRecipientsRefused
+from unittest.mock import patch
 
 import pytest
 from django.core import mail
@@ -139,3 +140,48 @@ class PrivateRecipientsBackend(BaseEmailBackend):
         raise SMTPRecipientsRefused(
             {'provider-private@example.invalid': (550, 'provider-private-marker')},
         )
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize('error_class', [RuntimeError, ConnectionError, TimeoutError])
+def test_dispatch_failure_preserves_the_lead_without_contact_data_in_logs(
+    api_client, caplog, error_class,
+):
+    """Falla si una cola caída convierte un contacto guardado en 500 o filtra sus datos al log."""
+    dispatch_error = error_class(f"queue rejected {PAYLOAD['email']} {PAYLOAD['full_name']} {PAYLOAD['message']}")
+
+    with patch('core_app.views.leads_views.send_lead_notification', side_effect=dispatch_error) as notify:
+        response = api_client.post(reverse('lead-list'), PAYLOAD, format='json')
+
+    lead = Lead.objects.get()
+    assert (response.status_code, Lead.objects.count(), lead.email) == (
+        status.HTTP_201_CREATED,
+        1,
+        PAYLOAD['email'],
+    )
+    notify.assert_called_once_with(lead.pk)
+    assert caplog.records[-1].getMessage() == (
+        f'Lead notification dispatch failed: error_type={error_class.__name__}'
+    )
+    assert (caplog.records[-1].error_type, caplog.records[-1].exc_info) == (error_class.__name__, None)
+    assert (
+        PAYLOAD['email'] not in caplog.text,
+        PAYLOAD['full_name'] not in caplog.text,
+        PAYLOAD['message'] not in caplog.text,
+        'queue rejected' not in caplog.text,
+        'Traceback' not in caplog.text,
+    ) == (True, True, True, True, True)
+
+
+@pytest.mark.django_db
+def test_invalid_lead_input_is_not_persisted(api_client):
+    """Falla si el manejo de errores posterior al guardado alcanza una solicitud inválida."""
+    invalid_payload = {**PAYLOAD, 'email': 'not-an-email'}
+
+    with patch('core_app.views.leads_views.send_lead_notification') as notify:
+        response = api_client.post(reverse('lead-list'), invalid_payload, format='json')
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert 'email' in response.data
+    assert Lead.objects.count() == 0
+    notify.assert_not_called()

@@ -1,6 +1,10 @@
 from rest_framework import serializers
 
-from core_app.serializers.fields import ContentBlocksField, library_image_url
+from core_app.serializers.fields import (
+    ContentBlocksField,
+    ContentBlocksListSerializer,
+    library_image_url,
+)
 from core_app.utils.content_blocks import estimate_read_minutes
 
 from core_app.models import Tag, Post
@@ -29,6 +33,7 @@ class PostSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Post
+        list_serializer_class = ContentBlocksListSerializer
         fields = [
             'id',
             'title',

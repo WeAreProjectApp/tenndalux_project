@@ -7,17 +7,27 @@ monitoreo de ProjectApp. Muestreo acotado y cuerpos HTTP deshabilitados; no se
 modificó `.env` ni se activó Silk. El rollout pertenece al deploy autorizado y
 mantiene el correo. Detalle: `docs/monitoring-export.md`.
 
-## Current task
+## Tarea actual — integración de tres rondas (2026-10-05)
 
-Ronda de mejora del 2026-10-02: permisos por rol del CMS, separación de captura
-pública de contactos y renovación JWT compatible con rotación/blacklist.
-Sólo admin gestiona contactos y singleton; editor/admin escriben contenido y
-viewer conserva lectura autorizada. Rama `fix/02102026-improvement-tenndalux`,
-worktree propio y base `master`. Aplicación y autoría de pruebas completas.
-La evidencia de ejecución sobre el commit final y la entrega del PR se conserva
-en el reporte de ronda `improvement-20261002` del toolkit.
+El tren integra los PRs #61, #59 y #60 sobre master desde un worktree propio
+queue-*. La combinación conserva permisos por rol del CMS, captura pública de
+contactos restringida y renovación JWT; validación de bloques, tolerancia a
+fallos de cola y consultas constantes; diagnósticos SMTP/Silk sin datos privados
+y cinco imágenes WebP de la galería.
 
-La publicación de payloads RSC del static export quedó integrada en la base.
+Cada PR llegó con sus seis checks verdes. La validación conjunta está pendiente
+en el draft de integración antes de drenar los tres PRs mediante squash.
+Las mediciones de la segunda ronda fueron proyectos 8→122, posts 6→82 y
+contactos 5→62 consultas para poblaciones 1→20; tras optimizar, 6→6, 4→4 y 3→3.
+Las imágenes de la tercera ronda bajaron de 9.09 MB a 0.55 MB en conjunto.
+
+Se conservan los registros y pruebas de ambas ramas al resolver conflictos,
+y los 26 flujos E2E incorporan la descripción de galería de la tercera ronda.
+Los reportes originales de las rondas conservan su evidencia en el toolkit;
+esta integración no modifica ese repo. Sin migraciones, sembrado, correos,
+deploy ni ampliación del alcance a las ramas históricas.
+
+La publicación de payloads RSC del static export ya quedó integrada en la base.
 
 ## Previous task
 
