@@ -120,9 +120,9 @@ The project uses **different DRF view styles per resource type**. Always match t
 | `frontend_views.py` | Plain Django FBV | Serves HTML from `backend/templates/frontend/` |
 
 ### Permission Pattern
-- **Portfolio, Blog, Services**: `IsAuthenticatedOrReadOnly` — public GET, auth-required write
-- **Leads create**: `AllowAny` — public POST, auth-required everything else
-- **Site settings/pages**: public GET (via `_SingletonPermissionsMixin`), auth-required write
+- **Portfolio, Blog, Services**: `IsContentEditorOrReadOnly` — public GET, editor/admin write.
+- **Leads create**: `AllowAny` + `LeadCaptureSerializer` — public POST without internal CRM fields; `IsRoleAdmin` for every other action.
+- **Lead statuses and singleton pages**: `IsRoleAdminOrReadOnly` — public reads, admin-only writes. Superusers retain administrator access; `is_staff` alone grants no API role.
 - **Auth endpoints**: `AllowAny` for register/login; `IsAuthenticated` for profile
 
 ---
@@ -146,7 +146,7 @@ The project uses **different DRF view styles per resource type**. Always match t
 /api/services/services/         CRUD via DefaultRouter
 /api/services/process-steps/    CRUD via DefaultRouter
 /api/leads/statuses/            CRUD via DefaultRouter
-/api/leads/leads/               POST public; other methods auth-required
+/api/leads/leads/               POST public; other methods admin-only
 /api/site/settings/             GET public; PATCH/PUT auth-required
 /api/site/home/                 GET public; PATCH/PUT auth-required
 /api/site/about/                GET public; PATCH/PUT auth-required

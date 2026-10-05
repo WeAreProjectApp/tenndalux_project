@@ -1,12 +1,23 @@
 # Task Plan — Tenndalux
 
+## Ronda de mejora — 2026-10-02
+
+- [x] Aplicar permisos por rol a las operaciones del CMS.
+- [x] Rechazar campos internos en la captura pública de contactos.
+- [x] Conservar refresh rotado y compartir recuperación entre solicitudes.
+- [x] Incorporar pruebas conductuales de las tres causas y actualizar el mapa de flujos.
+
+La ejecución final sobre el commit limpio y la entrega se acreditan en el
+reporte `improvement-20261002` del toolkit: artefactos por capa, revisión de
+pruebas, PR abierto y CI. La integración conjunta de las tres rondas se valida en el tren de la queue; el deploy pertenece al operador.
+
 ## Ronda de mejora 2 — 2026-10-02
 
 - [x] Descubrir cinco frentes y seleccionar tres causas con el motor canónico.
 - [x] Medir consultas reales en SQLite en memoria, sin producción.
 - [x] Aplicar contrato de bloques, aislamiento de notificación y precarga de listas.
-- [ ] Cerrar una sola QA de backend y gate sobre el SHA definitivo.
-- [ ] Publicar registros y entregar PR abierto con CI verde, sin merge/deploy.
+- [x] Cerrar una sola QA de backend y gate sobre el SHA definitivo.
+- [x] Publicar registros y entregar PR abierto con CI verde, sin deploy.
 
 ## Ready for merge — static-export payload publication
 

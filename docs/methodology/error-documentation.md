@@ -34,6 +34,26 @@ _None currently._
 
 ## Resolved Issues
 
+### [ERR-004] Operaciones del CMS sólo comprobaban autenticación
+- **Date**: 2026-10-02
+- **Context**: Una cuenta viewer creada mediante registro público podía escribir
+  contenido/configuración y leer contactos privados. La captura pública también
+  aceptaba estado y notas internos del CRM.
+- **Root Cause**: Permisos sin comprobación del rol y serializer compartido entre
+  captura pública y administración.
+- **Resolution**: Permisos centralizados editor/admin para contenido y admin para
+  contactos/singleton, con compatibilidad de superusuario. Serializer público
+  separado que rechaza campos internos; administración conserva PATCH.
+
+### [ERR-005] Renovación JWT reutilizaba el refresh revocado
+- **Date**: 2026-10-02
+- **Context**: La segunda renovación podía finalizar una sesión válida, y varios
+  401 concurrentes reutilizaban la misma credencial.
+- **Root Cause**: El cliente descartaba el refresh rotado y cada petición
+  iniciaba su propia renovación, sin el timeout de la instancia central.
+- **Resolution**: Guardar ambos tokens, compartir una renovación por pestaña,
+  aprovechar tokens ya renovados en respuestas tardías y limitar reintentos/red.
+
 ### [ERR-006] Texto anidado incompatible con el renderer
 - **Date**: 2026-10-02
 - **Root Cause**: El validador convertía valores anidados con str y aceptaba

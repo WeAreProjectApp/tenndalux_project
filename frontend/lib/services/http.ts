@@ -8,7 +8,7 @@
  * - Request/response interceptors
  */
 
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
+import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 import Cookies from 'js-cookie';
 
 // API base URL
@@ -17,6 +17,10 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/a
 // Token storage keys
 const ACCESS_TOKEN_KEY = 'access_token';
 const REFRESH_TOKEN_KEY = 'refresh_token';
+const REQUEST_TIMEOUT = 120000;
+
+type RetriableRequest = InternalAxiosRequestConfig & { _retry?: boolean };
+type RefreshResponse = { access: string; refresh: string };
 
 /**
  * Get JWT access token from cookies.
@@ -64,11 +68,47 @@ export function isAuthenticated(): boolean {
 // Create axios instance
 const axiosInstance: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 120000,
+  timeout: REQUEST_TIMEOUT,
   headers: {
     'Content-Type': 'application/json',
   },
 });
+
+// Refresh must not run the response interceptor that it is recovering from.
+const refreshClient = axios.create({
+  baseURL: API_BASE_URL,
+  timeout: REQUEST_TIMEOUT,
+  headers: { 'Content-Type': 'application/json' },
+});
+let refreshInFlight: Promise<string> | null = null;
+
+function endSession(): void {
+  clearTokens();
+  if (typeof window !== 'undefined') {
+    window.location.href = '/auth/login';
+  }
+}
+
+function refreshAccessToken(refreshToken: string): Promise<string> {
+  if (!refreshInFlight) {
+    refreshInFlight = refreshClient.post<RefreshResponse>('/auth/token/refresh/', {
+      refresh: refreshToken,
+    }).then(({ data }) => {
+      if (typeof data?.access !== 'string' || !data.access.trim()
+        || typeof data?.refresh !== 'string' || !data.refresh.trim()) {
+        throw new Error('Invalid token refresh response');
+      }
+      setTokens(data.access, data.refresh);
+      return data.access;
+    }).catch((error) => {
+      endSession();
+      throw error;
+    }).finally(() => {
+      refreshInFlight = null;
+    });
+  }
+  return refreshInFlight;
+}
 
 // Request interceptor to add auth token and custom headers
 axiosInstance.interceptors.request.use(
@@ -95,39 +135,33 @@ axiosInstance.interceptors.request.use(
 // Response interceptor to handle token refresh
 axiosInstance.interceptors.response.use(
   (response) => response,
-  async (error) => {
-    const originalRequest = error.config;
+  async (error: AxiosError) => {
+    const originalRequest = error.config as RetriableRequest | undefined;
     
     // If 401 and we have a refresh token, try to refresh
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
       originalRequest._retry = true;
-      
+
+      // A concurrent request may have already replaced the rejected access token.
+      const currentToken = getAccessToken();
+      if (currentToken && originalRequest.headers.Authorization !== `Bearer ${currentToken}`) {
+        originalRequest.headers.Authorization = `Bearer ${currentToken}`;
+        return axiosInstance(originalRequest);
+      }
+
       const refreshToken = getRefreshToken();
       if (refreshToken) {
         try {
-          const response = await axios.post(`${API_BASE_URL}/auth/token/refresh/`, {
-            refresh: refreshToken,
-          });
-          
-          const { access } = response.data;
-          setTokens(access, refreshToken);
+          const access = await refreshAccessToken(refreshToken);
           
           // Retry original request with new token
           originalRequest.headers.Authorization = `Bearer ${access}`;
           return axiosInstance(originalRequest);
         } catch (refreshError) {
-          // Refresh failed, clear tokens and redirect to login
-          clearTokens();
-          if (typeof window !== 'undefined') {
-            window.location.href = '/auth/login';
-          }
           return Promise.reject(refreshError);
         }
       } else {
-        clearTokens();
-        if (typeof window !== 'undefined') {
-          window.location.href = '/auth/login';
-        }
+        endSession();
       }
     }
     

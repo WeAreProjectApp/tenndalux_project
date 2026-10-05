@@ -1,6 +1,6 @@
 {
-  "version": "1.0.0",
-  "lastUpdated": "2026-07-27",
+  "version": "2.0.0",
+  "lastUpdated": "2026-10-05",
   "flows": {
     "auth-login": {
       "name": "Login",
@@ -9,11 +9,65 @@
         "guest"
       ],
       "priority": "P1",
-      "description": "Authenticate with valid credentials and handle login errors.",
+      "description": "Submit credentials; success reaches Dashboard, invalid credentials show an error, transport failure keeps the form usable.",
       "outcomes": [
         "success",
         "error",
         "failure"
+      ]
+    },
+    "auth-register": {
+      "name": "Register account",
+      "module": "auth",
+      "roles": [
+        "guest"
+      ],
+      "priority": "P2",
+      "description": "Submit registration for a viewer account; validate duplicate email and password confirmation; show request failure.",
+      "outcomes": [
+        "success",
+        "error",
+        "failure"
+      ]
+    },
+    "dashboard-unauthenticated-redirect": {
+      "name": "Protect dashboard",
+      "module": "auth",
+      "roles": [
+        "guest"
+      ],
+      "priority": "P1",
+      "description": "Open Dashboard without session and reach Login.",
+      "outcomes": [
+        "error"
+      ]
+    },
+    "dashboard-profile-display": {
+      "name": "View profile",
+      "module": "dashboard",
+      "roles": [
+        "viewer",
+        "editor",
+        "admin"
+      ],
+      "priority": "P2",
+      "description": "Reach Dashboard after Login and read fixture-backed profile values.",
+      "outcomes": [
+        "display"
+      ]
+    },
+    "dashboard-logout": {
+      "name": "Logout",
+      "module": "dashboard",
+      "roles": [
+        "viewer",
+        "editor",
+        "admin"
+      ],
+      "priority": "P2",
+      "description": "Activate Logout and reach Login with auth cookies cleared.",
+      "outcomes": [
+        "success"
       ]
     },
     "public-home": {
@@ -21,12 +75,329 @@
       "module": "public",
       "roles": [
         "guest",
-        "user"
+        "viewer",
+        "editor",
+        "admin"
       ],
       "priority": "P2",
-      "description": "View the public home/landing page.",
+      "description": "Reach the landing through site navigation and read landing content, including responsive gallery images and the project-video modal.",
       "outcomes": [
         "display"
+      ]
+    },
+    "public-header-navigation": {
+      "name": "Navigate public site",
+      "module": "public",
+      "roles": [
+        "guest",
+        "viewer",
+        "editor",
+        "admin"
+      ],
+      "priority": "P2",
+      "description": "Use header desktop or mobile navigation to reach a public route or contact anchor.",
+      "outcomes": [
+        "success"
+      ]
+    },
+    "public-contact-submit": {
+      "name": "Submit contact request",
+      "module": "leads",
+      "roles": [
+        "guest",
+        "viewer",
+        "editor",
+        "admin"
+      ],
+      "priority": "P1",
+      "description": "Complete labeled contact form; valid capture shows success, required fields prevent invalid submission, rejected requests show recoverable error dialog.",
+      "outcomes": [
+        "success",
+        "error",
+        "failure"
+      ]
+    },
+    "auth-session-refresh-contact": {
+      "name": "Refresh session during contact submission",
+      "module": "auth",
+      "roles": [
+        "viewer",
+        "editor",
+        "admin"
+      ],
+      "priority": "P1",
+      "description": "Seed stale access_token and valid refresh_token cookies locally; submit contact, renew both tokens on 401, replay unchanged payload and confirm success. Rejected refresh clears cookies and redirects to Login.",
+      "outcomes": [
+        "success",
+        "failure"
+      ]
+    },
+    "public-faq-toggle": {
+      "name": "Read FAQ",
+      "module": "public",
+      "roles": [
+        "guest",
+        "viewer",
+        "editor",
+        "admin"
+      ],
+      "priority": "P3",
+      "description": "Activate a question to read its answer and activate again to collapse.",
+      "outcomes": [
+        "success",
+        "display"
+      ]
+    },
+    "public-gallery-video": {
+      "name": "Watch gallery video",
+      "module": "public",
+      "roles": [
+        "guest",
+        "viewer",
+        "editor",
+        "admin"
+      ],
+      "priority": "P3",
+      "description": "Open a gallery video card, read the modal player and close using the video close control.",
+      "outcomes": [
+        "success",
+        "display"
+      ]
+    },
+    "public-brand-video": {
+      "name": "Watch brand video",
+      "module": "public",
+      "roles": [
+        "guest",
+        "viewer",
+        "editor",
+        "admin"
+      ],
+      "priority": "P3",
+      "description": "Open Why Tenndalux video and close modal.",
+      "outcomes": [
+        "success",
+        "display"
+      ]
+    },
+    "public-products-display": {
+      "name": "Browse products",
+      "module": "products",
+      "roles": [
+        "guest",
+        "viewer",
+        "editor",
+        "admin"
+      ],
+      "priority": "P3",
+      "description": "Reach Products through navigation and read static product cards.",
+      "outcomes": [
+        "display"
+      ]
+    },
+    "public-products-filter": {
+      "name": "Filter products",
+      "module": "products",
+      "roles": [
+        "guest",
+        "viewer",
+        "editor",
+        "admin"
+      ],
+      "priority": "P3",
+      "description": "Choose category and read matching product cards.",
+      "outcomes": [
+        "success"
+      ]
+    },
+    "public-product-details": {
+      "name": "Read product details",
+      "module": "products",
+      "roles": [
+        "guest",
+        "viewer",
+        "editor",
+        "admin"
+      ],
+      "priority": "P3",
+      "description": "Select Ver Detalles, read chosen product details and close modal.",
+      "outcomes": [
+        "success",
+        "display"
+      ]
+    },
+    "public-services-display": {
+      "name": "Browse services",
+      "module": "services",
+      "roles": [
+        "guest",
+        "viewer",
+        "editor",
+        "admin"
+      ],
+      "priority": "P2",
+      "description": "Reach Services and read initial curtain solution.",
+      "outcomes": [
+        "display"
+      ]
+    },
+    "public-services-tab": {
+      "name": "Switch service solution",
+      "module": "services",
+      "roles": [
+        "guest",
+        "viewer",
+        "editor",
+        "admin"
+      ],
+      "priority": "P3",
+      "description": "Choose Cortinas, Recubrimientos, Exteriores or Tecnología; choose curtain model where offered.",
+      "outcomes": [
+        "success"
+      ]
+    },
+    "public-services-exterior-mobile-detail": {
+      "name": "Read exterior solution on mobile",
+      "module": "services",
+      "roles": [
+        "guest",
+        "viewer",
+        "editor",
+        "admin"
+      ],
+      "priority": "P3",
+      "description": "Open mobile exterior card, read bottom sheet and close by backdrop.",
+      "outcomes": [
+        "success",
+        "display"
+      ]
+    },
+    "public-blog-list": {
+      "name": "Browse blog",
+      "module": "blog",
+      "roles": [
+        "guest",
+        "viewer",
+        "editor",
+        "admin"
+      ],
+      "priority": "P2",
+      "description": "Navigate to Blog, read API-backed cards; failed request settles to no results.",
+      "outcomes": [
+        "display",
+        "failure"
+      ]
+    },
+    "public-blog-filter": {
+      "name": "Filter blog",
+      "module": "blog",
+      "roles": [
+        "guest",
+        "viewer",
+        "editor",
+        "admin"
+      ],
+      "priority": "P3",
+      "description": "Search or choose tag, read matching cards or no results, then clear filters.",
+      "outcomes": [
+        "success",
+        "display"
+      ]
+    },
+    "public-blog-detail": {
+      "name": "Read article",
+      "module": "blog",
+      "roles": [
+        "guest",
+        "viewer",
+        "editor",
+        "admin"
+      ],
+      "priority": "P2",
+      "description": "Follow article card and read title/content; missing or unavailable article shows return state.",
+      "outcomes": [
+        "display",
+        "failure"
+      ]
+    },
+    "public-blog-share": {
+      "name": "Share article",
+      "module": "blog",
+      "roles": [
+        "guest",
+        "viewer",
+        "editor",
+        "admin"
+      ],
+      "priority": "P4",
+      "description": "Activate Compartir using native share or clipboard fallback; rejected browser integration has no visible feedback.",
+      "outcomes": [
+        "success",
+        "failure"
+      ]
+    },
+    "public-portfolio-list": {
+      "name": "Browse portfolio",
+      "module": "portfolio",
+      "roles": [
+        "guest",
+        "viewer",
+        "editor",
+        "admin"
+      ],
+      "priority": "P2",
+      "description": "Navigate to Portfolio and read API-backed cards; failed request settles to no results.",
+      "outcomes": [
+        "display",
+        "failure"
+      ]
+    },
+    "public-portfolio-filter": {
+      "name": "Filter portfolio",
+      "module": "portfolio",
+      "roles": [
+        "guest",
+        "viewer",
+        "editor",
+        "admin"
+      ],
+      "priority": "P3",
+      "description": "Choose category, read matching projects or no results, reset to Todos.",
+      "outcomes": [
+        "success",
+        "display"
+      ]
+    },
+    "public-portfolio-showreel": {
+      "name": "Watch portfolio showreel",
+      "module": "portfolio",
+      "roles": [
+        "guest",
+        "viewer",
+        "editor",
+        "admin"
+      ],
+      "priority": "P3",
+      "description": "Open showreel, select next or previous video, close overlay.",
+      "outcomes": [
+        "success",
+        "display"
+      ]
+    },
+    "public-portfolio-detail": {
+      "name": "Read project",
+      "module": "portfolio",
+      "roles": [
+        "guest",
+        "viewer",
+        "editor",
+        "admin"
+      ],
+      "priority": "P2",
+      "description": "Follow project card and read title/content; missing or unavailable project shows return state.",
+      "outcomes": [
+        "display",
+        "failure"
       ]
     }
   }
