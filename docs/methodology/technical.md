@@ -1,5 +1,19 @@
 # Technical Reference — Tenndalux
 
+## Verificación de la ronda 2 (2026-10-02)
+
+Los tests usan variables explícitas: `DJANGO_ENV=development`,
+`DJANGO_DB_ENGINE=django.db.backends.sqlite3`, `DJANGO_DB_NAME=:memory:` y
+`ENABLE_SILK=False`. El Python de pruebas existente se usa sin modificarlo;
+no participa la base del servicio. SMTP/cola se controlan en sus fronteras.
+
+El presupuesto de listados deriva de producción: vps-projectapp-prod,
+4 vCPU/15 GB RAM, dos workers, un thread, CPUQuota 40%, MemoryMax 250M y
+máximo seis consultas. La copia del estándar vive en
+`docs/PERFORMANCE_STANDARDS.md`; detalles/bundle/cardinalidad quedan fuera
+de la corrección de listas. Las fixtures 1→20 se crean fuera de la medición;
+`page_size` no modifica la paginación actual.
+
 > **Static export 2026-08-29:** `build_to_django.sh` delegates recursive `.txt`
 > publication to `scripts/copy-static-export-payloads.sh`. Relative route paths
 > are preserved under `backend/static/`; stale generated payload groups are

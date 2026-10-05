@@ -58,21 +58,44 @@ def _lista_de_textos(value):
     return None
 
 
-def _objetos(*campos):
+def _objetos(*campos, optional=()):
     esperado = ', '.join(campos)
+    item_fields = {
+        'required': {campo: _texto for campo in campos},
+        'optional': {campo: _texto for campo in optional},
+    }
+    allowed_fields = set(item_fields['required']) | set(item_fields['optional'])
 
     def validar(value):
         if not isinstance(value, list) or not value:
             return f'debe ser una lista con al menos un objeto con {esperado}'
+        errors = []
         for position, item in enumerate(value, start=1):
             if not isinstance(item, dict):
-                return f'el elemento {position} debe ser un objeto con {esperado}'
-            faltan = [campo for campo in campos if not str(item.get(campo, '')).strip()]
-            if faltan:
-                return f'al elemento {position} le faltan: {", ".join(faltan)}'
-        return None
+                errors.append(f'el elemento {position} debe ser un objeto con {esperado}')
+                continue
+            unknown_fields = sorted(set(item) - allowed_fields)
+            if unknown_fields:
+                errors.append(
+                    f'el elemento {position}: campos no reconocidos: '
+                    f'{", ".join(unknown_fields)}. '
+                    f'Acepta: {", ".join(sorted(allowed_fields))}'
+                )
+            for group in ('required', 'optional'):
+                for campo, validator in item_fields[group].items():
+                    if campo not in item:
+                        if group == 'required':
+                            errors.append(f'al elemento {position} le falta el campo "{campo}"')
+                        continue
+                    problem = validator(item[campo])
+                    if problem:
+                        errors.append(f'el elemento {position}: "{campo}" {problem}')
+        return '; '.join(errors) if errors else None
 
-    validar.description = 'lista de objetos con ' + esperado
+    validar.item_fields = item_fields
+    validar.description = 'lista de objetos con textos no vacíos: ' + esperado + ' (obligatorios)'
+    if optional:
+        validar.description += '; ' + ', '.join(optional) + ' (opcionales)'
     return validar
 
 
@@ -115,7 +138,7 @@ BLOCK_TYPES = {
     },
     'linea_de_tiempo': {
         'description': 'Pasos en orden, para procesos o cronogramas.',
-        'required': {'steps': _objetos('step', 'description')},
+        'required': {'steps': _objetos('step', 'description', optional=('duration',))},
         'optional': {'heading': _texto},
     },
     'metricas': {
@@ -181,6 +204,9 @@ def validate_content_blocks(blocks):
             continue
 
         tipo = block.get('type')
+        if not isinstance(tipo, str):
+            errores.append(f'{etiqueta}: "type" debe ser un texto de la lista de tipos disponibles.')
+            continue
         spec = BLOCK_TYPES.get(tipo)
         if spec is None:
             disponibles = ', '.join(sorted(BLOCK_TYPES))
@@ -308,6 +334,18 @@ _EXAMPLE = [
 ]
 
 
+def _build_fields_schema(spec):
+    fields = {}
+    for group, required in (('required', True), ('optional', False)):
+        for campo, validator in spec[group].items():
+            field_schema = {'obligatorio': required, 'formato': validator.description}
+            item_fields = getattr(validator, 'item_fields', None)
+            if item_fields is not None:
+                field_schema['campos'] = _build_fields_schema(item_fields)
+            fields[campo] = field_schema
+    return fields
+
+
 def build_blocks_schema():
     """
     El catálogo en JSON, para que la IA lea la forma exacta y no la deduzca.
@@ -319,10 +357,7 @@ def build_blocks_schema():
 
     for tipo, spec in sorted(BLOCK_TYPES.items()):
         campos = {'type': {'obligatorio': True, 'valor': tipo}}
-        for campo, validador in spec['required'].items():
-            campos[campo] = {'obligatorio': True, 'formato': validador.description}
-        for campo, validador in spec['optional'].items():
-            campos[campo] = {'obligatorio': False, 'formato': validador.description}
+        campos.update(_build_fields_schema(spec))
 
         schema[tipo] = {'descripcion': spec['description'], 'campos': campos}
 

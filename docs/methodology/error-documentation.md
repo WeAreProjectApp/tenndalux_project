@@ -54,6 +54,28 @@ _None currently._
 - **Resolution**: Guardar ambos tokens, compartir una renovación por pestaña,
   aprovechar tokens ya renovados en respuestas tardías y limitar reintentos/red.
 
+### [ERR-006] Texto anidado incompatible con el renderer
+- **Date**: 2026-10-02
+- **Root Cause**: El validador convertía valores anidados con str y aceptaba
+  objetos/null; un type lista/objeto además causaba TypeError.
+- **Resolution**: Validar textos y claves desde una definición compartida,
+  duration opcional explícita y tipos malformados como errores acumulados.
+  Esquema/guía usan las mismas reglas. No se modifica contenido guardado.
+
+### [ERR-007] Error de cola después de persistir un contacto
+- **Date**: 2026-10-02
+- **Root Cause**: La llamada a Huey se propagaba tras serializer.save().
+- **Resolution**: Aislar sólo el despacho secundario, conservar 201 y contacto,
+  registrar el tipo de error sin datos sensibles. Sin retry ni correo inline.
+
+### [ERR-008] Consultas por elemento en los listados
+- **Date**: 2026-10-02
+- **Root Cause**: Serializers consultaban relaciones e imágenes por objeto.
+- **Resolution**: Precargar relaciones y resolver imágenes de bloques una vez
+  por lista, conservando datos y fallback individual. La medición inicial de
+  poblaciones 1→20 fue proyectos 8→122, posts 6→82 y contactos 5→62 consultas.
+  El detalle y la cardinalidad de destacados mantienen revisión separada.
+
 ### [KNOWN-001] Project suspension (RESOLVED 2026-05-07)
 - **Date**: 2026-03-17 → 2026-05-07
 - **Context**: Services stopped 2026-03-17 due to non-payment. MySQL database and media files were preserved throughout.

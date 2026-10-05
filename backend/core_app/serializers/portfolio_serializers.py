@@ -1,6 +1,10 @@
 from rest_framework import serializers
 
-from core_app.serializers.fields import ContentBlocksField, library_image_url
+from core_app.serializers.fields import (
+    ContentBlocksField,
+    ContentBlocksListSerializer,
+    library_image_url,
+)
 
 from core_app.models import Category, Style, Space, Project
 
@@ -59,6 +63,7 @@ class ProjectSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Project
+        list_serializer_class = ContentBlocksListSerializer
         fields = [
             'id',
             'title',

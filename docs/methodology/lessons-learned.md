@@ -130,6 +130,18 @@ The deploy environment (`vps-projectapp-staging`) is live and client-facing; dep
 
 ## Known Tech Debt
 
+### Reglas comprobadas en la ronda 2 — 2026-10-02
+
+- Validar el tipo real de cada texto JSON antes de guardarlo. `str(value)`
+  convierte objetos y null en aparentes textos y deja un contrato que React
+  no puede cumplir. Generar la guía desde los mismos validadores.
+- El guardado de un contacto y su aviso por correo tienen resultados distintos.
+  Un fallo de cola posterior al guardado debe conservar el éxito de captura;
+  registrar sólo el tipo de error, sin copiar el mensaje del proveedor.
+- La precarga de relaciones no elimina consultas de ContentImage realizadas
+  desde campos personalizados. Resolver los IDs para la página completa y
+  delimitar el mapa a esa representación, incluso con serializers anidados.
+
 - `GalleryField` integration incomplete — serializers don't yet uniformly expose gallery URLs
 - `next-intl` is configured but most components still hardcode Spanish strings — migration in progress
 - The frontend build → deploy step (`build_to_django.sh`) is operator-run — no automation beyond the script itself

@@ -1,3 +1,5 @@
+import logging
+
 from rest_framework import viewsets, permissions
 
 from core_app.models import LeadStatus, Lead
@@ -7,6 +9,9 @@ from core_app.serializers.leads_serializers import LeadCaptureSerializer
 from core_app.tasks import send_lead_notification
 
 
+logger = logging.getLogger(__name__)
+
+
 class LeadStatusViewSet(viewsets.ModelViewSet):
     queryset = LeadStatus.objects.all()
     serializer_class = LeadStatusSerializer
@@ -14,7 +19,7 @@ class LeadStatusViewSet(viewsets.ModelViewSet):
 
 
 class LeadViewSet(viewsets.ModelViewSet):
-    queryset = Lead.objects.all()
+    queryset = Lead.objects.select_related('project_type', 'status').prefetch_related('space_types')
     serializer_class = LeadSerializer
 
     def get_serializer_class(self):
@@ -29,6 +34,12 @@ class LeadViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         lead = serializer.save()
-        # Queued, never inline: a slow or broken SMTP must not turn a captured
-        # lead into a 500 for the person who just filled the form.
-        send_lead_notification(lead.pk)
+        # Notification dispatch is secondary to storing the captured lead.
+        try:
+            send_lead_notification(lead.pk)
+        except Exception as exc:
+            logger.warning(
+                'Lead notification dispatch failed: error_type=%s',
+                type(exc).__name__,
+                extra={'error_type': type(exc).__name__},
+            )
