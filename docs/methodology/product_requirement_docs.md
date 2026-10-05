@@ -42,6 +42,8 @@ Tenndalux is a landing site and portfolio CMS for an **interior design / decorat
 - Leads capture: full name, email, phone, city, project type (FK to Category), space types (M2M to Space), message, budget range, how they found us, UTM params, source field
 - Lead statuses (`LeadStatus`) for CRM pipeline management
 - Public POST (no auth); admin-only GET/PATCH
+- La captura pública rechaza `status`, `status_id` y `notes`; esos datos internos
+  no forman parte de su respuesta. El administrador los gestiona mediante PATCH.
 - Leads managed exclusively through the Django Admin dashboard
 
 ### 5. Site Settings (Singleton CMS)
@@ -52,7 +54,8 @@ Tenndalux is a landing site and portfolio CMS for an **interior design / decorat
 
 ### 6. Admin Dashboard
 - Django Admin with custom configuration for all models
-- Content managers (role `editor`) and admins can manage portfolio, blog, services, leads, site settings
+- Content managers (role `editor`) and admins manage portfolio, blog and services.
+- Sólo administradores gestionan contactos, estados de contactos y las páginas/configuración del sitio.
 - Viewers have read-only access
 
 ### 7. Authentication
@@ -60,6 +63,8 @@ Tenndalux is a landing site and portfolio CMS for an **interior design / decorat
 - Roles: `admin`, `editor`, `viewer`
 - JWT-only for `/api/` (1d access, 7d refresh, rotate + blacklist)
 - Session auth for `/admin/` only
+- El cliente conserva ambos tokens de cada renovación y comparte la renovación
+  entre solicitudes concurrentes de una pestaña; cada solicitud se reintenta una vez.
 
 ---
 
@@ -100,20 +105,20 @@ Tenndalux is a landing site and portfolio CMS for an **interior design / decorat
 | `POST /api/auth/token/refresh/` | Token refresh | Public |
 | `GET /api/auth/profile/` | Get own profile | JWT required |
 | `PATCH /api/auth/profile/update/` | Update own profile | JWT required |
-| `GET/POST/PUT/PATCH/DELETE /api/portfolio/categories/` | Category CRUD | GET: public; write: auth |
-| `GET/POST/PUT/PATCH/DELETE /api/portfolio/styles/` | Style CRUD | GET: public; write: auth |
-| `GET/POST/PUT/PATCH/DELETE /api/portfolio/spaces/` | Space CRUD | GET: public; write: auth |
-| `GET/POST/PUT/PATCH/DELETE /api/portfolio/projects/` | Project CRUD | GET: public (published only); write: auth |
-| `GET/POST/... /api/blog/tags/` | Tag CRUD | GET: public; write: auth |
-| `GET/POST/... /api/blog/posts/` | Post CRUD | GET: public (published only); write: auth |
-| `GET/POST/... /api/services/services/` | Service CRUD | GET: public (active only); write: auth |
-| `GET/POST/... /api/services/process-steps/` | ProcessStep CRUD | GET: public (active only); write: auth |
-| `GET/POST/... /api/leads/statuses/` | LeadStatus CRUD | GET: public; write: auth |
+| `GET/POST/PUT/PATCH/DELETE /api/portfolio/categories/` | Category CRUD | GET: public; write: editor/admin |
+| `GET/POST/PUT/PATCH/DELETE /api/portfolio/styles/` | Style CRUD | GET: public; write: editor/admin |
+| `GET/POST/PUT/PATCH/DELETE /api/portfolio/spaces/` | Space CRUD | GET: public; write: editor/admin |
+| `GET/POST/PUT/PATCH/DELETE /api/portfolio/projects/` | Project CRUD | GET: public (published only); write: editor/admin |
+| `GET/POST/... /api/blog/tags/` | Tag CRUD | GET: public; write: editor/admin |
+| `GET/POST/... /api/blog/posts/` | Post CRUD | GET: public (published only); write: editor/admin |
+| `GET/POST/... /api/services/services/` | Service CRUD | GET: public (active only); write: editor/admin |
+| `GET/POST/... /api/services/process-steps/` | ProcessStep CRUD | GET: public (active only); write: editor/admin |
+| `GET/POST/... /api/leads/statuses/` | LeadStatus CRUD | GET: public; write: admin |
 | `POST /api/leads/leads/` | Create lead | Public |
-| `GET/PUT/PATCH /api/leads/leads/` | Manage leads | Auth required |
-| `GET/PUT/PATCH /api/site/settings/` | Site settings | GET: public; write: auth |
-| `GET/PUT/PATCH /api/site/home/` | Home page content | GET: public; write: auth |
-| `GET/PUT/PATCH /api/site/about/` | About page content | GET: public; write: auth |
+| `GET/PUT/PATCH /api/leads/leads/` | Manage leads | Admin required |
+| `GET/PUT/PATCH /api/site/settings/` | Site settings | GET: public; write: admin |
+| `GET/PUT/PATCH /api/site/home/` | Home page content | GET: public; write: admin |
+| `GET/PUT/PATCH /api/site/about/` | About page content | GET: public; write: admin |
 | `GET /api/health/` | Health check | Public |
 
 ---

@@ -1,14 +1,12 @@
-from rest_framework import generics, permissions
+from rest_framework import generics
 
 from core_app.models import SiteSettings, HomePage, AboutPage
+from core_app.permissions import IsRoleAdminOrReadOnly
 from core_app.serializers import SiteSettingsSerializer, HomePageSerializer, AboutPageSerializer
 
 
 class _SingletonPermissionsMixin:
-    def get_permissions(self):
-        if self.request.method in ('GET', 'HEAD', 'OPTIONS'):
-            return [permissions.AllowAny()]
-        return [permissions.IsAuthenticated()]
+    permission_classes = [IsRoleAdminOrReadOnly]
 
 
 class SiteSettingsView(_SingletonPermissionsMixin, generics.RetrieveUpdateAPIView):
