@@ -41,6 +41,7 @@ export default function Contact() {
 
 function ContactForm() {
   const t = useTranslations('contact');
+  const [isInteractive, setIsInteractive] = useState(false);
   const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = useState<ContactFeedbackStatus | null>(null);
   const [form, setForm] = useState(EMPTY_FORM);
@@ -55,6 +56,10 @@ function ContactForm() {
   const sectionRef = useRef<HTMLElement>(null);
   const leftRef = useRef<HTMLDivElement>(null);
   const rightRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setIsInteractive(true);
+  }, []);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -188,131 +193,133 @@ function ContactForm() {
               <p className="text-stone-500 text-lg leading-relaxed">Completa el formulario y te contactaremos.</p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label htmlFor="name" className="text-sm font-medium text-stone-700">Nombre</label>
-                  <input
-                    type="text"
-                    id="name"
-                    required
-                    value={form.name}
-                    onChange={(e) => setField('name', e.target.value)}
-                    className="w-full px-4 py-3.5 rounded-xl border border-stone-200 bg-stone-50/80 text-stone-900 focus:bg-white focus:ring-2 focus:ring-stone-900 focus:border-transparent outline-none transition-all placeholder:text-stone-400 text-base"
-                    placeholder="Tu nombre"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label htmlFor="lastname" className="text-sm font-medium text-stone-700">Apellido</label>
-                  <input
-                    type="text"
-                    id="lastname"
-                    required
-                    value={form.lastname}
-                    onChange={(e) => setField('lastname', e.target.value)}
-                    className="w-full px-4 py-3.5 rounded-xl border border-stone-200 bg-stone-50/80 text-stone-900 focus:bg-white focus:ring-2 focus:ring-stone-900 focus:border-transparent outline-none transition-all placeholder:text-stone-400 text-base"
-                    placeholder="Tu apellido"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label htmlFor="email" className="text-sm font-medium text-stone-700">Email</label>
-                <input
-                  type="email"
-                  id="email"
-                  required
-                  value={form.email}
-                  onChange={(e) => setField('email', e.target.value)}
-                  className="w-full px-4 py-3.5 rounded-xl border border-stone-200 bg-stone-50/80 text-stone-900 focus:bg-white focus:ring-2 focus:ring-stone-900 focus:border-transparent outline-none transition-all placeholder:text-stone-400 text-base"
-                  placeholder="ejemplo@correo.com"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label htmlFor="phone" className="text-sm font-medium text-stone-700">Teléfono</label>
-                <input
-                  type="tel"
-                  id="phone"
-                  required
-                  value={form.phone}
-                  onChange={(e) => setField('phone', e.target.value)}
-                  className="w-full px-4 py-3.5 rounded-xl border border-stone-200 bg-stone-50/80 text-stone-900 focus:bg-white focus:ring-2 focus:ring-stone-900 focus:border-transparent outline-none transition-all placeholder:text-stone-400 text-base"
-                  placeholder="+57 (300) 000-0000"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label htmlFor="interest" className="text-sm font-medium text-stone-700">Me interesa</label>
-                <div className="relative">
-                  <select
-                    id="interest"
-                    value={form.interest}
-                    onChange={(e) => setField('interest', e.target.value)}
-                    className="w-full px-4 py-3.5 pr-12 rounded-xl border border-stone-200 bg-stone-50/80 text-stone-900 focus:bg-white focus:ring-2 focus:ring-stone-900 focus:border-transparent outline-none transition-all appearance-none text-base cursor-pointer"
-                  >
-                    {INTERESTS.map((option) => (
-                      <option key={option.value} value={option.value}>{option.label}</option>
-                    ))}
-                  </select>
-                  <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-stone-500">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
-                    </svg>
+            <form onSubmit={handleSubmit}>
+              <fieldset disabled={!isInteractive} className="m-0 min-w-0 space-y-6 border-0 p-0">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label htmlFor="name" className="text-sm font-medium text-stone-700">Nombre</label>
+                    <input
+                      type="text"
+                      id="name"
+                      required
+                      value={form.name}
+                      onChange={(e) => setField('name', e.target.value)}
+                      className="w-full px-4 py-3.5 rounded-xl border border-stone-200 bg-stone-50/80 text-stone-900 focus:bg-white focus:ring-2 focus:ring-stone-900 focus:border-transparent outline-none transition-all placeholder:text-stone-400 text-base"
+                      placeholder="Tu nombre"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label htmlFor="lastname" className="text-sm font-medium text-stone-700">Apellido</label>
+                    <input
+                      type="text"
+                      id="lastname"
+                      required
+                      value={form.lastname}
+                      onChange={(e) => setField('lastname', e.target.value)}
+                      className="w-full px-4 py-3.5 rounded-xl border border-stone-200 bg-stone-50/80 text-stone-900 focus:bg-white focus:ring-2 focus:ring-stone-900 focus:border-transparent outline-none transition-all placeholder:text-stone-400 text-base"
+                      placeholder="Tu apellido"
+                    />
                   </div>
                 </div>
-              </div>
 
-              <div className="space-y-2">
-                <label htmlFor="space-count" className="block text-sm font-medium text-stone-700">{t('spacesCountLabel')}</label>
-                <p id="space-count-help" className="text-sm text-stone-500">{t('optional')}</p>
-                <input
-                  type="number"
-                  id="space-count"
-                  min={1}
-                  max={2147483647}
-                  step={1}
-                  inputMode="numeric"
-                  value={form.spacesCount}
-                  onChange={(e) => setField('spacesCount', e.target.value)}
-                  onInvalid={() => setFieldErrors((current) => ({ ...current, spacesCount: t('spacesCountError') }))}
-                  aria-invalid={Boolean(fieldErrors.spacesCount)}
-                  aria-describedby={`space-count-help${fieldErrors.spacesCount ? ' space-count-error' : ''}`}
-                  className="w-full px-4 py-3.5 rounded-xl border border-stone-200 bg-stone-50/80 text-stone-900 focus:bg-white focus:ring-2 focus:ring-stone-900 focus:border-transparent outline-none transition-all placeholder:text-stone-400 text-base"
-                  placeholder={t('spacesCountPlaceholder')}
-                />
-                {fieldErrors.spacesCount && <p id="space-count-error" role="alert" className="text-sm text-red-700">{fieldErrors.spacesCount}</p>}
-              </div>
+                <div className="space-y-2">
+                  <label htmlFor="email" className="text-sm font-medium text-stone-700">Email</label>
+                  <input
+                    type="email"
+                    id="email"
+                    required
+                    value={form.email}
+                    onChange={(e) => setField('email', e.target.value)}
+                    className="w-full px-4 py-3.5 rounded-xl border border-stone-200 bg-stone-50/80 text-stone-900 focus:bg-white focus:ring-2 focus:ring-stone-900 focus:border-transparent outline-none transition-all placeholder:text-stone-400 text-base"
+                    placeholder="ejemplo@correo.com"
+                  />
+                </div>
 
-              <div className="space-y-2">
-                <label htmlFor="project-location" className="block text-sm font-medium text-stone-700">{t('locationLabel')}</label>
-                <p id="project-location-help" className="text-sm text-stone-500">{t('optional')}</p>
-                <input
-                  type="text"
-                  id="project-location"
-                  maxLength={120}
-                  value={form.location}
-                  onChange={(e) => setField('location', e.target.value)}
-                  aria-invalid={Boolean(fieldErrors.location)}
-                  aria-describedby={`project-location-help${fieldErrors.location ? ' project-location-error' : ''}`}
-                  className="w-full px-4 py-3.5 rounded-xl border border-stone-200 bg-stone-50/80 text-stone-900 focus:bg-white focus:ring-2 focus:ring-stone-900 focus:border-transparent outline-none transition-all placeholder:text-stone-400 text-base"
-                  placeholder={t('locationPlaceholder')}
-                />
-                {fieldErrors.location && <p id="project-location-error" role="alert" className="text-sm text-red-700">{fieldErrors.location}</p>}
-              </div>
+                <div className="space-y-2">
+                  <label htmlFor="phone" className="text-sm font-medium text-stone-700">Teléfono</label>
+                  <input
+                    type="tel"
+                    id="phone"
+                    required
+                    value={form.phone}
+                    onChange={(e) => setField('phone', e.target.value)}
+                    className="w-full px-4 py-3.5 rounded-xl border border-stone-200 bg-stone-50/80 text-stone-900 focus:bg-white focus:ring-2 focus:ring-stone-900 focus:border-transparent outline-none transition-all placeholder:text-stone-400 text-base"
+                    placeholder="+57 (300) 000-0000"
+                  />
+                </div>
 
-              <button
-                ref={submitRef}
-                type="submit"
-                disabled={loading}
-                className="w-full bg-stone-900 text-white font-semibold py-5 rounded-full hover:bg-stone-800 transition-all duration-300 shadow-lg hover:shadow-xl mt-4 disabled:opacity-70 disabled:cursor-not-allowed text-lg"
-              >
-                {loading ? 'Enviando...' : 'Enviar Solicitud'}
-              </button>
+                <div className="space-y-2">
+                  <label htmlFor="interest" className="text-sm font-medium text-stone-700">Me interesa</label>
+                  <div className="relative">
+                    <select
+                      id="interest"
+                      value={form.interest}
+                      onChange={(e) => setField('interest', e.target.value)}
+                      className="w-full px-4 py-3.5 pr-12 rounded-xl border border-stone-200 bg-stone-50/80 text-stone-900 focus:bg-white focus:ring-2 focus:ring-stone-900 focus:border-transparent outline-none transition-all appearance-none text-base cursor-pointer"
+                    >
+                      {INTERESTS.map((option) => (
+                        <option key={option.value} value={option.value}>{option.label}</option>
+                      ))}
+                    </select>
+                    <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-stone-500">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+                      </svg>
+                    </div>
+                  </div>
+                </div>
 
-              <p className="text-xs text-stone-400 text-center mt-4 font-light">
-                Al enviar aceptas nuestra política de privacidad.
-              </p>
+                <div className="space-y-2">
+                  <label htmlFor="space-count" className="block text-sm font-medium text-stone-700">{t('spacesCountLabel')}</label>
+                  <p id="space-count-help" className="text-sm text-stone-500">{t('optional')}</p>
+                  <input
+                    type="number"
+                    id="space-count"
+                    min={1}
+                    max={2147483647}
+                    step={1}
+                    inputMode="numeric"
+                    value={form.spacesCount}
+                    onChange={(e) => setField('spacesCount', e.target.value)}
+                    onInvalid={() => setFieldErrors((current) => ({ ...current, spacesCount: t('spacesCountError') }))}
+                    aria-invalid={Boolean(fieldErrors.spacesCount)}
+                    aria-describedby={`space-count-help${fieldErrors.spacesCount ? ' space-count-error' : ''}`}
+                    className="w-full px-4 py-3.5 rounded-xl border border-stone-200 bg-stone-50/80 text-stone-900 focus:bg-white focus:ring-2 focus:ring-stone-900 focus:border-transparent outline-none transition-all placeholder:text-stone-400 text-base"
+                    placeholder={t('spacesCountPlaceholder')}
+                  />
+                  {fieldErrors.spacesCount && <p id="space-count-error" role="alert" className="text-sm text-red-700">{fieldErrors.spacesCount}</p>}
+                </div>
+
+                <div className="space-y-2">
+                  <label htmlFor="project-location" className="block text-sm font-medium text-stone-700">{t('locationLabel')}</label>
+                  <p id="project-location-help" className="text-sm text-stone-500">{t('optional')}</p>
+                  <input
+                    type="text"
+                    id="project-location"
+                    maxLength={120}
+                    value={form.location}
+                    onChange={(e) => setField('location', e.target.value)}
+                    aria-invalid={Boolean(fieldErrors.location)}
+                    aria-describedby={`project-location-help${fieldErrors.location ? ' project-location-error' : ''}`}
+                    className="w-full px-4 py-3.5 rounded-xl border border-stone-200 bg-stone-50/80 text-stone-900 focus:bg-white focus:ring-2 focus:ring-stone-900 focus:border-transparent outline-none transition-all placeholder:text-stone-400 text-base"
+                    placeholder={t('locationPlaceholder')}
+                  />
+                  {fieldErrors.location && <p id="project-location-error" role="alert" className="text-sm text-red-700">{fieldErrors.location}</p>}
+                </div>
+
+                <button
+                  ref={submitRef}
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-stone-900 text-white font-semibold py-5 rounded-full hover:bg-stone-800 transition-all duration-300 shadow-lg hover:shadow-xl mt-4 disabled:opacity-70 disabled:cursor-not-allowed text-lg"
+                >
+                  {loading ? 'Enviando...' : 'Enviar Solicitud'}
+                </button>
+
+                <p className="text-xs text-stone-400 text-center mt-4 font-light">
+                  Al enviar aceptas nuestra política de privacidad.
+                </p>
+              </fieldset>
             </form>
           </div>
         </div>

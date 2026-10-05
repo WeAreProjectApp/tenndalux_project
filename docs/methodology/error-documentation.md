@@ -10,6 +10,15 @@
   para desarrollo y guard previo al static export para destinos no aptos.
   La publicación de la corrección requiere build/deploy del operador.
 
+### [ERR-010] Primera respuesta perdida durante inicialización del formulario
+- **Date**: 2026-10-05
+- **Context**: El CI mostró Nombre vacío después de rellenar los demás campos.
+- **Root Cause**: El HTML SSG admitía interacción antes de conectar los handlers
+  del cliente; la inicialización podía restaurar el estado vacío.
+- **Resolution**: Controles deshabilitados hasta el primer effect de montaje.
+  La prueba de reenvío espera cierre del diálogo y retorno del foco. Sin cambios
+  de JWT, timeouts ni criterios de envío. Ambos specs locales pasan 12/12.
+
 This file tracks known errors, their context, and resolutions. When a non-trivial bug is fixed during development, document it here.
 
 ### [ERR-001] Route-scoped Next payloads returned 404

@@ -71,12 +71,15 @@ test('contact submission rotates both tokens across two expired sessions', {
   await visitContactForm(page);
 
   await fillContactForm(page);
-  await page.getByRole('button', { name: 'Enviar Solicitud' }).click();
+  const submit = page.getByRole('button', { name: 'Enviar Solicitud' });
+  await submit.click();
   await expect(page.getByRole('dialog')).toHaveText(/¡Solicitud enviada!/);
   await page.getByRole('button', { name: 'Cerrar' }).click();
+  await expect(page.getByRole('dialog')).toBeHidden();
+  await expect(submit).toBeFocused();
 
   await fillContactForm(page);
-  await page.getByRole('button', { name: 'Enviar Solicitud' }).click();
+  await submit.click();
   await expect(page.getByRole('dialog')).toHaveText(/¡Solicitud enviada!/);
 
   expect(leadAttempts).toEqual([

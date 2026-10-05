@@ -61,8 +61,8 @@ el config, antes del export. El código se verificará de nuevo tras el commit.
 
 La ejecución en navegador detectó pérdida de foco al deshabilitar el submit;
 el diálogo recibe ahora una referencia explícita al botón para restaurarlo.
-Las mediciones portrait esperan estabilidad de animaciones, y la navegación
-compact abre el menú real. Auditoría de flujos: contacto pasa a covered con
+Las mediciones portrait esperan estabilidad de animaciones. Auditoría de flujos:
+contacto pasa a covered con
 success/error/failure; total 3 covered / 23 missing / 0 junk-only, sin cerrar
 deuda de otros módulos. Registro y tags: 26/26 sincronizados.
 
@@ -73,6 +73,22 @@ del proyecto para pruebas HTTP. La autoría final pasó 12 casos backend y
 20 unit, conservando los 10 E2E; la verificación final limpia agrega regresión
 de SMTP/cola, formulario anterior y renovación JWT. Sus artefactos se asocian
 al SHA probado en `test-results/contact-form/verification.json`.
+
+### Corrección de la inicialización detectada por CI
+
+El primer CI dejó Nombre vacío tras llenar los demás campos y el envío no
+abrió diálogo: el HTML exportado admitía entrada antes de que React conectara
+los controles. El formulario ahora agrupa los controles en un fieldset
+deshabilitado hasta el primer effect, conservando tamaños y separación.
+El test de dos renovaciones espera el cierre del diálogo y el retorno del foco
+antes de llenar una segunda solicitud; la lógica JWT permanece igual.
+
+Los tests del contacto entran por `/#contacto`: probar el menú animado del
+Header es otro flujo, que conserva su brecha y no recibe crédito. Esto evita
+mezclar su inicialización con la captura. Se conservaron campos, payloads,
+resultados, matrices y reglas de validación; sin force clicks, incremento de
+timeouts ni retries. Revalidación del fix: fallos exactos 2/2 y ambos specs
+12/12, sin skips, fallos ni flaky. Artefactos `e2e-heal*.json` en el worktree.
 
 El Engineer E2E no pudo abrirse por límite de threads; el conductor escribió
 la spec siguiendo el brief del Architect. Backend y unit fueron escritos por

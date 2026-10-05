@@ -12,10 +12,7 @@ const leadPayload = {
 async function visitContact(page: Page) {
   await page.route('https://apis.google.com/**', (route) => route.abort());
   await page.route('https://www.gstatic.com/**', (route) => route.abort());
-  await page.goto('/', { waitUntil: 'domcontentloaded' });
-  const menu = page.getByRole('button', { name: 'Toggle menu', exact: true });
-  if (await menu.isVisible()) await menu.click();
-  await page.getByRole('link', { name: 'Contáctanos', exact: true }).filter({ visible: true }).click();
+  await page.goto('/#contacto', { waitUntil: 'domcontentloaded' });
   await page.getByLabel('Nombre', { exact: true }).fill('Ana');
   await page.getByLabel('Apellido', { exact: true }).fill('Pérez');
   await page.getByLabel('Email', { exact: true }).fill('ana.perez@example.com');

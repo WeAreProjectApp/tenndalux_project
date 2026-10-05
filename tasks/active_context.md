@@ -16,6 +16,12 @@ export local y gate estricto con lint disponible sin hallazgos. Queda la
 ejecución final sobre commit limpio y CI, sin solicitudes reales al sitio ni
 correos externos.
 
+El CI detectó que el HTML aceptaba la primera entrada antes de hidratar.
+La corrección conserva el formulario deshabilitado hasta conectar sus handlers.
+Reenvío espera el cierre real del diálogo antes de llenar otra solicitud;
+dos specs de contacto/JWT pasaron 12/12 tras la corrección. CI se debe repetir
+sobre el commit corregido antes del merge.
+
 No se modifica el toolkit: motor de mejora en preview, cores de QA con resultados
 en este worktree y reporte en `docs/audits/2026-10-05-contact-form.md`.
 El cierre autorizado es PR verde seguido de `$merge-when-green`, solicitado
