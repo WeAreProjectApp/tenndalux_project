@@ -1,5 +1,32 @@
 # Active context
 
+## Tarea actual — formulario de asesoría (2026-10-05)
+
+Trabajo aislado en `fix/05102026-contact-form`, desde `origin/master`.
+El operador eligió dos preguntas opcionales: cantidad entera de espacios y
+ubicación libre. Ubicación usa `city`; `spaces_count` es nullable y requiere la
+migración aditiva 0006. Ambas respuestas viajan al CRM y al aviso de correo.
+
+El bundle público inspeccionado por GET incorporaba `http://localhost:8000/api`.
+El cliente ahora usa `/api` por defecto en producción y el config de Next
+rechaza un destino local antes de exportar. Desarrollo conserva su API separada.
+La ronda también corrige foco/controles del diálogo y ancho de inputs en portrait.
+La validación inicial pasó: 9 casos nuevos backend, 19 unit, 10 E2E sobre el
+export local y gate estricto con lint disponible sin hallazgos. Queda la
+ejecución final sobre commit limpio y CI, sin solicitudes reales al sitio ni
+correos externos.
+
+El CI detectó que el HTML aceptaba la primera entrada antes de hidratar.
+La corrección conserva el formulario deshabilitado hasta conectar sus handlers.
+Reenvío espera el cierre real del diálogo antes de llenar otra solicitud;
+dos specs de contacto/JWT pasaron 12/12 tras la corrección. CI se debe repetir
+sobre el commit corregido antes del merge.
+
+No se modifica el toolkit: motor de mejora en preview, cores de QA con resultados
+en este worktree y reporte en `docs/audits/2026-10-05-contact-form.md`.
+El cierre autorizado es PR verde seguido de `$merge-when-green`, solicitado
+expresamente por el operador. Deploy y migración siguen siendo operator-run.
+
 ## Monitoreo local — 2026-09-19
 
 Exportación semanal Silk agrupada y sin SQL/valores URL para el módulo de
@@ -7,7 +34,7 @@ monitoreo de ProjectApp. Muestreo acotado y cuerpos HTTP deshabilitados; no se
 modificó `.env` ni se activó Silk. El rollout pertenece al deploy autorizado y
 mantiene el correo. Detalle: `docs/monitoring-export.md`.
 
-## Tarea actual — integración de tres rondas (2026-10-05)
+## Tarea anterior — integración de tres rondas (2026-10-05)
 
 El tren integra los PRs #61, #59 y #60 sobre master desde un worktree propio
 queue-*. La combinación conserva permisos por rol del CMS, captura pública de

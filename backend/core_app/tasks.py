@@ -23,7 +23,8 @@ def _format_lead_body(lead: Lead) -> str:
         ('Nombre', lead.full_name),
         ('Email', lead.email),
         ('Teléfono', lead.phone),
-        ('Ciudad', lead.city),
+        ('Ubicación del proyecto', lead.city),
+        ('Cantidad de espacios', lead.spaces_count),
         ('Origen', lead.source),
         ('Recibido', lead.created_at.strftime('%Y-%m-%d %H:%M')),
     ]

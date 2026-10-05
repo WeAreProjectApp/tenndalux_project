@@ -110,7 +110,7 @@
         "admin"
       ],
       "priority": "P1",
-      "description": "Complete labeled contact form; valid capture shows success, required fields prevent invalid submission, rejected requests show recoverable error dialog.",
+      "description": "Complete labeled contact form; optional number of spaces and project location are submitted when present, invalid space counts show an inline error, valid capture opens a success dialog, and rejected requests preserve entered values in a recoverable error dialog whose controls retain and restore focus.",
       "outcomes": [
         "success",
         "error",

@@ -65,6 +65,12 @@ target patch too: the 8.4.10 upgrade checker did not flag that
 
 ## Frontend Patterns
 
+### El static export fija el destino de la API
+Las variables `NEXT_PUBLIC_*` se incorporan al JavaScript al construirlo;
+no cambian al reiniciar Django. Un fallback local en producción dirige las
+solicitudes al equipo del visitante. Compartir resolución y guard con el
+config del build evita repetir el error; validar además el recurso publicado.
+
 ### Auth Hydration Is Not Automatic
 Zustand's `persist` middleware stores tokens in localStorage, but localStorage is not accessible during SSR. Components reading auth state must call `useAuthStore.hydrate()` in a `useEffect` before accessing the store:
 ```tsx

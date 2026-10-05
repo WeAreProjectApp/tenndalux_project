@@ -1,3 +1,4 @@
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 from .base import TimestampedModel
@@ -18,6 +19,11 @@ class Lead(TimestampedModel):
     email = models.EmailField()
     phone = models.CharField(max_length=50, blank=True)
     city = models.CharField(max_length=120, blank=True)
+    spaces_count = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(1), MaxValueValidator(2147483647)],
+    )
 
     project_type = models.ForeignKey(Category, null=True, blank=True, on_delete=models.SET_NULL, related_name='leads_project_type')
     space_types = models.ManyToManyField(Space, blank=True, related_name='leads')

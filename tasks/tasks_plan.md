@@ -1,5 +1,17 @@
 # Task Plan — Tenndalux
 
+## Formulario de asesoría — 2026-10-05
+
+- [x] Incorporar preguntas opcionales de cantidad y ubicación, con guardado/correo.
+- [x] Corregir destino API de producción y rechazar exports con API local.
+- [x] Corregir interacción del diálogo y campos a ancho completo en portrait.
+- [x] Autoría y validación inicial de backend/unit, diez E2E y export local.
+- [ ] Verificar el contenido limpio final y publicar PR con CI verde.
+- [ ] Publicar PR, esperar CI verde e integrar con merge-when-green autorizado.
+
+Deploy/migración sólo por el operador. Reporte y pendientes de mejoras adicionales:
+`docs/audits/2026-10-05-contact-form.md`. Sin cambios al toolkit.
+
 ## Ronda de mejora — 2026-10-02
 
 - [x] Aplicar permisos por rol a las operaciones del CMS.

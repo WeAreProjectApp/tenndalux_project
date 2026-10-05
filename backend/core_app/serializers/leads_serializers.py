@@ -49,6 +49,7 @@ class LeadSerializer(serializers.ModelSerializer):
             'email',
             'phone',
             'city',
+            'spaces_count',
             'project_type',
             'project_type_id',
             'space_types',

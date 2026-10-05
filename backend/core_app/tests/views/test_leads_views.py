@@ -1,5 +1,7 @@
 """Lead capture validation and CRM authorization tests."""
 
+from unittest.mock import patch
+
 import pytest
 from django.urls import reverse
 from rest_framework import status
@@ -41,7 +43,66 @@ def test_lead_create_returns_only_public_fields(api_client):
 
     assert response.status_code == status.HTTP_201_CREATED
     assert Lead.objects.count() == 1
+    assert response.data["city"] == ""
+    assert response.data["spaces_count"] is None
     assert {"status", "status_id", "notes"}.isdisjoint(response.data)
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [("city", "Bogotá, Chapinero"), ("spaces_count", 3)],
+    ids=("location", "space-count"),
+)
+def test_lead_capture_persists_each_project_detail(api_client, field, value):
+    """Fails if public capture loses one submitted project detail."""
+    response = api_client.post(
+        reverse("lead-list"),
+        {**_lead_payload(), field: value},
+        format="json",
+    )
+
+    lead = Lead.objects.get()
+    assert response.status_code == status.HTTP_201_CREATED
+    assert getattr(lead, field) == value
+    assert response.data[field] == value
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "spaces_count",
+    [0, -1, 1.5, 2147483648],
+    ids=("zero", "negative", "fractional", "above-maximum"),
+)
+def test_lead_capture_rejects_invalid_space_count(api_client, spaces_count):
+    """Fails if public capture accepts an invalid number of spaces."""
+    with patch("core_app.views.leads_views.send_lead_notification") as notify:
+        response = api_client.post(
+            reverse("lead-list"),
+            {**_lead_payload(), "spaces_count": spaces_count},
+            format="json",
+        )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert "spaces_count" in response.data
+    assert Lead.objects.count() == 0
+    notify.assert_not_called()
+
+
+@pytest.mark.django_db
+def test_lead_capture_rejects_location_longer_than_120_characters(api_client):
+    """Fails if public capture stores a location beyond the CRM field limit."""
+    with patch("core_app.views.leads_views.send_lead_notification") as notify:
+        response = api_client.post(
+            reverse("lead-list"),
+            {**_lead_payload(), "city": "A" * 121},
+            format="json",
+        )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert "city" in response.data
+    assert Lead.objects.count() == 0
+    notify.assert_not_called()
 
 
 @pytest.mark.django_db
