@@ -158,7 +158,7 @@
         "admin"
       ],
       "priority": "P3",
-      "description": "Open gallery video, read modal player and close it.",
+      "description": "Open a gallery video card, read the modal player and close using the video close control.",
       "outcomes": [
         "success",
         "display"

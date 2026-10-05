@@ -1,6 +1,6 @@
 # Mapa de flujos de usuario — Tenndalux
 
-Actualizado: 2026-10-02. Inventario del código real por el Analyst de QA.
+Actualizado: 2026-10-05. Inventario del código real reconciliado durante la integración de las tres rondas.
 
 ## Roles
 
@@ -58,12 +58,12 @@ la ejecución real y sus resultados se conservan por separado en el reporte de Q
 | `dashboard-unauthenticated-redirect` | auth | guest | error | Open Dashboard without session and reach Login. | missing |
 | `dashboard-profile-display` | dashboard | viewer, editor, admin | display | Reach Dashboard after Login and read fixture-backed profile values. | missing |
 | `dashboard-logout` | dashboard | viewer, editor, admin | success | Activate Logout and reach Login with auth cookies cleared. | missing |
-| `public-home` | public | guest, viewer, editor, admin | display | Reach the landing through site navigation and read landing content. | covered |
+| `public-home` | public | guest, viewer, editor, admin | display | Reach the landing through site navigation and read landing content, including responsive gallery images and the project-video modal. | covered |
 | `public-header-navigation` | public | guest, viewer, editor, admin | success | Use header desktop or mobile navigation to reach a public route or contact anchor. | missing |
 | `public-contact-submit` | leads | guest, viewer, editor, admin | success, error, failure | Complete labeled contact form; valid capture shows success, required fields prevent invalid submission, rejected requests show recoverable error dialog. | missing |
 | `auth-session-refresh-contact` | auth | viewer, editor, admin | success, failure | Seed stale access_token and valid refresh_token cookies locally; submit contact, renew both tokens on 401, replay unchanged payload and confirm success. Rejected refresh clears cookies and redirects to Login. | covered |
 | `public-faq-toggle` | public | guest, viewer, editor, admin | success, display | Activate a question to read its answer and activate again to collapse. | missing |
-| `public-gallery-video` | public | guest, viewer, editor, admin | success, display | Open gallery video, read modal player and close it. | missing |
+| `public-gallery-video` | public | guest, viewer, editor, admin | success, display | Open a gallery video card, read the modal player and close using the video close control. | missing |
 | `public-brand-video` | public | guest, viewer, editor, admin | success, display | Open Why Tenndalux video and close modal. | missing |
 | `public-products-display` | products | guest, viewer, editor, admin | display | Reach Products through navigation and read static product cards. | missing |
 | `public-products-filter` | products | guest, viewer, editor, admin | success | Choose category and read matching product cards. | missing |
@@ -96,7 +96,10 @@ Fuente: `frontend/app/**/page.tsx`, `frontend/components/{home,layout,servicios}
 y `public-home`; el registro previo sólo contenía esos dos flujos.
 
 Antes de esta ronda sólo existía `frontend/e2e/smoke.spec.ts`. La auditoría actual reconoce
-`public-home` y `auth-session-refresh-contact`; el resto queda pendiente. Las constantes de tags
+`public-home` y `auth-session-refresh-contact`; el resto queda pendiente. La combinación
+incorpora `gallery-media.spec.ts`: sus diez casos cubren imágenes reales y apertura/cierre
+del video en cinco anchos, etiquetados como display de `public-home`; no conceden crédito
+al flujo separado `public-gallery-video` sin su tag específico. Las constantes de tags
 y la sincronización del registro no son evidencia de ejecución. Esta ronda valida únicamente
 las causas seleccionadas; los demás huecos son deuda pendiente.
 
