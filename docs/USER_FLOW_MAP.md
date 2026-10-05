@@ -1,6 +1,6 @@
 # Mapa de flujos de usuario — Tenndalux
 
-Actualizado: 2026-10-05. Inventario del código real reconciliado durante la integración de las tres rondas.
+Actualizado: 2026-10-05. Inventario del código real, incluida la ampliación del formulario de contacto.
 
 ## Roles
 
@@ -47,7 +47,7 @@ de contenido ni contactos; la autorización de API, incluido el superusuario, se
 
 ## E2E Coverage Index
 
-El audit estático de esta ronda registra **2 covered · 24 missing · 0 junk-only**.
+El audit estático de esta ronda registra **3 covered · 23 missing · 0 junk-only**.
 La tabla es también la matriz de interacciones por vista. El crédito del audit reconoce el spec;
 la ejecución real y sus resultados se conservan por separado en el reporte de QA.
 
@@ -60,7 +60,7 @@ la ejecución real y sus resultados se conservan por separado en el reporte de Q
 | `dashboard-logout` | dashboard | viewer, editor, admin | success | Activate Logout and reach Login with auth cookies cleared. | missing |
 | `public-home` | public | guest, viewer, editor, admin | display | Reach the landing through site navigation and read landing content, including responsive gallery images and the project-video modal. | covered |
 | `public-header-navigation` | public | guest, viewer, editor, admin | success | Use header desktop or mobile navigation to reach a public route or contact anchor. | missing |
-| `public-contact-submit` | leads | guest, viewer, editor, admin | success, error, failure | Complete labeled contact form; valid capture shows success, required fields prevent invalid submission, rejected requests show recoverable error dialog. | missing |
+| `public-contact-submit` | leads | guest, viewer, editor, admin | success, error, failure | Complete labeled contact form; optional number of spaces and project location are submitted when present, invalid space counts show an inline error, valid capture opens a success dialog, and rejected requests preserve entered values in a recoverable error dialog whose controls retain and restore focus. | covered |
 | `auth-session-refresh-contact` | auth | viewer, editor, admin | success, failure | Seed stale access_token and valid refresh_token cookies locally; submit contact, renew both tokens on 401, replay unchanged payload and confirm success. Rejected refresh clears cookies and redirects to Login. | covered |
 | `public-faq-toggle` | public | guest, viewer, editor, admin | success, display | Activate a question to read its answer and activate again to collapse. | missing |
 | `public-gallery-video` | public | guest, viewer, editor, admin | success, display | Open a gallery video card, read the modal player and close using the video close control. | missing |
@@ -86,7 +86,7 @@ la ejecución real y sus resultados se conservan por separado en el reporte de Q
 - Listados y detalles API: error/success de escritura N/A, son lectura. Filtros locales: error/failure N/A.
 - Login/registro: display N/A, el perfil pertenece a Dashboard. Guard de Dashboard: sólo error, sin vista persistente.
 - Dashboard: success pertenece a logout; error/failure de carga de perfil N/A en la página actual. Logout es local y no tiene error/failure.
-- Contacto: display N/A, no es vista de datos. Renovación durante contacto: success/failure, sin validación propia de formulario.
+- Contacto: display N/A, no es vista de datos. Error incluye requeridos nativos y cantidad opcional inválida; failure conserva las respuestas y permite cerrar el diálogo recuperable por controles, Escape o fondo. Renovación durante contacto: success/failure, sin validación propia de formulario.
 - Handoffs a WhatsApp, correo, teléfono, redes y PDFs: validar enlaces en pruebas de componentes cuando cambien; no operar proveedores externos.
 
 ## Evidencia de mapa

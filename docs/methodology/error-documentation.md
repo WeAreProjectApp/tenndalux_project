@@ -1,5 +1,15 @@
 # Error Documentation — Tenndalux
 
+### [ERR-009] Formulario publicado enviaba a localhost
+- **Date**: 2026-10-05
+- **Context**: El visitante veía «No pudimos enviar tu solicitud».
+- **Root Cause**: GET del chunk `2-5tjtz-rt7eg.js` servido por `tenndalux.com`
+  mostró `http://localhost:8000/api` como base de Axios; el sitio dirigía la
+  captura al equipo del visitante. La API pública respondió a health con 200.
+- **Resolution**: `/api` por defecto en producción, configuración local sólo
+  para desarrollo y guard previo al static export para destinos no aptos.
+  La publicación de la corrección requiere build/deploy del operador.
+
 This file tracks known errors, their context, and resolutions. When a non-trivial bug is fixed during development, document it here.
 
 ### [ERR-001] Route-scoped Next payloads returned 404

@@ -47,6 +47,33 @@ def test_lead_create_notifies_the_configured_addresses(api_client):
 
 @pytest.mark.django_db
 @override_settings(
+    LEADS_NOTIFICATION_EMAILS=['ventas@tenndalux.com'],
+    MAILERS=LOCMEM_MAILERS,
+)
+@pytest.mark.parametrize(
+    ('field', 'value', 'expected_fragment'),
+    [
+        ('city', 'Bogotá, Chapinero', 'Ubicación del proyecto: Bogotá, Chapinero'),
+        ('spaces_count', 3, 'Cantidad de espacios: 3'),
+    ],
+    ids=('location', 'space-count'),
+)
+def test_lead_notification_includes_each_project_detail(
+    api_client, field, value, expected_fragment,
+):
+    """Falla si el aviso omite un dato nuevo pedido a quien consulta."""
+    response = api_client.post(
+        reverse('lead-list'),
+        {**PAYLOAD, field: value},
+        format='json',
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert expected_fragment in mail.outbox[0].body
+
+
+@pytest.mark.django_db
+@override_settings(
     LEADS_NOTIFICATION_EMAILS=['ventas@tenndalux.com', 'gerencia@tenndalux.com'],
     MAILERS=LOCMEM_MAILERS,
 )

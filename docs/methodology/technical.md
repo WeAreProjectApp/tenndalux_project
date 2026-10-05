@@ -209,6 +209,12 @@ Located at `backend/django_attachments/`. Provides:
 ### `lib/services/http.ts`
 Instancia Axios central de negocio. Base URL: `http://localhost:8000/api` en dev,
 `/api` en producción. Un segundo cliente interno renueva tokens sin interceptor.
+- `lib/apiConfig.ts` comparte la selección del destino con `next.config.ts`:
+  el export falla antes del build si se configura localhost/loopback o HTTP.
+  En producción omitir `NEXT_PUBLIC_API_URL` o usar `/api`; `.env.example`
+  muestra sólo la dirección del desarrollo separado.
+- Las preguntas nuevas del contacto usan `messages/es.json` y un proveedor
+  next-intl local; Jest transforma su cadena ESM para probar textos reales.
 - **Request interceptor**: lee `access_token` de cookies y agrega `Authorization: Bearer <token>`.
 - **Response interceptor**: ante 401 comparte una renovación por pestaña usando
   `refresh_token`, guarda access y refresh rotados y reintenta cada petición una vez.

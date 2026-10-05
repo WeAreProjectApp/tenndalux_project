@@ -13,6 +13,8 @@ export type LeadPayload = {
   message: string;
   /** Identifica de qué formulario vino, para distinguirlos en el admin. */
   source: string;
+  city?: string;
+  spaces_count?: number;
 };
 
 export async function createLead(payload: LeadPayload): Promise<void> {

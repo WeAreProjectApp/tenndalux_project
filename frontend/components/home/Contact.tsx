@@ -6,6 +6,8 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { EnvelopeIcon, PhoneIcon, MapPinIcon } from '@heroicons/react/24/outline';
 import ContactFeedbackModal, { type ContactFeedbackStatus } from '@/components/home/ContactFeedbackModal';
 import { createLead } from '@/lib/services/leads';
+import { NextIntlClientProvider, useTranslations } from 'next-intl';
+import messages from '@/messages/es.json';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -25,15 +27,31 @@ const EMPTY_FORM = {
   email: '',
   phone: '',
   interest: INTERESTS[0].value as string,
+  spacesCount: '',
+  location: '',
 };
 
 export default function Contact() {
+  return (
+    <NextIntlClientProvider locale="es" messages={messages} timeZone="America/Bogota">
+      <ContactForm />
+    </NextIntlClientProvider>
+  );
+}
+
+function ContactForm() {
+  const t = useTranslations('contact');
   const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = useState<ContactFeedbackStatus | null>(null);
   const [form, setForm] = useState(EMPTY_FORM);
+  const [fieldErrors, setFieldErrors] = useState<{ spacesCount?: string; location?: string }>({});
+  const submittingRef = useRef(false);
+  const submitRef = useRef<HTMLButtonElement>(null);
 
-  const setField = (field: keyof typeof EMPTY_FORM, value: string) =>
+  const setField = (field: keyof typeof EMPTY_FORM, value: string) => {
     setForm((current) => ({ ...current, [field]: value }));
+    setFieldErrors((current) => ({ ...current, [field]: undefined }));
+  };
   const sectionRef = useRef<HTMLElement>(null);
   const leftRef = useRef<HTMLDivElement>(null);
   const rightRef = useRef<HTMLDivElement>(null);
@@ -65,6 +83,19 @@ export default function Contact() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submittingRef.current) return;
+
+    const spacesCount = form.spacesCount.trim() ? Number(form.spacesCount) : undefined;
+    const city = form.location.trim();
+    const errors: typeof fieldErrors = {};
+    if (spacesCount !== undefined && (!Number.isInteger(spacesCount) || spacesCount < 1 || spacesCount > 2147483647)) {
+      errors.spacesCount = t('spacesCountError');
+    }
+    if (city.length > 120) errors.location = t('locationError');
+    setFieldErrors(errors);
+    if (Object.keys(errors).length) return;
+
+    submittingRef.current = true;
     setLoading(true);
 
     // El interés viaja en `message` y no en `project_type`: ese campo es una FK
@@ -79,12 +110,15 @@ export default function Contact() {
         phone: form.phone,
         message: `Me interesa: ${interest?.label ?? form.interest}`,
         source: 'formulario-home',
+        ...(city ? { city } : {}),
+        ...(spacesCount !== undefined ? { spaces_count: spacesCount } : {}),
       });
       setForm(EMPTY_FORM);
       setFeedback('success');
     } catch {
       setFeedback('error');
     } finally {
+      submittingRef.current = false;
       setLoading(false);
     }
   };
@@ -155,7 +189,7 @@ export default function Contact() {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label htmlFor="name" className="text-sm font-medium text-stone-700">Nombre</label>
                   <input
@@ -229,7 +263,46 @@ export default function Contact() {
                 </div>
               </div>
 
+              <div className="space-y-2">
+                <label htmlFor="space-count" className="block text-sm font-medium text-stone-700">{t('spacesCountLabel')}</label>
+                <p id="space-count-help" className="text-sm text-stone-500">{t('optional')}</p>
+                <input
+                  type="number"
+                  id="space-count"
+                  min={1}
+                  max={2147483647}
+                  step={1}
+                  inputMode="numeric"
+                  value={form.spacesCount}
+                  onChange={(e) => setField('spacesCount', e.target.value)}
+                  onInvalid={() => setFieldErrors((current) => ({ ...current, spacesCount: t('spacesCountError') }))}
+                  aria-invalid={Boolean(fieldErrors.spacesCount)}
+                  aria-describedby={`space-count-help${fieldErrors.spacesCount ? ' space-count-error' : ''}`}
+                  className="w-full px-4 py-3.5 rounded-xl border border-stone-200 bg-stone-50/80 text-stone-900 focus:bg-white focus:ring-2 focus:ring-stone-900 focus:border-transparent outline-none transition-all placeholder:text-stone-400 text-base"
+                  placeholder={t('spacesCountPlaceholder')}
+                />
+                {fieldErrors.spacesCount && <p id="space-count-error" role="alert" className="text-sm text-red-700">{fieldErrors.spacesCount}</p>}
+              </div>
+
+              <div className="space-y-2">
+                <label htmlFor="project-location" className="block text-sm font-medium text-stone-700">{t('locationLabel')}</label>
+                <p id="project-location-help" className="text-sm text-stone-500">{t('optional')}</p>
+                <input
+                  type="text"
+                  id="project-location"
+                  maxLength={120}
+                  value={form.location}
+                  onChange={(e) => setField('location', e.target.value)}
+                  aria-invalid={Boolean(fieldErrors.location)}
+                  aria-describedby={`project-location-help${fieldErrors.location ? ' project-location-error' : ''}`}
+                  className="w-full px-4 py-3.5 rounded-xl border border-stone-200 bg-stone-50/80 text-stone-900 focus:bg-white focus:ring-2 focus:ring-stone-900 focus:border-transparent outline-none transition-all placeholder:text-stone-400 text-base"
+                  placeholder={t('locationPlaceholder')}
+                />
+                {fieldErrors.location && <p id="project-location-error" role="alert" className="text-sm text-red-700">{fieldErrors.location}</p>}
+              </div>
+
               <button
+                ref={submitRef}
                 type="submit"
                 disabled={loading}
                 className="w-full bg-stone-900 text-white font-semibold py-5 rounded-full hover:bg-stone-800 transition-all duration-300 shadow-lg hover:shadow-xl mt-4 disabled:opacity-70 disabled:cursor-not-allowed text-lg"
@@ -244,7 +317,7 @@ export default function Contact() {
           </div>
         </div>
       </div>
-      <ContactFeedbackModal status={feedback} onClose={() => setFeedback(null)} />
+      <ContactFeedbackModal status={feedback} onClose={() => setFeedback(null)} returnFocusRef={submitRef} />
     </section>
   );
 }

@@ -39,6 +39,11 @@ Tenndalux is a landing site and portfolio CMS for an **interior design / decorat
 - Public visitors see only published posts; authenticated users see all
 
 ### 4. Lead Capture Form
+- El formulario de asesoría pregunta opcionalmente cantidad de espacios y ubicación
+  del proyecto (ciudad, zona, etc.). Cantidad es un entero positivo; ubicación
+  admite hasta 120 caracteres. Omitir ambas conserva el envío existente.
+- Las respuestas quedan disponibles en Django Admin y en el aviso de correo;
+  la cantidad se almacena separada de los tipos de espacio del portafolio.
 - Leads capture: full name, email, phone, city, project type (FK to Category), space types (M2M to Space), message, budget range, how they found us, UTM params, source field
 - Lead statuses (`LeadStatus`) for CRM pipeline management
 - Public POST (no auth); admin-only GET/PATCH

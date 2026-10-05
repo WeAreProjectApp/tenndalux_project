@@ -1,0 +1,11 @@
+{
+  "contact": {
+    "spacesCountLabel": "¿Para cuántos espacios buscas cortinas o soluciones de control solar?",
+    "spacesCountPlaceholder": "Cantidad de espacios",
+    "locationLabel": "¿Dónde se ubica tu proyecto?",
+    "locationPlaceholder": "Ciudad, zona, etc.",
+    "optional": "Opcional",
+    "spacesCountError": "Ingresa una cantidad entera de espacios desde 1.",
+    "locationError": "La ubicación debe tener como máximo 120 caracteres."
+  }
+}

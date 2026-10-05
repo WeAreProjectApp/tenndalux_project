@@ -98,7 +98,7 @@ SingletonModel(models.Model):
 | `Service` | title, slug, short_description, full_description, includes (JSON), excludes (JSON), icon (SingleImageField), image (SingleImageField), order, is_active | |
 | `ProcessStep` | title, description, duration, deliverables (JSON), order, is_active | |
 | `LeadStatus` | name, color, order | CRM pipeline stages |
-| `Lead` | full_name, email, phone, city, project_type (FK Category), space_types (M2M Space), message, budget_range, how_found_us, source, UTM fields, status (FK LeadStatus), notes | |
+| `Lead` | full_name, email, phone, city, spaces_count (nullable entero positivo), project_type (FK Category), space_types (M2M Space), message, budget_range, how_found_us, source, UTM fields, status (FK LeadStatus), notes | city admite ciudad/zona del proyecto; cantidad no es una relación con Space |
 | `SiteSettings` | company_name, tagline, phone, whatsapp_number, email, address, city, social URLs, logo, favicon, footer_text | SingletonModel |
 | `HomePage` | hero fields, hero_media (GalleryField), value_proposition_items (JSON), featured_projects (M2M), testimonials (GalleryField), meta fields | SingletonModel |
 | `AboutPage` | title, content, team_section (JSON), gallery (GalleryField), meta fields | SingletonModel |

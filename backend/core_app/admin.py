@@ -160,7 +160,7 @@ class LeadStatusAdmin(admin.ModelAdmin):
 
 @admin.register(Lead)
 class LeadAdmin(admin.ModelAdmin):
-    list_display = ('full_name', 'email', 'phone', 'city', 'source', 'status', 'created_at')
+    list_display = ('full_name', 'email', 'phone', 'city', 'spaces_count', 'source', 'status', 'created_at')
     list_filter = ('source', 'status')
     search_fields = ('full_name', 'email', 'phone', 'city', 'message')
     ordering = ('-created_at',)
