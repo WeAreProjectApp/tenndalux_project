@@ -9,18 +9,22 @@ mantiene el correo. Detalle: `docs/monitoring-export.md`.
 
 ## Current task
 
-Publicar correctamente los payloads RSC del static export. El helper nuevo
-copia 44 `.txt` con su estructura de rutas, elimina generados obsoletos y está
-cubierto por una regresión hermética. El build real confirma
-`servicios/__next._tree.txt`, `portafolio/__next._tree.txt` e `index.txt` bajo
-`backend/static`; falta únicamente entregar el PR verde, sin deploy.
+Ronda de mejora del 2026-10-02: permisos por rol del CMS, separación de captura
+pública de contactos y renovación JWT compatible con rotación/blacklist.
+Sólo admin gestiona contactos y singleton; editor/admin escriben contenido y
+viewer conserva lectura autorizada. Rama `fix/02102026-improvement-tenndalux`,
+worktree propio y base `master`. Aplicación y autoría de pruebas completas.
+La evidencia de ejecución sobre el commit final y la entrega del PR se conserva
+en el reporte de ronda `improvement-20261002` del toolkit.
+
+La publicación de payloads RSC del static export quedó integrada en la base.
 
 ## Previous task
 
 Finish the 17-package Python upgrade by removing the final Django 6.1 blocker.
 The follow-up is isolated in its own PR and contains one dependency commit.
 
-## Current step
+## Contexto histórico de la actualización de dependencias
 
 The shared server was upgraded from MySQL 8.0.46 to 8.4.11 after 12/12 database
 restore tests; all seven consumers are healthy and 580/580 database objects

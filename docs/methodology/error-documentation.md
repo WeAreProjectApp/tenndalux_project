@@ -34,6 +34,26 @@ _None currently._
 
 ## Resolved Issues
 
+### [ERR-004] Operaciones del CMS sólo comprobaban autenticación
+- **Date**: 2026-10-02
+- **Context**: Una cuenta viewer creada mediante registro público podía escribir
+  contenido/configuración y leer contactos privados. La captura pública también
+  aceptaba estado y notas internos del CRM.
+- **Root Cause**: Permisos sin comprobación del rol y serializer compartido entre
+  captura pública y administración.
+- **Resolution**: Permisos centralizados editor/admin para contenido y admin para
+  contactos/singleton, con compatibilidad de superusuario. Serializer público
+  separado que rechaza campos internos; administración conserva PATCH.
+
+### [ERR-005] Renovación JWT reutilizaba el refresh revocado
+- **Date**: 2026-10-02
+- **Context**: La segunda renovación podía finalizar una sesión válida, y varios
+  401 concurrentes reutilizaban la misma credencial.
+- **Root Cause**: El cliente descartaba el refresh rotado y cada petición
+  iniciaba su propia renovación, sin el timeout de la instancia central.
+- **Resolution**: Guardar ambos tokens, compartir una renovación por pestaña,
+  aprovechar tokens ya renovados en respuestas tardías y limitar reintentos/red.
+
 ### [KNOWN-001] Project suspension (RESOLVED 2026-05-07)
 - **Date**: 2026-03-17 → 2026-05-07
 - **Context**: Services stopped 2026-03-17 due to non-payment. MySQL database and media files were preserved throughout.

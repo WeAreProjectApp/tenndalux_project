@@ -193,16 +193,19 @@ Located at `backend/django_attachments/`. Provides:
 ## Frontend Key Libraries
 
 ### `lib/services/http.ts`
-Single Axios instance. Base URL: `http://localhost:8000/api` in dev, `/api` in prod.
-- **Request interceptor**: reads `accessToken` from `js-cookie`, sets `Authorization: Bearer <token>`.
-- **Response interceptor**: on 401, attempts token refresh using `refreshToken` cookie; on failure, redirects to `/auth/login`.
+Instancia Axios central de negocio. Base URL: `http://localhost:8000/api` en dev,
+`/api` en producción. Un segundo cliente interno renueva tokens sin interceptor.
+- **Request interceptor**: lee `access_token` de cookies y agrega `Authorization: Bearer <token>`.
+- **Response interceptor**: ante 401 comparte una renovación por pestaña usando
+  `refresh_token`, guarda access y refresh rotados y reintenta cada petición una vez.
+  Los 401 tardíos aprovechan el access ya actualizado. Ambas llamadas tienen timeout
+  de 120 segundos; un fallo de renovación borra cookies y redirige a `/auth/login`.
 - **Never bypass**: always import from `@/lib/services/http`. Never call `fetch()` or raw `axios` in components.
 
 ### `lib/stores/authStore.ts`
 Zustand store with `persist` middleware.
-- Tokens stored in both localStorage (via `persist`) and cookies (via `js-cookie`).
-- `hydrate()` action re-reads cookies — **must be called in `useEffect` before accessing auth state** to avoid SSR/CSR hydration mismatch.
-- Pattern: `useEffect(() => { useAuthStore.hydrate() }, [])`
+- Los tokens viven en cookies; `persist` guarda sólo `user` bajo `auth-storage`.
+- `initializeAuth()` recupera el perfil cuando existe access y falta el usuario.
 
 ---
 
