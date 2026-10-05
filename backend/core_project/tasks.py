@@ -79,18 +79,18 @@ def weekly_slow_queries_report():
         start_time__gte=week_ago,
     ).annotate(qc=Count('queries')).filter(qc__gte=n1_threshold).order_by('-qc')[:20]
 
-    from .monitoring_export import export_report_safely
+    from .monitoring_export import export_report_safely, route_label
     export_report_safely(slow, n1, count_attribute='qc')
 
     lines = ['=' * 60, f'WEEKLY QUERY REPORT - {timezone.now():%Y-%m-%d}', '=' * 60, '',
              f'## SLOW QUERIES (>{threshold_ms}ms)', '-' * 40]
     for sq in slow:
-        lines.append(f'[{sq.time_taken:.0f}ms] {sq.request.path} - {sq.query[:100]}...')
+        lines.append(f'[{sq.time_taken:.0f}ms] {route_label(sq.request.path)}')
     if not slow:
         lines.append('No slow queries found this week')
     lines.extend(['', f'## POTENTIAL N+1 (>{n1_threshold} queries/request)', '-' * 40])
     for r in n1:
-        lines.append(f'[{r.qc} queries] {r.path}')
+        lines.append(f'[{r.qc} queries] {route_label(r.path)}')
     if not n1:
         lines.append('No N+1 patterns detected this week')
     lines.extend(['', '=' * 60])

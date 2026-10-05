@@ -1,6 +1,6 @@
 {
   "version": "2.0.0",
-  "lastUpdated": "2026-10-02",
+  "lastUpdated": "2026-10-05",
   "flows": {
     "auth-login": {
       "name": "Login",
@@ -80,7 +80,7 @@
         "admin"
       ],
       "priority": "P2",
-      "description": "Reach the landing through site navigation and read landing content.",
+      "description": "Reach the landing through site navigation and read landing content, including responsive gallery images and the project-video modal.",
       "outcomes": [
         "display"
       ]
