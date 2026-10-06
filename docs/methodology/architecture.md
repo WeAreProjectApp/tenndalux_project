@@ -1,5 +1,12 @@
 # Architecture — Tenndalux
 
+> **Garantías y portada (06/10/2026):** `WarrantyDocument` administra PDFs públicos
+> mediante Django Admin; `GET /api/site/warranties/` sólo lista publicados en
+> orden y no permite escrituras. `/garantias/` es otra página exportada servida
+> por Django. `HomePageSerializer.hero_image_url` resuelve el adjunto principal
+> de `hero_media`; el Hero consulta la API en el navegador, por lo que no exige
+> reconstruir la web al cambiar la imagen. El favicon está en `frontend/public/`.
+
 > **RSC payload path:** Next's export produces route-scoped files such as
 > `servicios/__next._tree.txt` and `portafolio/index.txt`. The deployment split
 > now copies them recursively to `backend/static/<route>/`, where nginx serves
@@ -102,6 +109,7 @@ SingletonModel(models.Model):
 | `SiteSettings` | company_name, tagline, phone, whatsapp_number, email, address, city, social URLs, logo, favicon, footer_text | SingletonModel |
 | `HomePage` | hero fields, hero_media (GalleryField), value_proposition_items (JSON), featured_projects (M2M), testimonials (GalleryField), meta fields | SingletonModel |
 | `AboutPage` | title, content, team_section (JSON), gallery (GalleryField), meta fields | SingletonModel |
+| `WarrantyDocument` | title, document (PDF de hasta 5 MB), order, is_published | Carga en Django Admin; catálogo público sólo de publicados |
 
 ---
 
@@ -116,7 +124,7 @@ The project uses **different DRF view styles per resource type**. Always match t
 | `blog_views.py` | `ModelViewSet` + `DefaultRouter` | TagViewSet, PostViewSet |
 | `services_views.py` | `ModelViewSet` + `DefaultRouter` | ServiceViewSet, ProcessStepViewSet |
 | `leads_views.py` | `ModelViewSet` + `DefaultRouter` | LeadStatusViewSet, LeadViewSet |
-| `site_views.py` | `generics.RetrieveUpdateAPIView` | SiteSettingsView, HomePageView, AboutPageView |
+| `site_views.py` | `generics.RetrieveUpdateAPIView` + `ListAPIView` | SiteSettingsView, HomePageView, AboutPageView; WarrantyDocumentListView de sólo lectura |
 | `frontend_views.py` | Plain Django FBV | Serves HTML from `backend/templates/frontend/` |
 
 ### Permission Pattern
@@ -124,6 +132,8 @@ The project uses **different DRF view styles per resource type**. Always match t
 - **Leads create**: `AllowAny` + `LeadCaptureSerializer` — public POST without internal CRM fields; `IsRoleAdmin` for every other action.
 - **Lead statuses and singleton pages**: `IsRoleAdminOrReadOnly` — public reads, admin-only writes. Superusers retain administrator access; `is_staff` alone grants no API role.
 - **Auth endpoints**: `AllowAny` for register/login; `IsAuthenticated` for profile
+- **Documentos de garantía**: `AllowAny` para listado publicado; API sin escritura.
+  Django Admin exige sesión, acceso de personal y permisos del modelo.
 
 ---
 
@@ -150,6 +160,8 @@ The project uses **different DRF view styles per resource type**. Always match t
 /api/site/settings/             GET public; PATCH/PUT auth-required
 /api/site/home/                 GET public; PATCH/PUT auth-required
 /api/site/about/                GET public; PATCH/PUT auth-required
+/api/site/warranties/            GET public; published PDFs, ordered, no pagination
+/garantias/                     Frontend export; public warranty page
 /_next/..., /home/..., etc.     Static assets (Django in dev; Nginx in prod)
 /*                              Frontend pages (catch-all, serves HTML from templates/frontend/)
 ```
@@ -165,6 +177,7 @@ npm run build
   → frontend/out/
       ├── index.html          → backend/templates/frontend/index.html
       ├── portafolio/index.html → backend/templates/frontend/portafolio/index.html
+      ├── garantias/index.html → backend/templates/frontend/garantias/index.html
       ├── blog/{slug}/index.html → ...
       └── _next/              → backend/static/_next/
 

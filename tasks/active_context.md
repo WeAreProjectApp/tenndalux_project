@@ -1,6 +1,15 @@
 # Active context
 
-## Tarea actual — formulario de asesoría (2026-10-05)
+## Requisitos del cliente — 2026-10-06
+
+Rama propia `feat/06102026-cms-client-requirements`, base `origin/master`.
+Implementar PDFs públicos de garantía y edición de la portada; corregir el
+favicon. Blog/portafolio ya están fusionados. SMTP y la cuenta del cliente se
+verifican sin exponer secretos; cambios de producción, merge y deploy quedan
+para el operador. Respuesta final mediante `$client-response`, para enviar
+únicamente tras comprobar la publicación.
+
+## Contexto anterior — formulario de asesoría (2026-10-05)
 
 Trabajo aislado en `fix/05102026-contact-form`, desde `origin/master`.
 El operador eligió dos preguntas opcionales: cantidad entera de espacios y

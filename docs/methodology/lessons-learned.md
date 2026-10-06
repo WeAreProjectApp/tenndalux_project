@@ -1,5 +1,12 @@
 # Lessons Learned — Tenndalux
 
+> **Lección 2026-10-06:** que una imagen figure en Django Admin no prueba que
+> el frontend la use: una `Library` se serializa como id hasta exponer su
+> adjunto principal. En un export estático, consultar su URL desde el cliente
+> permite editar la portada sin otro build. Para el favicon, comprobar el
+> archivo efectivamente copiado y la URL pública, además del enlace del HTML.
+> Cuenta staff/permisos de Django y rol JWT son superficies distintas.
+
 This file captures non-obvious patterns, preferences, and project intelligence discovered during development. Updated as insights are found.
 
 > **Lección 2026-08-29:** un static export de App Router no es sólo HTML más

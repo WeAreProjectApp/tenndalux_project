@@ -1,5 +1,15 @@
 # Error Documentation — Tenndalux
 
+### [ERR-011] Favicon ausente e imagen Home desconectada
+- **Date**: 2026-10-06
+- **Context**: La web enlazaba un favicon que devolvía 404; la portada no
+  consultaba el campo de imagen del administrador.
+- **Root Cause**: El icono era el genérico de Next en `app/`; Hero usaba una
+  ruta de imagen fija y el serializer sólo exponía el id de la galería.
+- **Resolution**: Favicon de marca en `public/` con metadatos explícitos;
+  `hero_image_url` resuelve el adjunto principal y el Hero consulta la API.
+  La publicación en producción queda pendiente del deploy del operador.
+
 ### [ERR-009] Formulario publicado enviaba a localhost
 - **Date**: 2026-10-05
 - **Context**: El visitante veía «No pudimos enviar tu solicitud».

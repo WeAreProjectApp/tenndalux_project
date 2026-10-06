@@ -30,6 +30,8 @@ js_unit_suffixes:
   - ".spec.js"
   - ".test.ts"
   - ".spec.ts"
+  - ".test.tsx"
+  - ".spec.tsx"
 
 js_e2e_suffixes:
   - ".spec.js"

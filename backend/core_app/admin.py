@@ -29,6 +29,7 @@ from .models import (
     SiteSettings,
     HomePage,
     AboutPage,
+    WarrantyDocument,
 )
 
 
@@ -175,6 +176,13 @@ class SiteSettingsAdmin(AttachmentsAdminMixin, admin.ModelAdmin):
 class HomePageAdmin(AttachmentsAdminMixin, admin.ModelAdmin):
     list_display = ('hero_title', 'updated_at')
     filter_horizontal = ('featured_projects',)
+
+
+@admin.register(WarrantyDocument)
+class WarrantyDocumentAdmin(admin.ModelAdmin):
+    list_display = ('title', 'order', 'is_published', 'updated_at')
+    list_filter = ('is_published',)
+    search_fields = ('title',)
 
 
 @admin.register(AboutPage)

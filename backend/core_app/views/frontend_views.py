@@ -85,6 +85,10 @@ def servicios(request):
     return _serve_html('servicios/index.html')
 
 
+def garantias(request):
+    return _serve_html('garantias/index.html')
+
+
 def portafolio(request):
     return _serve_html('portafolio/index.html')
 
