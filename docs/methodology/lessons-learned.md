@@ -7,6 +7,12 @@
 > archivo efectivamente copiado y la URL pública, además del enlace del HTML.
 > Cuenta staff/permisos de Django y rol JWT son superficies distintas.
 
+> **Pruebas en Next dev:** StrictMode puede repetir la carga inicial; una
+> frontera HTTP debe conservar su respuesta hasta la acción que simula la
+> recuperación. No imponer un único GET si el requisito es mostrar un respaldo
+> ante un fallo: acreditar la respuesta fallida y el resultado visible. El
+> export y el servidor dev requieren comprobaciones separadas.
+
 This file captures non-obvious patterns, preferences, and project intelligence discovered during development. Updated as insights are found.
 
 > **Lección 2026-08-29:** un static export de App Router no es sólo HTML más

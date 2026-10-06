@@ -37,6 +37,7 @@ datos ni solicitudes de producción.
 | Parametrizados ajustados | `test-results/cms/backend-parametrized.xml` | 7/7; subconjunto de los 15, no casos adicionales |
 | Frontend unit | `test-results/cms/unit.json` | 6/6 |
 | E2E | `test-results/cms/e2e.json` | 6/6 |
+| Regresión E2E en Next dev | `test-results/cms/e2e-dev-regression.json` | 6/6 en 46,9 s; mismos casos, no pruebas adicionales |
 | Gate canónico | `qa-agent.sh --verify`, unión de cinco archivos | Cero errores y warnings; marker retirado por el engine |
 | Revisión de pruebas | Auditoría de los cinco archivos nuevos | APPROVED; sin junk, duplicación ni ubicación incorrecta |
 | TypeScript y ESLint | Archivos afectados | Passed |
@@ -57,6 +58,15 @@ preexistente que empezó a entrar en ese gate: sin hallazgos automáticos.
 La ejecución local acredita el contenido del worktree previo al commit.
 El CI del PR acredita el commit publicado; su estado se consulta en los checks
 del PR y no se deduce de los resultados locales.
+
+La primera ejecución del PR #64 pasó backend, unit y gates, pero detectó dos
+expectativas de fixtures incompatibles con Next dev y React StrictMode: cambiar
+la respuesta del catálogo por cantidad de peticiones y exigir un único GET del
+Home. El catálogo conserva el error hasta observar la alerta y cambia a éxito
+antes del reintento; Home acredita una respuesta 500 real y el respaldo visible,
+sin imponer cardinalidad. La navegación espera la URL raíz exacta con margen
+para la compilación inicial. Los seis casos pasan en Next dev y la auditoría
+confirma que las assertions conservan el comportamiento. No cambió la aplicación.
 
 ## Auditoría final de flujos
 

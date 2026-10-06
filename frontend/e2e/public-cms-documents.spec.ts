@@ -17,7 +17,7 @@ async function openHomeFromHeader(page: Page) {
   const homeUrl = new URL('/', page.url()).toString();
 
   await page.locator('header').getByRole('link', { name: 'Inicio', exact: true }).click();
-  await expect(page).toHaveURL(homeUrl);
+  await expect(page).toHaveURL(homeUrl, { timeout: 15_000 });
 }
 
 // Bug caught: the Footer link can miss the CMS page, cards can fail to render, or a published PDF can become unusable.
@@ -53,26 +53,22 @@ test('guest opens a published warranty PDF after navigating from the Footer', {
 test('guest retries a failed warranty request', {
   tag: ['@flow:public-warranty-documents', '@outcome:failure'],
 }, async ({ page }) => {
-  let requests = 0;
-  await page.route(warrantyEndpoint, (route) => {
-    requests += 1;
-    if (requests === 1) {
-      return route.fulfill({ status: 500, contentType: 'application/json', body: '{}' });
-    }
-    return route.fulfill({
-      contentType: 'application/json',
-      body: JSON.stringify([{ id: 8, title: 'Garantía renovada', file_url: '/media/warranties/renovada.pdf' }]),
-    });
-  });
+  await page.route(warrantyEndpoint, (route) => route.fulfill({
+    status: 500, contentType: 'application/json', body: '{}',
+  }));
 
   await openWarrantiesFromFooter(page);
 
   await expect(page.getByRole('alert').filter({ hasText: 'No pudimos cargar los documentos' }))
     .toContainText('No pudimos cargar los documentos');
+  await page.unroute(warrantyEndpoint);
+  await page.route(warrantyEndpoint, (route) => route.fulfill({
+    contentType: 'application/json',
+    body: JSON.stringify([{ id: 8, title: 'Garantía renovada', file_url: '/media/warranties/renovada.pdf' }]),
+  }));
   await page.getByRole('button', { name: 'Volver a intentar', exact: true }).click();
   await expect(page.getByRole('link', { name: 'Abrir Garantía renovada (PDF)', exact: true }))
     .toHaveAttribute('href', '/media/warranties/renovada.pdf');
-  expect(requests).toBe(2);
 });
 
 // Bug caught: an empty published catalogue can look like a failed or broken warranty page.
@@ -132,15 +128,15 @@ test('guest keeps the bundled Home cover when CMS media fails to load', {
 test('guest keeps the bundled Home cover when the CMS API fails', {
   tag: ['@flow:public-home-hero-image', '@outcome:failure'],
 }, async ({ page }) => {
-  let homeRequests = 0;
-  await page.route(homeEndpoint, (route) => {
-    homeRequests += 1;
-    return route.fulfill({ status: 500, contentType: 'application/json', body: '{}' });
-  });
+  await page.route(homeEndpoint, (route) => route.fulfill({
+    status: 500, contentType: 'application/json', body: '{}',
+  }));
+  const failureResponsePromise = page.waitForResponse(homeEndpoint);
 
   await openHomeFromHeader(page);
 
-  await expect.poll(() => homeRequests).toBe(1);
+  const failureResponse = await failureResponsePromise;
+  expect(failureResponse.status()).toBe(500);
   await expect(page.getByTestId('hero-image'))
     .toHaveJSProperty('src', new URL(bundledHeroImage, page.url()).toString());
 });
