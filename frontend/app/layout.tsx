@@ -13,6 +13,7 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "Tenndalux - Diseño Excepcional",
   description: "Un sistema de diseño que refleja elegancia, exclusividad y modernidad.",
+  icons: { icon: '/favicon.ico?v=tenndalux-1' },
 };
 
 export default function RootLayout({

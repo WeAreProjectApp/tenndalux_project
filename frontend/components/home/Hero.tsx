@@ -1,19 +1,34 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Link from 'next/link';
+import Image from 'next/image';
 import { ArrowRightIcon } from '@heroicons/react/24/outline';
 import { whatsappUrl } from '@/lib/whatsapp';
+import { getHomeContent } from '@/lib/services/site';
+import { mediaUrl } from '@/lib/services/content';
 
 gsap.registerPlugin(ScrollTrigger);
 
 export default function Hero() {
+  const defaultImage = '/home/hero-background.webp';
+  const [imageUrl, setImageUrl] = useState(defaultImage);
   const sectionRef = useRef<HTMLElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
   const subtitleRef = useRef<HTMLParagraphElement>(null);
   const ctaRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    let active = true;
+    getHomeContent().then((content) => {
+      if (active && content.hero_image_url) {
+        setImageUrl(mediaUrl(content.hero_image_url));
+      }
+    }).catch(() => { /* Keep the default cover if the API is unavailable. */ });
+    return () => { active = false; };
+  }, []);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -50,9 +65,14 @@ export default function Hero() {
       className="relative min-h-screen flex items-center pt-28 sm:pt-40 pb-20 sm:pb-32 overflow-hidden"
     >
       {/* Background image */}
-      <div
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: "url('/home/hero-background.webp')" }}
+      <Image
+        src={imageUrl}
+        alt=""
+        fill
+        priority
+        className="object-cover object-center"
+        onError={() => setImageUrl(defaultImage)}
+        data-testid="hero-image"
       />
       {/* Dark overlay for text readability */}
       <div className="absolute inset-0 bg-black/40" />

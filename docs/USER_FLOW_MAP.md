@@ -1,6 +1,6 @@
 # Mapa de flujos de usuario — Tenndalux
 
-Actualizado: 2026-10-05. Inventario del código real, incluida la ampliación del formulario de contacto.
+Actualizado: 2026-10-06. Inventario del código real, incluidos garantías, portada administrable y formulario de contacto.
 
 ## Roles
 
@@ -14,7 +14,10 @@ Actualizado: 2026-10-05. Inventario del código real, incluida la ampliación de
 Los roles persistidos son `viewer`, `editor` y `admin`; `guest` es el visitante sin sesión.
 El Dashboard sólo muestra el perfil y permite salir. Un superusuario usa la misma superficie
 del frontend que Admin. Los permisos CRUD del CMS se prueban en backend; este mapa no inventa
-controles de frontend para esas APIs. Django Admin queda fuera del alcance de esta ronda.
+controles de frontend para esas APIs. Esta ronda registra las nuevas interacciones
+de Django Admin para garantías y portada. Requieren `is_staff` y permisos Django,
+independientemente del rol JWT; la autorización y carga se verifican por HTTP
+en backend, sin atribuirles cobertura E2E de navegador.
 
 ## Conventions
 
@@ -44,12 +47,19 @@ de contenido; su autorización para escribir se verifica en backend.
 
 Admin comparte los flujos visibles de Viewer. El frontend no renderiza controles de administración
 de contenido ni contactos; la autorización de API, incluido el superusuario, se verifica en backend.
+Con acceso de personal y permisos Django, puede publicar documentos de garantía
+y cambiar la galería de la portada desde el administrador. Blog/portafolio ya
+tenían edición allí; siguen sin specs de navegador y no se declara esa brecha cerrada.
 
 ## E2E Coverage Index
 
-El audit estático de esta ronda registra **3 covered · 23 missing · 0 junk-only**.
+El audit estático del 06/10/2026 registra **5 covered · 25 missing · 0 junk-only**.
 La tabla es también la matriz de interacciones por vista. El crédito del audit reconoce el spec;
 la ejecución real y sus resultados se conservan por separado en el reporte de QA.
+Los dos flujos públicos nuevos pasaron seis casos en el export local. Los dos
+flujos nuevos de Django Admin siguen sin E2E de navegador; la carga y validación
+de PDFs se ejercitan en backend. La edición de Home no recibe crédito E2E por
+probar únicamente la URL de su imagen en la API.
 
 | Flujo | Módulo | Rol | Clases | Interacción y resultado | Audit |
 |---|---|---|---|---|---|
@@ -79,8 +89,21 @@ la ejecución real y sus resultados se conservan por separado en el reporte de Q
 | `public-portfolio-filter` | portfolio | guest, viewer, editor, admin | success, display | Choose category, read matching projects or no results, reset to Todos. | missing |
 | `public-portfolio-showreel` | portfolio | guest, viewer, editor, admin | success, display | Open showreel, select next or previous video, close overlay. | missing |
 | `public-portfolio-detail` | portfolio | guest, viewer, editor, admin | display, failure | Follow project card and read title/content; missing or unavailable project shows return state. | missing |
+| `public-warranty-documents` | warranties | guest, viewer, editor, admin | success, failure, display | Llegar por «Garantía» del Footer, leer títulos y PDF publicados o vacío, abrir un documento y recuperar una carga fallida con «Volver a intentar». | covered |
+| `public-home-hero-image` | public | guest, viewer, editor, admin | failure, display | Navegar al inicio y leer la imagen principal de la API; conservar el fondo original cuando falta el adjunto, falla la API o el archivo no carga. | covered |
+| `admin-warranty-document-publish` | django-admin | admin con acceso staff | success, error, display | Cargar título/PDF/orden, publicar y guardar; extensión, cabecera o tamaño inválido muestran errores del formulario. | missing |
+| `admin-home-hero-image-update` | django-admin | admin con acceso staff | success, error, display | Cargar o seleccionar imágenes en Hero media de Home pages y guardar; el formulario rechaza archivos que no son imágenes. | missing |
 
 ## Clases no aplicables
+
+- Garantías público: `error` N/A, no recibe datos del visitante. API fallida tiene
+  alerta y reintento; el PDF de política sigue disponible durante ese fallo.
+- Portada administrable: `success/error` de escritura N/A en Home público;
+  `failure` es la recuperación ante API/archivo fallido.
+- Garantías y portada en Django Admin: `failure` de transporte N/A, no hay UI
+  específica de recuperación; la validación y permisos pertenecen también a backend.
+- Favicon: asset estático, no flujo de usuario. Verificar metadata, export y
+  respuesta HTTP, sin crear tags para inflar cobertura.
 
 - Catálogos estáticos, acordeones, tabs, showreels y modales locales: error/failure N/A porque no exponen petición o validación remota; la carga de media no tiene UI de error propia.
 - Listados y detalles API: error/success de escritura N/A, son lectura. Filtros locales: error/failure N/A.
@@ -90,6 +113,12 @@ la ejecución real y sus resultados se conservan por separado en el reporte de Q
 - Handoffs a WhatsApp, correo, teléfono, redes y PDFs: validar enlaces en pruebas de componentes cuando cambien; no operar proveedores externos.
 
 ## Evidencia de mapa
+
+Cambios de esta entrega: `frontend/app/garantias/page.tsx`,
+`frontend/components/legal/WarrantyDocuments.tsx`, `frontend/components/home/Hero.tsx`,
+`backend/core_app/models/warranty.py`, `backend/core_app/admin.py` y
+`backend/core_app/serializers/site_serializers.py`. El flujo original
+`public-home` conserva su cobertura de galería; no acredita la nueva imagen CMS.
 
 Fuente: `frontend/app/**/page.tsx`, `frontend/components/{home,layout,servicios}/`,
 `frontend/lib/services/http.ts` y `frontend/lib/services/leads.ts`. Se preservan `auth-login`

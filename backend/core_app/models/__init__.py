@@ -10,6 +10,7 @@ from .services import Service, ProcessStep
 from .leads import LeadStatus, Lead
 from .site import SiteSettings, HomePage, AboutPage
 from .content import ContentImage
+from .warranty import WarrantyDocument
 
 __all__ = [
     'User',
@@ -27,4 +28,5 @@ __all__ = [
     'HomePage',
     'AboutPage',
     'ContentImage',
+    'WarrantyDocument',
 ]

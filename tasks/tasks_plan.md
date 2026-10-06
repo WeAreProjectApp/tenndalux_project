@@ -1,5 +1,18 @@
 # Task Plan — Tenndalux
 
+## Requisitos del cliente — 06/10/2026
+
+- PDFs de garantía: carga en Django Admin, publicación y orden; página pública
+  `/garantias/` y conservación de la política actual.
+- Imagen de portada del Home: conectar la imagen principal de la galería con
+  la API; conservar el fondo original cuando no se pueda cargar la imagen.
+- Favicon: T del logotipo original en `public/favicon.ico` y metadatos explícitos.
+- Cuenta y Gmail: comando de comprobación de sólo lectura; configuración y
+  permisos pendientes de comprobar en producción por el operador.
+- Entrega: pruebas específicas, auditoría de flujos, PR abierto y CI verde.
+- Respuesta `$client-response`: seis puntos y guías, condicionada al deploy
+  verificado. Sin contraseñas ni envíos automáticos.
+
 ## Formulario de asesoría — 2026-10-05
 
 - [x] Incorporar preguntas opcionales de cantidad y ubicación, con guardado/correo.

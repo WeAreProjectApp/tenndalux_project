@@ -26,6 +26,10 @@ export const FlowTags = {
   PUBLIC_PORTFOLIO_FILTER: ['@flow:public-portfolio-filter', '@module:portfolio', '@priority:P3'],
   PUBLIC_PORTFOLIO_SHOWREEL: ['@flow:public-portfolio-showreel', '@module:portfolio', '@priority:P3'],
   PUBLIC_PORTFOLIO_DETAIL: ['@flow:public-portfolio-detail', '@module:portfolio', '@priority:P2'],
+  PUBLIC_WARRANTY_DOCUMENTS: ['@flow:public-warranty-documents', '@module:warranties', '@priority:P2'],
+  PUBLIC_HOME_HERO_IMAGE: ['@flow:public-home-hero-image', '@module:public', '@priority:P1'],
+  ADMIN_WARRANTY_DOCUMENT_PUBLISH: ['@flow:admin-warranty-document-publish', '@module:django-admin', '@priority:P1'],
+  ADMIN_HOME_HERO_IMAGE_UPDATE: ['@flow:admin-home-hero-image-update', '@module:django-admin', '@priority:P1'],
 };
 
 export const RoleTags = {

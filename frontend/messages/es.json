@@ -1,4 +1,16 @@
 {
+  "warranties": {
+    "pageTitle": "Garantías — Tenndalux",
+    "pageDescription": "Consulte y descargue los documentos de garantía de Tenndalux.",
+    "title": "Garantías",
+    "intro": "Consulte nuestra política y los documentos de garantía disponibles.",
+    "policy": "Consultar política de garantía (PDF)",
+    "loading": "Cargando documentos…",
+    "error": "No pudimos cargar los documentos. Puede consultar la política de garantía o volver a intentarlo.",
+    "retry": "Volver a intentar",
+    "empty": "No hay documentos adicionales publicados por el momento.",
+    "download": "Abrir {title} (PDF)"
+  },
   "contact": {
     "spacesCountLabel": "¿Para cuántos espacios buscas cortinas o soluciones de control solar?",
     "spacesCountPlaceholder": "Cantidad de espacios",

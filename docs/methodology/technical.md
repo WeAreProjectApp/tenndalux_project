@@ -1,5 +1,13 @@
 # Technical Reference — Tenndalux
 
+> **Entrega cliente (06/10/2026):** la coordenada vigente de `projects.yml` es
+> producción en `vps-projectapp-prod`, dominio `tenndalux.com`. Migración 0007
+> agrega documentos de garantía; el deploy la aplica el operador. Gmail usa
+> `MAILERS` SMTP, TLS 587, remitente y destinatario privados. El comando
+> `check_client_delivery --email <cuenta> --smtp-login` revisa permisos y
+> autenticación sin enviar correo ni modificar datos. El favicon público se
+> copia junto a los assets; garantías y portada consultan APIs en el cliente.
+
 ## Verificación de la ronda 2 (2026-10-02)
 
 Los tests usan variables explícitas: `DJANGO_ENV=development`,

@@ -1,5 +1,15 @@
 # Product Requirements — Tenndalux
 
+## Requisitos confirmados — 06/10/2026
+
+El operador confirmó múltiples documentos de garantía públicos, únicamente PDF
+de hasta 5 MB, administrados desde Django Admin. La portada del Home debe usar
+su imagen principal administrable y conservar la actual como respaldo. Blog y
+portafolio ya tienen edición; la entrega incluye guías y revisión de la cuenta
+existente, sin cambiar su contraseña. El correo del formulario se verifica y
+configura privadamente en el servidor. Documento/correo/WhatsApp se preparan
+con `$client-response` para usarse sólo tras comprobar la publicación.
+
 ## Project Status
 **ACTIVE (production)** — promoted and migrated to `vps-projectapp-prod` on
 2026-08-27. Runs as `tenndalux_project` and serves https://tenndalux.com.
@@ -71,6 +81,14 @@ Tenndalux is a landing site and portfolio CMS for an **interior design / decorat
 - El cliente conserva ambos tokens de cada renovación y comparte la renovación
   entre solicitudes concurrentes de una pestaña; cada solicitud se reintenta una vez.
 
+### 8. Documentos de garantía
+
+- Un registro por PDF público, con título, orden y opción de publicación.
+- Carga desde Django Admin; extensión, encabezado y tamaño máximo de 5 MB validados.
+- El pie de página lleva a `/garantias/`; la política existente permanece accesible.
+- El visitante puede consultar documentos, ver el estado vacío y reintentar si falla
+  la carga. La API pública no permite modificarlos.
+
 ---
 
 ## User Types
@@ -92,6 +110,7 @@ Tenndalux is a landing site and portfolio CMS for an **interior design / decorat
 | `/portafolio/` | Portfolio gallery with filters |
 | `/portafolio/[slug]/` | Project detail |
 | `/servicios/` | Services catalog |
+| `/garantias/` | Política existente y documentos PDF publicados |
 | `/blog/` | Blog post list |
 | `/blog/[slug]/` | Blog post detail |
 | `/auth/login/` | Login page |

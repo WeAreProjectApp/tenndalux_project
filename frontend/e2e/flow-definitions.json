@@ -1,6 +1,6 @@
 {
   "version": "2.0.0",
-  "lastUpdated": "2026-10-05",
+  "lastUpdated": "2026-10-06",
   "flows": {
     "auth-login": {
       "name": "Login",
@@ -398,6 +398,67 @@
       "outcomes": [
         "display",
         "failure"
+      ]
+    },
+    "public-warranty-documents": {
+      "name": "Read warranty documents",
+      "module": "warranties",
+      "roles": [
+        "guest",
+        "viewer",
+        "editor",
+        "admin"
+      ],
+      "priority": "P2",
+      "description": "Reach Garantías through Footer Garantía; read published PDFs or empty state and the persistent policy. Recover from a failed list by using Volver a intentar.",
+      "outcomes": [
+        "success",
+        "failure",
+        "display"
+      ]
+    },
+    "public-home-hero-image": {
+      "name": "Display CMS Home hero image",
+      "module": "public",
+      "roles": [
+        "guest",
+        "viewer",
+        "editor",
+        "admin"
+      ],
+      "priority": "P1",
+      "description": "Navigate to Home and display the API-backed primary hero image; absent, unavailable, or broken CMS media retains the bundled cover.",
+      "outcomes": [
+        "failure",
+        "display"
+      ]
+    },
+    "admin-warranty-document-publish": {
+      "name": "Publish warranty document",
+      "module": "django-admin",
+      "roles": [
+        "admin"
+      ],
+      "priority": "P1",
+      "description": "Staff with model permissions creates or edits title, PDF, order and publication state, then reads saved row; invalid file input shows form validation.",
+      "outcomes": [
+        "success",
+        "error",
+        "display"
+      ]
+    },
+    "admin-home-hero-image-update": {
+      "name": "Update Home hero image",
+      "module": "django-admin",
+      "roles": [
+        "admin"
+      ],
+      "priority": "P1",
+      "description": "Staff with model and attachment permissions uploads or selects Hero gallery media and saves Home pages; non-image uploads are rejected.",
+      "outcomes": [
+        "success",
+        "error",
+        "display"
       ]
     }
   }

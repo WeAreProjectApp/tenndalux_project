@@ -6,6 +6,12 @@ Complete guide to all documentation available in this project.
 
 ## 📚 Main Documentation
 
+### [Entrega de requisitos del cliente](./docs/client-delivery-operations.md)
+
+Publicación de garantías, imagen del Home y favicon; configuración privada del
+correo y comprobación de la cuenta existente. La respuesta comercial y las guías
+para el cliente se preparan con `$client-response`, fuera del repositorio.
+
 ### 🏠 [README.md](./README.md)
 **Main project documentation**
 

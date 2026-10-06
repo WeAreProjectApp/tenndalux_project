@@ -62,7 +62,7 @@ export default function Footer() {
             <ul className="space-y-4">
               <li><a href="/legal/terminos-y-condiciones.pdf" target="_blank" rel="noopener noreferrer" className="text-stone-400 hover:text-white transition-colors font-light">Términos y Condiciones</a></li>
               <li><a href="/legal/politica-de-privacidad.pdf" target="_blank" rel="noopener noreferrer" className="text-stone-400 hover:text-white transition-colors font-light">Política de Privacidad</a></li>
-              <li><a href="/legal/politica-de-garantia.pdf" target="_blank" rel="noopener noreferrer" className="text-stone-400 hover:text-white transition-colors font-light">Garantía</a></li>
+              <li><Link href="/garantias/" className="text-stone-400 hover:text-white transition-colors font-light">Garantía</Link></li>
             </ul>
           </div>
 
