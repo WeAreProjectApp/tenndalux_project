@@ -42,16 +42,21 @@ async function openServicesWithLogo(page: Page) {
     return url.pathname === LOGO_PATH && response.request().resourceType() === 'image';
   });
 
-  await page.goto('/servicios/', { waitUntil: 'commit' });
+  await page.goto('/servicios/', { waitUntil: 'domcontentloaded' });
   return logoResponse;
 }
 
+async function openHome(page: Page) {
+  await isolateHomeApi(page);
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
+}
+
 for (const scenario of viewportScenarios) {
-  test.describe(`public logo navigation at ${scenario.alias}`, { tag: `@viewport:${scenario.alias}` }, () => {
+  test.describe(`header brand navigation at ${scenario.alias}`, { tag: `@viewport:${scenario.alias}` }, () => {
     test.use(viewportUse(scenario.alias));
 
-    // Bug caught: the WebP logo is absent, distorted at a responsive width, exceeds its byte budget, or no longer navigates to the landing page.
-    test('uses the decoded brand logo to navigate between public pages', {
+    // Bug caught: the header serves a stale or broken brand asset, exceeds its byte budget, or stops taking visitors home.
+    test('navigates home through the header brand', {
       tag: [...FlowTags.PUBLIC_HEADER_NAVIGATION, '@outcome:success'],
     }, async ({ page }) => {
       // quality: allow-duplicate (per-viewport contract: public-header-navigation @ canonical viewport)
@@ -71,6 +76,20 @@ for (const scenario of viewportScenarios) {
       await expect(page).toHaveURL('/');
       await expect(page.getByRole('heading', { name: /Tu espacio no solo se estrena\. Se diseña\./ }))
         .toHaveText(/Tu espacio no solo\s*se estrena\.\s*Se diseña\./);
+    });
+  });
+}
+
+for (const scenario of viewportScenarios) {
+  test.describe(`footer brand navigation at ${scenario.alias}`, { tag: `@viewport:${scenario.alias}` }, () => {
+    test.use(viewportUse(scenario.alias));
+
+    // Bug caught: the footer keeps a stale or distorted logo, or its Servicios navigation stops taking visitors to the services route.
+    test('navigates to Servicios from the footer', {
+      tag: [...FlowTags.PUBLIC_HEADER_NAVIGATION, '@outcome:success'],
+    }, async ({ page }) => {
+      // quality: allow-duplicate (per-viewport contract: public-header-navigation @ canonical viewport)
+      await openHome(page);
 
       const footer = page.getByTestId('site-footer');
       const footerImage = footer.getByAltText('Tenndalux', { exact: true });
@@ -78,7 +97,7 @@ for (const scenario of viewportScenarios) {
       await expectDecodedLogo(footerImage, 40);
 
       await footer.getByRole('link', { name: 'Servicios', exact: true }).click();
-      await expect(page).toHaveURL(/\/servicios\/?$/);
+      await expect(page).toHaveURL('/servicios/');
       await expect(page.getByRole('heading', { name: 'Productos y Soluciones', exact: true, level: 1 }))
         .toHaveText('Productos y Soluciones');
     });
@@ -93,7 +112,6 @@ test.describe('public logo navigation in the compact menu', { tag: '@viewport:co
     tag: [...FlowTags.PUBLIC_HEADER_NAVIGATION, '@outcome:success'],
   }, async ({ page }) => {
     await openServicesWithLogo(page);
-    await page.waitForLoadState('domcontentloaded');
     const toggleMenu = page.getByRole('button', { name: 'Toggle menu', exact: true });
     await toggleMenu.click();
 
