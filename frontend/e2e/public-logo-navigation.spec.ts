@@ -48,7 +48,12 @@ async function openServicesWithLogo(page: Page) {
 
 async function openHome(page: Page) {
   await isolateHomeApi(page);
+  const homeResponse = page.waitForResponse((response) => {
+    const url = new URL(response.url());
+    return url.pathname === '/api/site/home/' && response.request().method() === 'GET';
+  });
   await page.goto('/', { waitUntil: 'domcontentloaded' });
+  await homeResponse;
 }
 
 for (const scenario of viewportScenarios) {
