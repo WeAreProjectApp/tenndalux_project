@@ -1,6 +1,6 @@
 # Mapa de flujos de usuario — Tenndalux
 
-Actualizado: 2026-10-06. Inventario del código real, incluidos garantías, portada administrable y formulario de contacto.
+Actualizado: 2026-10-07. Inventario del código real, incluidos garantías, portada administrable, formulario de contacto y navegación de marca WebP.
 
 ## Roles
 
@@ -53,7 +53,9 @@ tenían edición allí; siguen sin specs de navegador y no se declara esa brecha
 
 ## E2E Coverage Index
 
-El audit estático del 06/10/2026 registra **5 covered · 25 missing · 0 junk-only**.
+El audit estático de fuentes de esta revisión registra **6 covered · 24 missing · 0 junk-only**.
+El crédito nuevo corresponde a `public-header-navigation`; el reporte de QA de la ronda
+vincula su ejecución al SHA final que incluye este mapa.
 La tabla es también la matriz de interacciones por vista. El crédito del audit reconoce el spec;
 la ejecución real y sus resultados se conservan por separado en el reporte de QA.
 Los dos flujos públicos nuevos pasaron seis casos en el export local. Los dos
@@ -69,7 +71,7 @@ probar únicamente la URL de su imagen en la API.
 | `dashboard-profile-display` | dashboard | viewer, editor, admin | display | Reach Dashboard after Login and read fixture-backed profile values. | missing |
 | `dashboard-logout` | dashboard | viewer, editor, admin | success | Activate Logout and reach Login with auth cookies cleared. | missing |
 | `public-home` | public | guest, viewer, editor, admin | display | Reach the landing through site navigation and read landing content, including responsive gallery images and the project-video modal. | covered |
-| `public-header-navigation` | public | guest, viewer, editor, admin | success | Use header desktop or mobile navigation to reach a public route or contact anchor. | missing |
+| `public-header-navigation` | public | guest, viewer, editor, admin | success | Usar navegación desktop o de menú compacto, incluido el logo WebP Tenndalux para volver a Inicio, y enlaces del Footer para llegar a una ruta pública; la marca del Footer se decodifica. | covered |
 | `public-contact-submit` | leads | guest, viewer, editor, admin | success, error, failure | Complete labeled contact form; optional number of spaces and project location are submitted when present, invalid space counts show an inline error, valid capture opens a success dialog, and rejected requests preserve entered values in a recoverable error dialog whose controls retain and restore focus. | covered |
 | `auth-session-refresh-contact` | auth | viewer, editor, admin | success, failure | Seed stale access_token and valid refresh_token cookies locally; submit contact, renew both tokens on 401, replay unchanged payload and confirm success. Rejected refresh clears cookies and redirects to Login. | covered |
 | `public-faq-toggle` | public | guest, viewer, editor, admin | success, display | Activate a question to read its answer and activate again to collapse. | missing |
@@ -132,9 +134,23 @@ al flujo separado `public-gallery-video` sin su tag específico. Las constantes 
 y la sincronización del registro no son evidencia de ejecución. Esta ronda valida únicamente
 las causas seleccionadas; los demás huecos son deuda pendiente.
 
+Esta revisión comprueba `backend/core_app/views/site_views.py`: para visitantes,
+`/api/site/home/` filtra los proyectos destacados no publicados; las sesiones
+autenticadas conservan la selección autorizada. No agrega un flujo de navegador:
+`frontend/lib/services/site.ts` y `Hero.tsx` sólo consumen `hero_image_url`.
+La navegación existente sí incorpora la marca WebP: Header usa el enlace
+accesible «Tenndalux» en escritorio y overlay, Footer muestra la misma imagen y
+`build_to_django.sh` publica los WebP de raíz. El spec
+`public-logo-navigation.spec.ts` prueba esos contratos bajo
+`public-header-navigation`; no crea un flujo de logo ni uno responsive.
+
 ## Selectores y entorno
 
 Formularios: `getByLabel`; botones/enlaces: `getByRole`. El feedback de contacto usa
 `role=dialog` y cierre `aria-label=Cerrar`. Videos con div clickeable y botones sin nombre
 requieren nombres accesibles antes de autoría futura. Los E2E de la ronda usan endpoints
 interceptados y cookies de fixture locales; nunca datos o servicios de producción.
+Para la marca, la disciplina de selectores está presente: el Header expone
+`banner`, enlaces con nombre accesible derivado de `alt="Tenndalux"` y botones
+`aria-label`; el Footer usa `data-testid="site-footer"` y el overlay compacto
+`data-testid="mobile-menu-logo-link"`.

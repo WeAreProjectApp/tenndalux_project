@@ -1,6 +1,6 @@
 {
-  "version": "2.0.0",
-  "lastUpdated": "2026-10-06",
+  "version": "2.0.1",
+  "lastUpdated": "2026-10-07",
   "flows": {
     "auth-login": {
       "name": "Login",
@@ -95,7 +95,7 @@
         "admin"
       ],
       "priority": "P2",
-      "description": "Use header desktop or mobile navigation to reach a public route or contact anchor.",
+      "description": "Use desktop or compact-overlay navigation, including the Tenndalux WebP logo, to return Home or reach a public route or contact anchor; Footer branding remains decodable and Footer links reach their public route.",
       "outcomes": [
         "success"
       ]
