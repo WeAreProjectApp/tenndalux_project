@@ -143,6 +143,9 @@ accesible «Tenndalux» en escritorio y overlay, Footer muestra la misma imagen 
 `build_to_django.sh` publica los WebP de raíz. El spec
 `public-logo-navigation.spec.ts` prueba esos contratos bajo
 `public-header-navigation`; no crea un flujo de logo ni uno responsive.
+La animación de cierre del menú se cancela al reabrirlo, para que una finalización
+anterior no oculte un overlay ya activo; sostiene el mismo flujo
+`public-header-navigation` y no agrega un outcome.
 
 ## Selectores y entorno
 

@@ -70,6 +70,7 @@ export default function Header() {
           { y: 0, opacity: 1, duration: 0.4 },
           '-=0.2'
         );
+      return () => { tl.kill(); };
     } else {
       if (tlRef.current) {
         tlRef.current.kill();
@@ -82,12 +83,14 @@ export default function Header() {
           }
         }
       });
+      tlRef.current = tl;
       tl.to(navLinksRef.current.filter(Boolean), {
         y: -30, opacity: 0, filter: 'blur(6px)', duration: 0.25, stagger: 0.03
       })
       .to(overlayRef.current, {
         clipPath: 'circle(0% at calc(100% - 40px) 36px)', duration: 0.5
       }, '-=0.1');
+      return () => { tl.kill(); };
     }
   }, [isMenuOpen]);
 

@@ -42,7 +42,7 @@ async function openServicesWithLogo(page: Page) {
     return url.pathname === LOGO_PATH && response.request().resourceType() === 'image';
   });
 
-  await page.goto('/servicios/', { waitUntil: 'domcontentloaded' });
+  await page.goto('/servicios/', { waitUntil: 'commit' });
   return logoResponse;
 }
 
@@ -93,6 +93,7 @@ test.describe('public logo navigation in the compact menu', { tag: '@viewport:co
     tag: [...FlowTags.PUBLIC_HEADER_NAVIGATION, '@outcome:success'],
   }, async ({ page }) => {
     await openServicesWithLogo(page);
+    await page.waitForLoadState('domcontentloaded');
     const toggleMenu = page.getByRole('button', { name: 'Toggle menu', exact: true });
     await toggleMenu.click();
 
