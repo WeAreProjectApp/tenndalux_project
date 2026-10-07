@@ -110,7 +110,7 @@ export default function Header() {
               className="z-[60] block"
             >
               <Image
-                src="/logo-tenndalux.png"
+                src="/logo-tenndalux.webp"
                 alt="Tenndalux"
                 width={200}
                 height={50}
@@ -189,9 +189,9 @@ export default function Header() {
       >
         {/* Top bar inside overlay mirrors main header */}
         <div className="flex items-center justify-between h-[72px] sm:h-20 px-6 sm:px-8 lg:px-12 max-w-[1400px] mx-auto w-full">
-          <Link href="/" onClick={closeMenu} className="block">
+          <Link href="/" onClick={closeMenu} className="block" data-testid="mobile-menu-logo-link">
             <Image
-              src="/logo-tenndalux.png"
+              src="/logo-tenndalux.webp"
               alt="Tenndalux"
               width={200}
               height={50}
