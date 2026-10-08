@@ -179,3 +179,31 @@ test('Admin recovers a hero upload after validation rejection', {
   await expect(page.getByLabel('Hero title:', { exact: true })).toHaveValue('Portada recuperada');
   await expect(page.locator('.field-hero_media .caption')).toContainText('hero-recovered.png');
 });
+
+test('Admin recovers a hero save after a network failure', {
+  tag: [...FlowTags.ADMIN_HOME_HERO_IMAGE_UPDATE, '@outcome:failure'],
+}, async ({ page, context, adminServer }) => {
+  await login(page, adminServer.email, adminServer.password);
+  await openHome(page, adminServer.homeId);
+  await chooseHero(page, image, 'hero-network-recovered.png');
+  await page.getByLabel('Hero title:', { exact: true }).fill('Portada tras fallo de red');
+  const failedRequest = page.waitForEvent('requestfailed', (request) =>
+    new URL(request.url()).pathname.includes('/admin/django_attachments/library/api/'));
+  await context.setOffline(true);
+  try {
+    await page.getByRole('button', { name: 'Save', exact: true }).click();
+    expect((await failedRequest).failure()?.errorText).toContain('ERR_INTERNET_DISCONNECTED');
+    await expect(page.getByRole('alert')).toContainText(/Error/);
+    await expect(page.getByLabel('Hero title:', { exact: true })).toHaveValue('Portada tras fallo de red');
+    await expect(page.getByRole('button', { name: 'Save', exact: true })).toBeEnabled();
+  } finally {
+    await context.setOffline(false);
+  }
+
+  await page.getByRole('button', { name: 'Save', exact: true }).click();
+
+  await expect(page).toHaveURL(/\/admin\/core_app\/homepage\/$/);
+  await openHome(page, adminServer.homeId);
+  await expect(page.getByLabel('Hero title:', { exact: true })).toHaveValue('Portada tras fallo de red');
+  await expect(page.locator('.field-hero_media .caption')).toContainText('hero-network-recovered.png');
+});
