@@ -9,7 +9,7 @@ cerrar los 24 flujos E2E pendientes. La base auditada es
 `5c627bbfe0ecb3e57cde4df952e1253372d28fbb`, master remoto; el clon del servicio
 está seis commits atrás y permanece intacto.
 
-Los cinco exploradores de lectura cubrieron los frentes con máximo cuatro
+Los cuatro exploradores de lectura cubrieron los frentes con máximo cuatro
 simultáneos; QA se auditó junto con responsividad. No se declaró madurez global:
 seguridad omite validadores de contraseña; catálogos excluyen destacados y
 páginas siguientes; detalles confunden fallo temporal con ausencia; dos PNG
@@ -51,6 +51,10 @@ también confirmaron ejecución antes de escribir. No se usó al operador como r
 | Responsividad | Menú desktop en portrait y controles 40 — t11 | Header md:flex/md:hidden; NAV-1/2/5 |
 | Responsividad | Registro y foco del modal — t11 | FORM-6; VideoModal sin contención/restauración |
 | QA | 24 flujos sin specs conductuales — tres apoyos | USER_FLOW_MAP y registro vigente |
+
+Los seis frentes se clasificaron **CON BRECHAS** antes del reparto. No hubo
+un frente global MADURO; sí controles locales ya verificados que se preservan.
+Cada conclusión anterior señala el mecanismo o medición que la fundamenta.
 
 El conductor aplica `validate_password` con usuario no persistido y traduce
 validación a errores de password, sin cuenta/tokens en rechazo. Primer slice:
@@ -97,6 +101,107 @@ Después del parche, 15 casos backend pasaron y el gate estricto de ambos archiv
 La QA conjunta final y el tren validarán el SHA combinado; este reporte permanece
 en implementación hasta incorporar resultados exactos de todos los PRs.
 
+## Entregas de aplicación y ampliaciones justificadas
+
+| Dueño | PR / snapshot recibido | Cambios y verificación de autoría |
+|---|---|---|
+| Conductor | [#67](https://github.com/WeAreProjectApp/tenndalux_project/pull/67), 54952e7 | Registro, PyJWT 2.14.0 y Next 16.3.8; 15 backend, 3 peticiones MCP, 12 unitarias y export de trece páginas. CI seis checks verdes. |
+| t11 | [#68](https://github.com/WeAreProjectApp/tenndalux_project/pull/68), f631cc1 | Menú, inicialización de sesión, formularios y vídeos; 29 unitarias, 62 E2E locales y CI seis checks verdes. |
+| t22 | [#66](https://github.com/WeAreProjectApp/tenndalux_project/pull/66), e889900 | Catálogos completos, filtros, paginación acotada, CTA y WebP; 63 unitarias, 27 E2E propios y gate 100/100. Único rojo remoto en galería heredada, dependencia visible de #68. |
+| t33 | [#69](https://github.com/WeAreProjectApp/tenndalux_project/pull/69), 64c6be8 | Detalles, FAQ, consultas y Admin; 10 backend, 33 unitarias, siete Admin finales en 90ba42e y dos navegaciones de título en 64c6be8. CI final seis checks verdes, 62 E2E. |
+
+Admin añadió dos causas reproducidas, con ownership exclusivo de t33 aprobado
+por el conductor. El uploader enviaba el formulario pese a rechazo de archivo;
+ahora anuncia el error, conserva los datos y permite seleccionar reemplazo.
+La eliminación de miniaturas usaba el path de backend deprecado como alias
+STORAGES y devolvía 500 al reemplazar imágenes; usa el proveedor real de
+easy_thumbnails, probado con originales/miniaturas y almacenamiento legítimo.
+No se alteraron settings globales ni dependencias para esconder el problema.
+
+El CI reveló además metadata de Next sobrescribiendo el título del detalle.
+El observador de t33 conserva el título sólo mientras corresponde a la ruta
+activa y se desconecta al salir. Dos pruebas de sobrescritura fallaron antes;
+las 18 de detalles/títulos pasaron después, con DOM real y navegación sin
+restaurar títulos antiguos. El E2E mantiene el límite de cinco segundos.
+
+En la ejecución Admin, un filtro con anclas no excluyó una prueba cuyo título
+completo incluía archivo/tags: el cuarto intento de PDF corrió por error y
+pasó. Se conserva el incidente, sin atribuirle permiso retroactivo. Después
+se enumeró la selección antes de cada lote. Save/Retry se detuvieron al agotar
+el límite de fix-broken-tests, se diagnosticó la causa real y el conductor
+documentó una única excepción acotada de verificación dentro del encargo
+autorizado; siete casos finales pasaron. No hubo bucle adicional ni cambios
+contra servicios o datos reales.
+
+La auditoría sobre las fuentes combinadas registra **30/30 flujos covered**,
+**58 outcomes**, cero missing/partial/junk-only. Este dato acredita autoría,
+no runtime combinado. Home Admin declara también failure y lo prueba con
+navegador offline, alerta, datos retenidos y recuperación online, sin POST
+simulado. El mapa conserva los treinta IDs y documenta CRUD Admin fuera de
+alcance y N/A de los tres módulos locales sin negativos propios.
+
+El primer CI del tren (#70, 896de4d) ejecutó 130 casos de navegador: 128
+pasaron y dos navegaciones desde tarjetas fallaron antes de abrir el detalle.
+Los fixtures de listas de esos dos tests omitían `next`; el cliente paginado
+ahora exige el contrato DRF real (`next: null` o URL). t33 corrige exclusivamente
+sus fixtures y conserva navegación y assertions, con reproducción sobre la
+combinación. El intento rojo se guarda junto a la evidencia final; no se toma
+como validación ni se confunde con la regresión anterior de títulos.
+La corrección de t33 (88a07ce) completa los tres envelopes y espera
+DOMContentLoaded antes de interactuar con las tarjetas: mantiene los treinta
+segundos del caso y cinco segundos de las aserciones. Seis casos de tarjetas y
+recuperación pasan contra el frontend combinado Next 16.3.8. El primer intento
+local conservado tuvo cinco éxitos y un timeout durante compilación inicial,
+con contenido del detalle ya visible; no se amplió el tiempo ni se relajaron
+las comprobaciones.
+
+El gate global ampliado con Ruff real señala veinte errores anteriores en
+cuatro archivos backend sin cambios y tres advertencias de locators en
+GoogleReviews. El CI existente usa fallback de compilación cuando no tiene
+Ruff; su verde no certifica limpieza global con Ruff. La QA de esta ronda exige
+Ruff/ESLint reales y cero hallazgos en la unión de tests modificados, sin
+rebajar baseline ni ampliar el arreglo a documentación/formato antiguos.
+
+El conductor prepara el gate ampliado y el mapa/documentación en el tren.
+Tras integrar los apoyos, entregará el mismo patch por #67, verificando que
+el árbol final coincida con el conjunto probado. Los registros de hasta tres
+causas comparten una única QA; IDs previos de errores de contenido y N+1 de
+Home se reutilizan y sus aliases duplicados quedan descartados por el helper.
+
+## Comprobación adicional del cierre
+
+La revisión del catálogo detectó que la causa previa I-M-08e80d436220 seguía
+activa: `_serve_shell` usaba texto del CMS como plantilla de reemplazo de regex.
+Una barra inversa puede interpretarse como backreference, alterar metadatos o
+producir `re.error` al abrir el detalle. El conductor amplió exclusivamente el
+alcance de t33 al renderer y a un archivo nuevo de pruebas HTTP; no adoptó
+archivos de otros dueños ni abrió limpieza cosmética de tests legados.
+
+Se exige conservar escape HTML y sustituir título/descripción como texto
+literal. El grupo de hasta tres causas `improvement-20261008-frontend-metadata`
+usa pruebas backend y gate propios sobre el nuevo commit combinado. Las seis
+verificaciones anteriores sobre 7943a08 son históricas e inmutables; no se
+reetiquetan sus artefactos con un SHA que no ejecutaron. El CI del tren nuevo
+verifica la combinación final. No se agregan IDs ni outcomes de usuario.
+El snapshot de t33 5ef5081 incluye sólo el renderer y el nuevo archivo: cuatro
+casos fallaron antes (tres errores HTTP y una descripción alterada) y los cinco
+pasaron después. Los callbacks mantienen el escape HTML. Esta prueba de
+autoría no sustituye la comprobación final de la combinación. #68 ya aterrizó
+como 1957dea y #66 como 922c062, con diff propio idéntico al probado; las otras
+dos entregas y el registro final siguen pendientes de cierre del tren nuevo.
+El CI combinado sobre 9eb037b quedó verde y la QA incremental aprobó los cinco
+HTTP. #69 aterrizó como ca74def después de su CI verde; el timeout inicial de
+su webServer ejecutó cero casos y el reintento conservado pasó todos los E2E.
+El Analyst confirmó que el renderer no altera rutas, controles ni outcomes;
+el registro se refresca a 2.1.1 conservando exactamente los treinta IDs y
+cincuenta y ocho outcomes. La evidencia HTTP permanece separada del crédito E2E.
+
+El último CI de #67 valida también los archivos compartidos ya refrescados
+sobre los tres apoyos integrados. Su árbol debe ser idéntico al del tren local
+antes de mergear; la comparación final contra master queda en el reporte de
+cierre del toolkit. No se ejecutan otra vez pruebas cuyo código no cambió ni
+se atribuyen artefactos históricos al commit de documentación nuevo.
+
 ## Pendientes y decisiones de parada
 
 Se preservan controles ya corregidos: roles CMS, campos internos, refresh
@@ -118,6 +223,10 @@ No se usa ausencia de evidencia ni cupo como declaración de madurez.
 
 ## Entrega
 
-Pendiente: publicar PRs verdes, ejecutar QA única y auditoría de flujos sobre la
-combinación, drenar mediante merge-queue y verificar con all-in-base --check-only.
-No se declara desplegado ni terminado el trabajo por existir autoría de tests.
+Aplicación publicada en los cuatro PR anteriores. El estado de integración
+se consulta en esos PR y en el draft temporal de la queue. QA única conserva
+ejecuciones del commit limpio en test-results/improve-20261008-final y el
+reporte del toolkit; la queue se cierra con all-in-base --check-only y
+comprobación del árbol remoto. Este checkpoint no declara runtime conjunto ni
+despliegue por existir autoría. Deploy, migraciones y reinicios siguen siendo
+acciones del operador fuera de esta ronda.
