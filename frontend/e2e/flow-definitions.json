@@ -1,5 +1,5 @@
 {
-  "version": "2.1.1",
+  "version": "2.1.2",
   "lastUpdated": "2026-10-08",
   "flows": {
     "auth-login": {
@@ -65,9 +65,10 @@
         "admin"
       ],
       "priority": "P2",
-      "description": "Activate Logout, clear local authentication state and cookies, and return to Login.",
+      "description": "Activate Logout, clear local authentication state and cookies, and return to Login; an earlier pending renewal cannot restore that session or overwrite a subsequent login.",
       "outcomes": [
-        "success"
+        "success",
+        "failure"
       ]
     },
     "public-home": {
@@ -266,7 +267,7 @@
         "admin"
       ],
       "priority": "P3",
-      "description": "Open an exterior solution card on mobile, read its bottom sheet, and close it by backdrop.",
+      "description": "Open an exterior solution card on mobile, read its bottom sheet, and close it by backdrop; resizing beyond the compact breakpoint or leaving the page closes the sheet and restores scrolling.",
       "outcomes": [
         "success",
         "display"
@@ -454,7 +455,7 @@
         "admin"
       ],
       "priority": "P1",
-      "description": "A staff user with Django attachment permissions uploads or selects Home hero media, sees the saved thumbnail, rejects a non-image, and recovers a failed uploader save by seeing its alert, choosing a replacement if needed, and submitting again.",
+      "description": "A staff user with Django attachment permissions uploads or selects Home hero media, sees the saved thumbnail, rejects a non-image, and recovers failed uploads or pending deletions without losing the intended change before retrying.",
       "outcomes": [
         "success",
         "error",
