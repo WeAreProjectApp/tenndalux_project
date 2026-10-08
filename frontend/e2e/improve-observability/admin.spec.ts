@@ -73,14 +73,14 @@ test('Admin rejects a file pretending to be a PDF', {
   await expect(page.getByRole('link', { name: 'Documento inválido', exact: true })).toHaveCount(0);
 });
 
-async function openHome(page: Page, id: number) {
+async function openHome(page: Page, id: number, expectExistingImage = true) {
   await page.getByRole('link', { name: 'Home pages', exact: true }).first().click();
   await page.getByRole('rowheader').getByRole('link', { name: /^Portada/ }).click();
   await expect(page).toHaveURL(new RegExp(`/admin/core_app/homepage/${id}/change/`));
   await expect(page.locator('.field-hero_media .attachments-widget')).toBeVisible();
   await expect(page.locator('input.dz-hidden-input')).toHaveCount(2);
   const gallery = await page.locator('.field-hero_media input[name="hero_media"]').inputValue();
-  if (gallery && gallery !== 'None') {
+  if (gallery && gallery !== 'None' && expectExistingImage) {
     await expect(page.locator('.field-hero_media .caption')).not.toBeEmpty();
   }
 }
@@ -207,3 +207,58 @@ test('Admin recovers a hero save after a network failure', {
   await expect(page.getByLabel('Hero title:', { exact: true })).toHaveValue('Portada tras fallo de red');
   await expect(page.locator('.field-hero_media .caption')).toContainText('hero-network-recovered.png');
 });
+
+for (const failure of ['network', 'validation', 'empty-errors', 'unconfirmed-deletion'] as const) {
+  const outcome = { network: '@outcome:failure', validation: '@outcome:error', 'empty-errors': '@outcome:error', 'unconfirmed-deletion': '@outcome:failure' };
+  // Catches pending deletions being discarded before the update is acknowledged.
+  test(`Admin retains a hero deletion after ${failure} rejection`, {
+    tag: [...FlowTags.ADMIN_HOME_HERO_IMAGE_UPDATE, outcome[failure]],
+  }, async ({ page, adminServer }) => {
+    await login(page, adminServer.email, adminServer.password);
+    await openHome(page, adminServer.homeId, false);
+    await chooseHero(page, image, 'hero-to-delete.png');
+    await page.getByRole('button', { name: 'Save', exact: true }).click();
+    await expect(page).toHaveURL(/\/admin\/core_app\/homepage\/$/);
+    await openHome(page, adminServer.homeId);
+    const widget = page.locator('.field-hero_media .attachments-widget');
+    const input = page.locator('.field-hero_media input[name="hero_media"]');
+    const updateUrl = (await input.getAttribute('data-update-url'))!.replace('__library_id__', await input.inputValue());
+    const retainedAttachments = await (await page.request.get(updateUrl, { headers: { Accept: 'application/json' } })).json();
+    await widget.locator('.attachment:not(.deleted) .delete-link').click();
+    await page.getByLabel('Hero title:', { exact: true }).fill('Portada sin imagen');
+    const failUpdate = {
+      network: (route: import('@playwright/test').Route) => route.abort(),
+      validation: (route: import('@playwright/test').Route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ errors: { ORDER: [{ message: 'Invalid ordering' }] } }) }),
+      'empty-errors': (route: import('@playwright/test').Route) => route.fulfill({ status: 200, contentType: 'application/json', body: '{"errors":{}}' }),
+      'unconfirmed-deletion': (route: import('@playwright/test').Route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(retainedAttachments) }),
+    };
+    let intercepted = false;
+    await page.route('**' + updateUrl, (route) => {
+      const action = new URLSearchParams(route.request().postData() ?? '').get('action');
+      if (!intercepted && route.request().method() === 'POST' && action === 'update') {
+        intercepted = true;
+        return failUpdate[failure](route);
+      }
+      return route.continue();
+    });
+
+    await page.getByRole('button', { name: 'Save', exact: true }).click();
+    await expect.poll(() => intercepted).toBe(true);
+    await expect(page.getByRole('alert')).toContainText('Error saving attachments.');
+    const failureMessage = { network: 'Error saving attachments.', validation: 'Invalid ordering', 'empty-errors': 'Error saving attachments.', 'unconfirmed-deletion': 'Error saving attachments.' };
+    await expect(widget.locator('.messages')).toContainText(failureMessage[failure]);
+    await expect(widget.locator('.attachment.deleted')).toHaveCount(1);
+    await expect(page.getByRole('button', { name: 'Save', exact: true })).toBeEnabled();
+    const beforeRetry = await page.request.get('/api/site/home/');
+    expect((await beforeRetry.json()).hero_image_url).toBeTruthy();
+
+    await page.getByRole('button', { name: 'Save', exact: true }).click();
+
+    await expect(page).toHaveURL(/\/admin\/core_app\/homepage\/$/);
+    await openHome(page, adminServer.homeId, false);
+    await expect(page.getByLabel('Hero title:', { exact: true })).toHaveValue('Portada sin imagen');
+    await expect(widget.locator('.attachment')).toHaveCount(0);
+    const home = await page.request.get('/api/site/home/');
+    expect((await home.json()).hero_image_url).toBeNull();
+  });
+}
