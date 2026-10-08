@@ -15,8 +15,8 @@ const project = {
 
 async function isolate(page: Page) {
   await page.route('**/api/**', (route) => route.fulfill({ json: {} }));
-  await page.route('**/api/blog/posts/', (route) => route.fulfill({ json: { results: [] } }));
-  await page.route('**/api/portfolio/projects/', (route) => route.fulfill({ json: { results: [] } }));
+  await page.route('**/api/blog/posts/', (route) => route.fulfill({ json: { count: 0, next: null, results: [] } }));
+  await page.route('**/api/portfolio/projects/', (route) => route.fulfill({ json: { count: 0, next: null, results: [] } }));
 }
 
 type DetailFixture = {
@@ -30,9 +30,9 @@ const portfolio: DetailFixture = { path: 'portafolio', endpoint: 'portfolio/proj
 
 async function openPublishedCard(page: Page, domain: DetailFixture) {
   await isolate(page);
-  await page.route(`**/api/${domain.endpoint}/`, (route) => route.fulfill({ json: { results: [domain.item] } }));
+  await page.route(`**/api/${domain.endpoint}/`, (route) => route.fulfill({ json: { count: 1, next: null, results: [domain.item] } }));
   await page.route(`**/api/${domain.endpoint}/_shell/`, (route) => route.fulfill({ json: domain.item }));
-  await page.goto(`/${domain.path}`);
+  await page.goto(`/${domain.path}`, { waitUntil: 'domcontentloaded' });
   await page.getByRole('link', { name: new RegExp(domain.item.title) }).filter({ visible: true }).first().click();
   await page.waitForURL(new RegExp(`/${domain.path}/_shell/?$`));
   await expect(page.getByRole('heading', { name: domain.item.title, level: 1 })).toBeVisible();
