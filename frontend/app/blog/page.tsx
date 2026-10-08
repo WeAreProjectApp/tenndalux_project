@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { NextIntlClientProvider, useTranslations } from 'next-intl';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
@@ -10,6 +11,7 @@ import Footer from '@/components/layout/Footer';
 import { whatsappUrl } from '@/lib/whatsapp';
 import { listBlogPosts, mediaUrl } from '@/lib/services/content';
 import type { BlogPost } from '@/types/content';
+import messages from './messages.json';
 
 /**
  * Tarjeta del listado. Los nombres son los que ya usaba el diseño cuando los
@@ -29,7 +31,7 @@ type BlogCard = {
 };
 
 // Un post sin portada cargada en el admin cae aquí en vez de dejar el hueco.
-const FALLBACK_IMAGE = '/home/gallery/cortina-ondessence.png';
+const FALLBACK_IMAGE = '/home/gallery/cortina-ondessence.webp';
 
 function toCard(post: BlogPost, index: number): BlogCard {
   return {
@@ -47,11 +49,14 @@ function toCard(post: BlogPost, index: number): BlogCard {
   };
 }
 
-export default function Blog() {
+function BlogCatalogue() {
+  const t = useTranslations('blogCatalogue');
   const [selectedCategory, setSelectedCategory] = useState('Todos');
   const [searchQuery, setSearchQuery] = useState('');
   const [blogPosts, setBlogPosts] = useState<BlogCard[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+  const [loadAttempt, setLoadAttempt] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -61,26 +66,33 @@ export default function Blog() {
         if (!cancelled) setBlogPosts(posts.map(toCard));
       })
       .catch(() => {
-        // Sin conexión con la API el listado queda vacío y se avisa abajo.
+        if (!cancelled) setLoadError(true);
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
       });
 
     return () => { cancelled = true; };
-  }, []);
+  }, [loadAttempt]);
+
+  const retryLoad = () => {
+    setLoading(true);
+    setLoadError(false);
+    setBlogPosts([]);
+    setLoadAttempt((attempt) => attempt + 1);
+  };
 
   // Las categorías salen de las etiquetas que realmente tienen los posts.
   const categories = ['Todos', ...Array.from(new Set(blogPosts.map((post) => post.category)))];
 
   const featuredPost = blogPosts.find(post => post.featured);
-  const regularPosts = blogPosts.filter(post => !post.featured);
+  const visibleFeaturedPost = selectedCategory === 'Todos' && !searchQuery ? featuredPost : undefined;
 
-  const filteredPosts = regularPosts.filter(post => {
+  const filteredPosts = blogPosts.filter(post => {
     const matchesCategory = selectedCategory === 'Todos' || post.category === selectedCategory;
     const matchesSearch = post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          post.excerpt.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesSearch;
+    return matchesCategory && matchesSearch && post.id !== visibleFeaturedPost?.id;
   });
 
   return (
@@ -116,6 +128,7 @@ export default function Blog() {
                 <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-400" />
                 <input
                   type="text"
+                  aria-label={t('search')}
                   placeholder="Buscar artículos..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -128,6 +141,7 @@ export default function Blog() {
               {categories.map((category) => (
                 <button
                   key={category}
+                  aria-pressed={selectedCategory === category}
                   onClick={() => setSelectedCategory(category)}
                   className={`px-4 sm:px-6 py-2.5 sm:py-3 rounded-full transition-all hover:scale-105 border-2 text-sm sm:text-base ${
                     selectedCategory === category 
@@ -154,7 +168,7 @@ export default function Blog() {
           )}
 
           {/* Featured Post */}
-          {featuredPost && selectedCategory === 'Todos' && !searchQuery && (
+          {visibleFeaturedPost && featuredPost && (
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
@@ -318,7 +332,15 @@ export default function Blog() {
           </div>
 
           {/* No Results */}
-          {!loading && filteredPosts.length === 0 && (
+          {loadError && (
+            <div role="alert" className="text-center py-12">
+              <p className="text-lg mb-4 text-stone-600">{t('loadError')}</p>
+              <button onClick={retryLoad} className="px-6 py-3 rounded-full bg-stone-900 text-stone-50 font-semibold">
+                {t('retry')}
+              </button>
+            </div>
+          )}
+          {!loading && !loadError && !visibleFeaturedPost && filteredPosts.length === 0 && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -382,4 +404,8 @@ export default function Blog() {
 <Footer />
     </div>
   );
+}
+
+export default function Blog() {
+  return <NextIntlClientProvider locale="es" messages={messages} timeZone="America/Bogota"><BlogCatalogue /></NextIntlClientProvider>;
 }

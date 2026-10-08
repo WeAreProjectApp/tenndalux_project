@@ -1,0 +1,7 @@
+{
+  "blogCatalogue": {
+    "loadError": "No pudimos cargar los artículos. Vuelve a intentarlo.",
+    "retry": "Volver a intentar",
+    "search": "Buscar artículos"
+  }
+}

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { NextIntlClientProvider, useTranslations } from 'next-intl';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -10,6 +11,7 @@ import Footer from '@/components/layout/Footer';
 import { whatsappUrl } from '@/lib/whatsapp';
 import { listPortfolioProjects, mediaUrl } from '@/lib/services/content';
 import type { PortfolioProject } from '@/types/content';
+import messages from './messages.json';
 
 /**
  * Tarjeta del listado, con los nombres que ya usaba el diseño cuando los
@@ -28,7 +30,7 @@ type ProjectCard = {
 };
 
 // Un proyecto sin galería cargada cae aquí en vez de dejar el hueco.
-const FALLBACK_IMAGE = '/home/gallery/ejemplo-uso-general.png';
+const FALLBACK_IMAGE = '/home/gallery/ejemplo-uso-general.webp';
 
 function toCard(project: PortfolioProject): ProjectCard {
   return {
@@ -110,12 +112,15 @@ const videoReels = [
 ];
 
 
-export default function Portafolio() {
+function PortfolioCatalogue() {
+  const t = useTranslations('portfolioCatalogue');
   const [selectedCategory, setSelectedCategory] = useState('Todos');
   const [showVideoModal, setShowVideoModal] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState<number>(0);
   const [projects, setProjects] = useState<ProjectCard[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+  const [loadAttempt, setLoadAttempt] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -132,22 +137,30 @@ export default function Portafolio() {
         setProjects(cards);
       })
       .catch(() => {
-        // Sin API el listado queda vacío y se avisa abajo.
+        if (!cancelled) setLoadError(true);
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
       });
 
     return () => { cancelled = true; };
-  }, []);
+  }, [loadAttempt]);
+
+  const retryLoad = () => {
+    setLoading(true);
+    setLoadError(false);
+    setProjects([]);
+    setLoadAttempt((attempt) => attempt + 1);
+  };
 
   const categories = ['Todos', ...Array.from(new Set(projects.map((p) => p.category)))];
 
   const featuredProject = projects.find(p => p.featured);
-  const regularProjects = projects.filter(p => !p.featured);
+  const visibleFeaturedProject = selectedCategory === 'Todos' ? featuredProject : undefined;
 
-  const filteredProjects = regularProjects.filter(project => {
-    return selectedCategory === 'Todos' || project.category === selectedCategory;
+  const filteredProjects = projects.filter(project => {
+    return (selectedCategory === 'Todos' || project.category === selectedCategory)
+      && project.id !== visibleFeaturedProject?.id;
   });
 
   const openVideoModal = (index: number) => {
@@ -235,7 +248,9 @@ export default function Portafolio() {
                 transition={{ delay: index * 0.1 }}
                 className="flex-shrink-0 snap-center"
               >
-                <div
+                <button
+                  type="button"
+                  aria-label={t('openVideo', { title: video.title })}
                   onClick={() => openVideoModal(index)}
                   className="group relative w-[160px] sm:w-[200px] h-[284px] sm:h-[356px] rounded-2xl overflow-hidden cursor-pointer shadow-lg hover:shadow-2xl transition-all duration-500"
                 >
@@ -267,7 +282,7 @@ export default function Portafolio() {
                       {video.duration}
                     </p>
                   </div>
-                </div>
+                </button>
               </motion.div>
             ))}
           </div>
@@ -286,6 +301,7 @@ export default function Portafolio() {
             {categories.map((category) => (
               <button
                 key={category}
+                aria-pressed={selectedCategory === category}
                 onClick={() => setSelectedCategory(category)}
                 className={`px-4 sm:px-6 py-2.5 sm:py-3 rounded-full transition-all hover:scale-105 border-2 text-sm sm:text-base ${
                   selectedCategory === category
@@ -314,7 +330,7 @@ export default function Portafolio() {
       )}
 
       {/* Featured Project */}
-      {featuredProject && selectedCategory === 'Todos' && (
+      {visibleFeaturedProject && featuredProject && (
         <section className="py-12 px-6">
           <div className="max-w-7xl mx-auto">
             <motion.div
@@ -476,7 +492,15 @@ export default function Portafolio() {
             ))}
           </div>
 
-          {!loading && filteredProjects.length === 0 && (
+          {loadError && (
+            <div role="alert" className="text-center py-12">
+              <p className="text-lg mb-4 text-stone-600">{t('loadError')}</p>
+              <button onClick={retryLoad} className="px-6 py-3 rounded-full bg-stone-900 text-stone-50 font-semibold">
+                {t('retry')}
+              </button>
+            </div>
+          )}
+          {!loading && !loadError && !visibleFeaturedProject && filteredProjects.length === 0 && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -542,6 +566,9 @@ export default function Portafolio() {
       <AnimatePresence>
         {showVideoModal && (
           <motion.div
+            role="dialog"
+            aria-modal="true"
+            aria-label={t('videoDialog')}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -549,6 +576,7 @@ export default function Portafolio() {
             onClick={() => setShowVideoModal(false)}
           >
             <button
+              aria-label={t('closeVideo')}
               onClick={() => setShowVideoModal(false)}
               className="absolute top-6 right-6 w-12 h-12 rounded-full flex items-center justify-center hover:bg-white/10 transition-colors z-10"
             >
@@ -556,6 +584,7 @@ export default function Portafolio() {
             </button>
 
             <button
+              aria-label={t('previousVideo')}
               onClick={(e) => { e.stopPropagation(); prevVideo(); }}
               className="absolute left-6 w-12 h-12 rounded-full flex items-center justify-center hover:bg-white/10 transition-colors z-10"
             >
@@ -563,6 +592,7 @@ export default function Portafolio() {
             </button>
 
             <button
+              aria-label={t('nextVideo')}
               onClick={(e) => { e.stopPropagation(); nextVideo(); }}
               className="absolute right-6 w-12 h-12 rounded-full flex items-center justify-center hover:bg-white/10 transition-colors z-10"
             >
@@ -578,6 +608,7 @@ export default function Portafolio() {
             >
               <video
                 key={videoReels[selectedVideo].id}
+                data-testid="portfolio-showreel-video"
                 src={videoReels[selectedVideo].video}
                 autoPlay
                 muted
@@ -600,4 +631,8 @@ export default function Portafolio() {
       </AnimatePresence>
     </div>
   );
+}
+
+export default function Portafolio() {
+  return <NextIntlClientProvider locale="es" messages={messages} timeZone="America/Bogota"><PortfolioCatalogue /></NextIntlClientProvider>;
 }

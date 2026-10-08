@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import Portafolio from '../page';
 import { listPortfolioProjects } from '@/lib/services/content';
 import type { PortfolioProject } from '@/types/content';
@@ -87,5 +87,70 @@ describe('Portfolio list', () => {
     render(<Portafolio />);
 
     expect(screen.getByLabelText('Cargando proyectos')).toBeInTheDocument();
+  });
+
+  it('keeps another featured project in the catalogue', async () => {
+    mockedList.mockResolvedValue([
+      project({ featured: true }),
+      project({ id: 2, title: 'Segundo destacado', slug: 'segundo', featured: true }),
+    ]);
+    render(<Portafolio />);
+
+    expect(await screen.findAllByRole('heading', { name: 'Segundo destacado', level: 3 })).toHaveLength(2);
+  });
+
+  it('includes the cover project in its category', async () => {
+    mockedList.mockResolvedValue([project({ featured: true })]);
+    render(<Portafolio />);
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Residencial' }));
+
+    expect(screen.getAllByRole('heading', { name: 'Residencia Premium Envigado', level: 3 })).toHaveLength(2);
+    expect(screen.queryByText(/No hay proyectos/)).not.toBeInTheDocument();
+  });
+
+  it('restores the cover without a duplicate card after clearing the category', async () => {
+    mockedList.mockResolvedValue([project({ featured: true })]);
+    render(<Portafolio />);
+    fireEvent.click(await screen.findByRole('button', { name: 'Residencial' }));
+
+    fireEvent.click(screen.getByRole('button', { name: 'Todos', exact: true }));
+
+    expect(screen.getByRole('heading', { name: 'Residencia Premium Envigado', level: 2 })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Residencia Premium Envigado', level: 3 })).not.toBeInTheDocument();
+  });
+
+  it('does not show an empty notice beside a lone cover project', async () => {
+    mockedList.mockResolvedValue([project()]);
+    render(<Portafolio />);
+
+    await screen.findByRole('heading', { name: 'Residencia Premium Envigado', level: 2 });
+
+    expect(screen.queryByText(/No hay proyectos/)).not.toBeInTheDocument();
+  });
+
+  it('distinguishes a failed request from an empty catalogue', async () => {
+    mockedList.mockRejectedValue(new Error('Unavailable'));
+    render(<Portafolio />);
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('No pudimos cargar los proyectos');
+    expect(screen.queryByText(/No hay proyectos/)).not.toBeInTheDocument();
+  });
+
+  it('recovers published projects on a manual retry', async () => {
+    mockedList.mockRejectedValueOnce(new Error('Unavailable')).mockResolvedValueOnce([project()]);
+    render(<Portafolio />);
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Volver a intentar' }));
+
+    expect(await screen.findByRole('heading', { name: 'Residencia Premium Envigado', level: 2 })).toBeInTheDocument();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  it('uses the bundled WebP when no cover was uploaded', async () => {
+    mockedList.mockResolvedValue([project({ cover_image_url: null })]);
+    render(<Portafolio />);
+
+    expect(await screen.findByAltText('Residencia Premium Envigado')).toHaveAttribute('src', '/home/gallery/ejemplo-uso-general.webp');
   });
 });

@@ -1,0 +1,11 @@
+{
+  "portfolioCatalogue": {
+    "loadError": "No pudimos cargar los proyectos. Vuelve a intentarlo.",
+    "retry": "Volver a intentar",
+    "openVideo": "Ver video: {title}",
+    "videoDialog": "Videos del portafolio",
+    "closeVideo": "Cerrar video",
+    "previousVideo": "Video anterior",
+    "nextVideo": "Video siguiente"
+  }
+}
