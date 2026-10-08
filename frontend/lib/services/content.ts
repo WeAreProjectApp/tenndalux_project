@@ -5,10 +5,42 @@
  * aparece en ninguna parte de la web pública.
  */
 import { get } from '@/lib/services/http';
+import { resolveApiBaseUrl } from '@/lib/apiConfig';
 import type { BlogPost, PortfolioProject } from '@/types/content';
 
 /** La API pagina por defecto (PAGE_SIZE 20). */
 type Paginated<T> = { count: number; next: string | null; results: T[] };
+
+/** Follow only this catalogue's pages: the HTTP wrapper also sends credentials. */
+async function listPublishedContent<T>(endpoint: string): Promise<T[]> {
+  const apiBase = resolveApiBaseUrl(process.env.NEXT_PUBLIC_API_URL, process.env.NODE_ENV === 'production');
+  const siteOrigin = typeof window === 'undefined' ? 'http://localhost' : window.location.origin;
+  const firstPage = new URL(`${apiBase.replace(/\/+$/, '')}${endpoint}`, siteOrigin);
+  const visited = new Set<string>();
+  const results: T[] = [];
+  let pageUrl: URL | null = firstPage;
+
+  while (pageUrl) {
+    if (pageUrl.origin !== firstPage.origin || pageUrl.pathname !== firstPage.pathname
+      || pageUrl.username || pageUrl.password || pageUrl.hash) {
+      throw new Error('Invalid catalogue pagination destination');
+    }
+    pageUrl.searchParams.sort();
+    const pageKey = pageUrl.toString();
+    if (visited.has(pageKey)) throw new Error('Catalogue pagination cycle');
+    visited.add(pageKey);
+
+    const data: Paginated<T> = (await get<Paginated<T>>(`${endpoint}${pageUrl.search}`)).data;
+    if (!data || !Array.isArray(data.results)
+      || (data.next !== null && (typeof data.next !== 'string' || !data.next.trim()))) {
+      throw new Error('Invalid catalogue page');
+    }
+    results.push(...data.results);
+    pageUrl = data.next === null ? null : new URL(data.next, pageUrl);
+  }
+
+  return results;
+}
 
 /**
  * El backend devuelve las rutas de media relativas (`/media/…`). En producción
@@ -37,11 +69,9 @@ export async function getPortfolioProject(slug: string): Promise<PortfolioProjec
 }
 
 export async function listBlogPosts(): Promise<BlogPost[]> {
-  const response = await get<Paginated<BlogPost>>('/blog/posts/');
-  return response.data.results;
+  return listPublishedContent<BlogPost>('/blog/posts/');
 }
 
 export async function listPortfolioProjects(): Promise<PortfolioProject[]> {
-  const response = await get<Paginated<PortfolioProject>>('/portfolio/projects/');
-  return response.data.results;
+  return listPublishedContent<PortfolioProject>('/portfolio/projects/');
 }

@@ -6,8 +6,8 @@ const curtain = CURTAINS[0];
 
 describe('CurtainCard', () => {
   it('shows the image before the text on mobile, and beside it from md up', () => {
-    const { container } = render(<CurtainCard curtain={curtain} />);
-    const figure = container.querySelector('.aspect-\\[4\\/5\\]')!;
+    render(<CurtainCard curtain={curtain} />);
+    const figure = screen.getByRole('img', { name: curtain.title }).parentElement;
 
     // order-first la sube en la columna única del móvil; md:order-none la
     // devuelve a su lugar en el DOM, que es la segunda celda de la grilla.
@@ -15,12 +15,11 @@ describe('CurtainCard', () => {
   });
 
   it('frames the image at the ratio the photos actually have', () => {
-    const { container } = render(<CurtainCard curtain={curtain} />);
-
-    // Las nueve son 800x1000. Un contenedor 4/3 con object-cover les recorta
-    // casi la mitad del alto.
-    expect(container.querySelector('.aspect-\\[4\\/5\\]')).not.toBeNull();
-    expect(container.querySelector('.aspect-\\[4\\/3\\]')).toBeNull();
+    render(<CurtainCard curtain={curtain} />);
+    const image = screen.getByRole('img', { name: curtain.title });
+    expect(image.parentElement).toHaveClass('aspect-[4/5]');
+    expect(image.parentElement).not.toHaveClass('aspect-[4/3]');
+    expect(decodeURIComponent(image.getAttribute('src') || '')).toContain(curtain.image);
   });
 
   it('still renders the curtain content', () => {
