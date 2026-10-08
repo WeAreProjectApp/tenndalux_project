@@ -14,19 +14,21 @@ import { useAuthStore } from '@/lib/stores/authStore';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login, isLoading, error, clearError, isAuthenticated } = useAuthStore();
+  const { login, isLoading, error, clearError, isAuthenticated, isInitialized, initializeAuth } = useAuthStore();
   
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   });
   
-  // Redirect if already authenticated
+  useEffect(() => { void initializeAuth(); }, [initializeAuth]);
+
+  // Redirect after persisted session initialization
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isInitialized && isAuthenticated) {
       router.push('/dashboard');
     }
-  }, [isAuthenticated, router]);
+  }, [isInitialized, isAuthenticated, router]);
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,12 +49,12 @@ export default function LoginPage() {
   };
   
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4 py-12">
+      <div className="bg-white p-6 sm:p-8 rounded-lg shadow-md w-full max-w-md">
         <h1 className="text-2xl font-bold text-center mb-6">Login</h1>
         
         {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+          <div id="auth-error" role="alert" className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
             {error}
           </div>
         )}
@@ -69,7 +71,8 @@ export default function LoginPage() {
               value={formData.email}
               onChange={handleChange}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              aria-describedby={error ? "auth-error" : undefined}
+              className="min-h-11 text-base w-full min-w-0 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="your.email@example.com"
             />
           </div>
@@ -85,23 +88,24 @@ export default function LoginPage() {
               value={formData.password}
               onChange={handleChange}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              aria-describedby={error ? "auth-error" : undefined}
+              className="min-h-11 text-base w-full min-w-0 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="••••••••"
             />
           </div>
           
           <button
             type="submit"
-            disabled={isLoading}
-            className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
+            disabled={isLoading || !isInitialized}
+            className="min-h-11 w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
           >
             {isLoading ? 'Loading...' : 'Login'}
           </button>
         </form>
         
         <div className="mt-4 text-center text-sm text-gray-600">
-          Don't have an account?{' '}
-          <Link href="/auth/register" className="text-blue-600 hover:underline">
+          Don&apos;t have an account?{' '}
+          <Link href="/auth/register" className="inline-flex min-h-11 items-center text-blue-600 hover:underline">
             Register here
           </Link>
         </div>

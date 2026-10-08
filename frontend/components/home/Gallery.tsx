@@ -9,6 +9,8 @@ import 'swiper/css';
 import 'swiper/css/pagination';
 import Image from 'next/image';
 import { PlayIcon } from '@heroicons/react/24/solid';
+import { NextIntlClientProvider, useTranslations } from 'next-intl';
+import messages from './videoTriggers.messages.json';
 import VideoModal from '@/components/ui/VideoModal';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -156,7 +158,13 @@ function GalleryVideo({ item }: { item: GalleryItem }) {
 }
 
 export default function Gallery() {
+  return <NextIntlClientProvider locale="es" messages={messages} timeZone="America/Bogota"><GalleryContent /></NextIntlClientProvider>;
+}
+
+function GalleryContent() {
+  const t = useTranslations('VideoTriggers');
   const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
+  const videoTriggerRef = useRef<HTMLElement>(null);
   const sectionRef = useRef<HTMLElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
@@ -188,37 +196,47 @@ export default function Gallery() {
     return () => ctx.revert();
   }, []);
 
-  const GalleryCard = ({ item }: { item: GalleryItem }) => (
-    <div
-      data-testid={item.type === 'video' ? 'gallery-video-card' : undefined}
-      className={`relative w-full h-full overflow-hidden rounded-2xl sm:rounded-3xl group ${item.type === 'video' ? 'cursor-pointer' : ''}`}
-      onClick={() => item.type === 'video' && item.videoSrc && setSelectedVideo(item.videoSrc)}
-    >
-      {item.type === 'image' ? (
-        <>
-          <Image
-            src={item.src}
-            alt={item.alt}
-            fill
-            className="object-cover transition-transform duration-700 group-hover:scale-105"
-            sizes="(max-width: 768px) 85vw, (max-width: 1200px) 50vw, 33vw"
-          />
-          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
-        </>
-      ) : (
-        <div className="relative w-full h-full">
-          <GalleryVideo item={item} />
-          {/* En escritorio el botón sólo aparece al pasar el mouse, para no tapar
-              el clip. En táctil no hay hover, así que ahí queda siempre visible. */}
-          <div className="absolute inset-0 flex items-center justify-center bg-black/10 transition-colors duration-300 sm:bg-transparent sm:group-hover:bg-black/25">
-            <div className="w-14 h-14 md:w-20 md:h-20 rounded-full bg-white/95 flex items-center justify-center shadow-2xl transition-all duration-300 sm:opacity-0 sm:scale-90 sm:group-hover:opacity-100 sm:group-hover:scale-100">
-              <PlayIcon className="w-7 h-7 md:w-10 md:h-10 text-stone-900 ml-0.5" />
+  const renderGalleryCard = (item: GalleryItem) => {
+    const Card = item.type === 'video' ? 'button' : 'div';
+    return (
+      <Card
+        type={item.type === 'video' ? 'button' : undefined}
+        aria-label={item.type === 'video' ? t('gallery', { name: item.alt }) : undefined}
+        data-testid={item.type === 'video' ? 'gallery-video-card' : undefined}
+        className={`relative w-full h-full overflow-hidden rounded-2xl sm:rounded-3xl group ${item.type === 'video' ? 'cursor-pointer' : ''}`}
+        onClick={(event) => {
+          if (item.type === 'video' && item.videoSrc) {
+            videoTriggerRef.current = event.currentTarget;
+            setSelectedVideo(item.videoSrc);
+          }
+        }}
+      >
+        {item.type === 'image' ? (
+          <>
+            <Image
+              src={item.src}
+              alt={item.alt}
+              fill
+              className="object-cover transition-transform duration-700 group-hover:scale-105"
+              sizes="(max-width: 768px) 85vw, (max-width: 1200px) 50vw, 33vw"
+            />
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
+          </>
+        ) : (
+          <div className="relative w-full h-full">
+            <GalleryVideo item={item} />
+            {/* En escritorio el botón sólo aparece al pasar el mouse, para no tapar
+                el clip. En táctil no hay hover, así que ahí queda siempre visible. */}
+            <div className="absolute inset-0 flex items-center justify-center bg-black/10 transition-colors duration-300 sm:bg-transparent sm:group-hover:bg-black/25">
+              <div className="w-14 h-14 md:w-20 md:h-20 rounded-full bg-white/95 flex items-center justify-center shadow-2xl transition-all duration-300 sm:opacity-0 sm:scale-90 sm:group-hover:opacity-100 sm:group-hover:scale-100 pointer-coarse:opacity-100 pointer-coarse:scale-100 group-focus-visible:opacity-100 group-focus-visible:scale-100">
+                <PlayIcon className="w-7 h-7 md:w-10 md:h-10 text-stone-900 ml-0.5" />
+              </div>
             </div>
           </div>
-        </div>
-      )}
-    </div>
-  );
+        )}
+      </Card>
+    );
+  };
 
   return (
     <>
@@ -258,7 +276,7 @@ export default function Gallery() {
                   <SwiperSlide key={index}>
                     <div className="relative aspect-[3/4]">
                       <div className="absolute inset-0 rounded-2xl overflow-hidden">
-                        <GalleryCard item={item} />
+                        {renderGalleryCard(item)}
                       </div>
                     </div>
                   </SwiperSlide>
@@ -270,7 +288,7 @@ export default function Gallery() {
             <div className="hidden sm:grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-8 auto-rows-[250px] sm:auto-rows-[350px] grid-flow-dense">
               {galleryItems.map((item, index) => (
                 <div key={index} className={`relative ${item.className}`}>
-                  <GalleryCard item={item} />
+                  {renderGalleryCard(item)}
                 </div>
               ))}
             </div>
@@ -282,6 +300,7 @@ export default function Gallery() {
         isOpen={!!selectedVideo}
         onClose={() => setSelectedVideo(null)}
         videoSrc={selectedVideo || ''}
+        returnFocusRef={videoTriggerRef}
       />
     </>
   );

@@ -1,90 +1,97 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useId, useRef, type RefObject } from 'react';
+import { NextIntlClientProvider, useTranslations } from 'next-intl';
 import { XMarkIcon } from '@heroicons/react/24/outline';
+import messages from './videoModal.messages.json';
 
 interface VideoModalProps {
   isOpen: boolean;
   onClose: () => void;
   videoSrc: string;
   title?: string;
+  returnFocusRef?: RefObject<HTMLElement | null>;
 }
 
-export default function VideoModal({ isOpen, onClose, videoSrc, title }: VideoModalProps) {
+export default function VideoModal(props: VideoModalProps) {
+  return <NextIntlClientProvider locale="es" messages={messages} timeZone="America/Bogota"><VideoDialog {...props} /></NextIntlClientProvider>;
+}
+
+function VideoDialog({ isOpen, onClose, videoSrc, title, returnFocusRef }: VideoModalProps) {
+  const t = useTranslations('VideoModal');
+  const titleId = useId();
+  const closeRef = useRef<HTMLButtonElement>(null);
+  const dialogRef = useRef<HTMLDialogElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-      videoRef.current?.play();
-    } else {
-      document.body.style.overflow = 'unset';
-      videoRef.current?.pause();
-    }
-
+    if (!isOpen) return;
+    const dialog = dialogRef.current;
+    const video = videoRef.current;
+    const previousFocus = returnFocusRef?.current ?? document.activeElement;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    dialog?.showModal();
+    // Autoplay can be blocked; the native player remains available to the user.
+    void video?.play().catch(() => {});
     return () => {
-      document.body.style.overflow = 'unset';
+      video?.pause();
+      dialog?.close();
+      document.body.style.overflow = previousOverflow;
+      if (previousFocus instanceof HTMLElement && previousFocus.isConnected) {
+        previousFocus.focus({ preventScroll: true });
+      }
     };
-  }, [isOpen]);
-
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    
-    if (isOpen) {
-      window.addEventListener('keydown', handleEscape);
-    }
-    
-    return () => window.removeEventListener('keydown', handleEscape);
-  }, [isOpen, onClose]);
+  }, [isOpen, returnFocusRef]);
 
   if (!isOpen) return null;
 
   return (
-    <div 
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      onClick={onClose}
+    <dialog
+      ref={dialogRef}
+      aria-labelledby={titleId}
+      aria-modal="true"
+      className="fixed inset-0 m-0 h-dvh max-h-dvh w-screen max-w-none bg-transparent p-4 text-white backdrop:bg-black/90 backdrop:backdrop-blur-sm open:flex open:items-center open:justify-center"
+      onKeyDown={(event) => {
+        if (event.key === 'Tab' && event.shiftKey && document.activeElement === closeRef.current) {
+          event.preventDefault();
+          videoRef.current?.focus();
+        }
+      }}
+      onCancel={(event) => { event.preventDefault(); onClose(); }}
+      onClick={(event) => { if (event.target === event.currentTarget) onClose(); }}
     >
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/90 backdrop-blur-sm" />
-      
-      {/* Modal Content */}
-      <div 
-        className="relative z-10 w-full max-w-[420px] mx-auto"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Close Button */}
-        <button
-          onClick={onClose}
-          className="absolute -top-14 right-0 p-2 text-white/80 hover:text-white transition-colors z-20"
-          aria-label="Cerrar video"
-        >
-          <XMarkIcon className="w-8 h-8" />
-        </button>
-
-        {/* Title */}
-        {title && (
-          <h3 className="absolute -top-14 left-0 text-white text-lg font-medium truncate max-w-[70%]">
-            {title}
+      <div className="relative flex max-h-full w-full max-w-[420px] flex-col gap-3">
+        <div className="flex shrink-0 items-center justify-between gap-3">
+          <h3 id={titleId} className={title ? 'min-w-0 text-lg font-medium' : 'sr-only'}>
+            {title || t('title')}
           </h3>
-        )}
-
-        {/* Video */}
-        <div className="relative rounded-3xl overflow-hidden bg-black shadow-2xl max-h-[80vh]">
+          <button
+            ref={closeRef}
+            type="button"
+            onClick={onClose}
+            className="ml-auto flex h-11 w-11 shrink-0 items-center justify-center text-white/80 transition-colors hover:text-white"
+            aria-label={t('close')}
+          >
+            <XMarkIcon className="h-8 w-8" aria-hidden="true" />
+          </button>
+        </div>
+        <div className="min-h-0 overflow-y-auto rounded-3xl bg-black shadow-2xl">
           <video
             ref={videoRef}
+            tabIndex={0}
             controls
             autoPlay
             playsInline
-            className="w-full h-auto max-h-[80vh] object-contain"
+            aria-label={title || t('title')}
+            className="h-auto max-h-[calc(100dvh-6rem)] w-full object-contain"
           >
-            <source src={videoSrc} type="video/webm" />
+            <source data-testid="video-webm-source" src={videoSrc} type="video/webm" />
             <source src={videoSrc.replace('.webm', '.mp4')} type="video/mp4" />
-            Tu navegador no soporta videos HTML5.
+            {t('unsupported')}
           </video>
         </div>
       </div>
-    </div>
+    </dialog>
   );
 }
