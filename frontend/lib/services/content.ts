@@ -30,8 +30,7 @@ async function listPublishedContent<T>(endpoint: string): Promise<T[]> {
     if (visited.has(pageKey)) throw new Error('Catalogue pagination cycle');
     visited.add(pageKey);
 
-    const response = await get<Paginated<T>>(`${endpoint}${pageUrl.search}`);
-    const data = response.data;
+    const data: Paginated<T> = (await get<Paginated<T>>(`${endpoint}${pageUrl.search}`)).data;
     if (!data || !Array.isArray(data.results)
       || (data.next !== null && (typeof data.next !== 'string' || !data.next.trim()))) {
       throw new Error('Invalid catalogue page');

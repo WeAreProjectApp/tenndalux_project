@@ -42,7 +42,7 @@ test('visitor reads the selected Ondessence product details', {
 
   const dialog = page.getByRole('dialog', { name: 'Cortina Ondessence', exact: true });
   await expect(dialog.getByRole('heading', { name: 'Cortina Ondessence', exact: true })).toHaveText('Cortina Ondessence');
-  await expect(dialog).toContainText('Sistema Ripplefold');
+  await expect(dialog).toContainText('sistema Ripplefold');
   await expect(dialog.getByRole('button', { name: 'Cotizar Cortina Ondessence', exact: true })).toHaveText('Cotizar Cortina Ondessence');
 });
 

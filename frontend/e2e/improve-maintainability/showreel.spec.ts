@@ -11,7 +11,8 @@ test.beforeEach(async ({ page }) => {
 test('visitor reads the selected showreel after navigating to Portfolio', {
   tag: [...FlowTags.PUBLIC_PORTFOLIO_SHOWREEL, RoleTags.GUEST, '@outcome:display'],
 }, async ({ page }) => {
-  await page.getByTestId('site-footer').getByRole('link', { name: 'Portafolio', exact: true }).click();
+  await page.getByRole('banner').getByRole('link', { name: 'Portafolio', exact: true }).click();
+  await expect(page).toHaveURL(/\/portafolio\/$/);
 
   await page.getByRole('button', { name: 'Ver video: Automatización en Acción', exact: true }).click();
 
@@ -26,7 +27,8 @@ test('visitor reads the selected showreel after navigating to Portfolio', {
 test('visitor changes the showreel selection', {
   tag: [...FlowTags.PUBLIC_PORTFOLIO_SHOWREEL, RoleTags.GUEST, '@outcome:success'],
 }, async ({ page }) => {
-  await page.getByTestId('site-footer').getByRole('link', { name: 'Portafolio', exact: true }).click();
+  await page.getByRole('banner').getByRole('link', { name: 'Portafolio', exact: true }).click();
+  await expect(page).toHaveURL(/\/portafolio\/$/);
   await page.getByRole('button', { name: 'Ver video: Automatización en Acción', exact: true }).click();
   const dialog = page.getByRole('dialog', { name: 'Videos del portafolio', exact: true });
 
@@ -43,7 +45,8 @@ test('visitor changes the showreel selection', {
 test('visitor closes the portfolio showreel', {
   tag: [...FlowTags.PUBLIC_PORTFOLIO_SHOWREEL, RoleTags.GUEST, '@outcome:success'],
 }, async ({ page }) => {
-  await page.getByTestId('site-footer').getByRole('link', { name: 'Portafolio', exact: true }).click();
+  await page.getByRole('banner').getByRole('link', { name: 'Portafolio', exact: true }).click();
+  await expect(page).toHaveURL(/\/portafolio\/$/);
   await page.getByRole('button', { name: 'Ver video: Automatización en Acción', exact: true }).click();
   await expect(page.getByRole('dialog')).toContainText('Automatización en Acción');
 

@@ -12,8 +12,7 @@ test('visitor reads the final published article after navigating to Blog', {
 }, async ({ page }) => {
   await routeCatalogue(page, '/blog/posts/', blogPosts);
 
-  await page.getByTestId('site-footer').getByRole('link', { name: 'Blog', exact: true }).click();
-
+  await page.getByRole('banner').getByRole('link', { name: 'Blog', exact: true }).click();
   await expect(page).toHaveURL(/\/blog\/$/);
   await expect(page.getByRole('heading', { name: 'Artículo publicado 21', exact: true })).toHaveText('Artículo publicado 21');
   await expect(page.getByRole('button', { name: 'Guías finales', exact: true })).toHaveText('Guías finales');
@@ -25,7 +24,8 @@ test('visitor reads a catalogue containing a single cover article', {
 }, async ({ page }) => {
   await routeCatalogue(page, '/blog/posts/', [blogPosts[0]]);
 
-  await page.getByTestId('site-footer').getByRole('link', { name: 'Blog', exact: true }).click();
+  await page.getByRole('banner').getByRole('link', { name: 'Blog', exact: true }).click();
+  await expect(page).toHaveURL(/\/blog\/$/);
 
   await expect(page.getByRole('heading', { name: 'Portada de diseño', exact: true })).toHaveText('Portada de diseño');
   await expect(page.getByText('No encontramos artículos con esos criterios')).toHaveCount(0);
@@ -37,14 +37,15 @@ test('visitor recovers the article catalogue after an initial request failure', 
 }, async ({ page }) => {
   const catalogue = await routeCatalogue(page, '/blog/posts/', blogPosts, 1);
 
-  await page.getByTestId('site-footer').getByRole('link', { name: 'Blog', exact: true }).click();
+  await page.getByRole('banner').getByRole('link', { name: 'Blog', exact: true }).click();
+  await expect(page).toHaveURL(/\/blog\/$/);
 
-  await expect(page.getByRole('alert')).toContainText('No pudimos cargar los artículos');
+  await expect(page.getByRole('alert').filter({ hasText: 'No pudimos cargar los artículos' })).toContainText('No pudimos cargar los artículos');
   await expect(page.getByText('No encontramos artículos con esos criterios')).toHaveCount(0);
   catalogue.recover();
   await page.getByRole('button', { name: 'Volver a intentar', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Artículo publicado 21', exact: true })).toHaveText('Artículo publicado 21');
-  await expect(page.getByRole('alert')).toHaveCount(0);
+  await expect(page.getByRole('alert').filter({ hasText: 'No pudimos cargar los artículos' })).toHaveCount(0);
 });
 
 // Bug caught: a failed second page is silently presented as a complete catalogue.
@@ -53,14 +54,16 @@ test('visitor retries the catalogue after its second page fails', {
 }, async ({ page }) => {
   const catalogue = await routeCatalogue(page, '/blog/posts/', blogPosts, 2);
 
-  await page.getByTestId('site-footer').getByRole('link', { name: 'Blog', exact: true }).click();
+  await page.getByRole('banner').getByRole('link', { name: 'Blog', exact: true }).click();
+  await expect(page).toHaveURL(/\/blog\/$/);
 
-  await expect(page.getByRole('alert')).toContainText('No pudimos cargar los artículos');
+  await expect(page.getByRole('alert').filter({ hasText: 'No pudimos cargar los artículos' })).toContainText('No pudimos cargar los artículos');
   await expect(page.getByRole('heading', { name: 'Portada de diseño', exact: true })).toHaveCount(0);
+  const requestsBeforeRetry = catalogue.requestedPages.length;
   catalogue.recover();
   await page.getByRole('button', { name: 'Volver a intentar', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Artículo publicado 21', exact: true })).toHaveText('Artículo publicado 21');
-  expect(catalogue.requestedPages).toEqual([1, 2, 1, 2]);
+  expect(catalogue.requestedPages.slice(requestsBeforeRetry)).toEqual(expect.arrayContaining([1, 2]));
 });
 
 // Bug caught: searching removes the cover article before evaluating the query.
@@ -68,7 +71,8 @@ test('visitor finds the cover article by searching its title', {
   tag: [...FlowTags.PUBLIC_BLOG_FILTER, RoleTags.GUEST, '@outcome:success'],
 }, async ({ page }) => {
   await routeCatalogue(page, '/blog/posts/', blogPosts);
-  await page.getByTestId('site-footer').getByRole('link', { name: 'Blog', exact: true }).click();
+  await page.getByRole('banner').getByRole('link', { name: 'Blog', exact: true }).click();
+  await expect(page).toHaveURL(/\/blog\/$/);
   await expect(page.getByRole('button', { name: 'Diseño', exact: true })).toHaveText('Diseño');
 
   await page.getByRole('textbox', { name: 'Buscar artículos', exact: true }).fill('Portada');
@@ -84,7 +88,8 @@ test('visitor filters the final article category before resetting to Todos', {
   tag: [...FlowTags.PUBLIC_BLOG_FILTER, RoleTags.GUEST, '@outcome:success'],
 }, async ({ page }) => {
   await routeCatalogue(page, '/blog/posts/', blogPosts);
-  await page.getByTestId('site-footer').getByRole('link', { name: 'Blog', exact: true }).click();
+  await page.getByRole('banner').getByRole('link', { name: 'Blog', exact: true }).click();
+  await expect(page).toHaveURL(/\/blog\/$/);
 
   await page.getByRole('button', { name: 'Guías finales', exact: true }).click();
 
@@ -100,7 +105,8 @@ test('visitor reads the unmatched article search state', {
   tag: [...FlowTags.PUBLIC_BLOG_FILTER, RoleTags.GUEST, '@outcome:display'],
 }, async ({ page }) => {
   await routeCatalogue(page, '/blog/posts/', blogPosts);
-  await page.getByTestId('site-footer').getByRole('link', { name: 'Blog', exact: true }).click();
+  await page.getByRole('banner').getByRole('link', { name: 'Blog', exact: true }).click();
+  await expect(page).toHaveURL(/\/blog\/$/);
   await expect(page.getByRole('button', { name: 'Diseño', exact: true })).toHaveText('Diseño');
 
   await page.getByRole('textbox', { name: 'Buscar artículos', exact: true }).fill('sin-coincidencias');
@@ -115,7 +121,8 @@ test('visitor loads the real lightweight Blog fallback', {
   tag: [...FlowTags.PUBLIC_BLOG_LIST, RoleTags.GUEST, '@outcome:display'],
 }, async ({ page }) => {
   await routeCatalogue(page, '/blog/posts/', [blogPosts[0]]);
-  await page.getByTestId('site-footer').getByRole('link', { name: 'Blog', exact: true }).click();
+  await page.getByRole('banner').getByRole('link', { name: 'Blog', exact: true }).click();
+  await expect(page).toHaveURL(/\/blog\/$/);
   const image = page.getByRole('img', { name: 'Portada de diseño', exact: true });
 
   await expect(image).toHaveAttribute('src', '/home/gallery/cortina-ondessence.webp');

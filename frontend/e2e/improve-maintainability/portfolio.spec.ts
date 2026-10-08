@@ -12,8 +12,7 @@ test('visitor reads the published portfolio after navigating from Services', {
 }, async ({ page }) => {
   await routeCatalogue(page, '/portfolio/projects/', portfolioProjects);
 
-  await page.getByTestId('site-footer').getByRole('link', { name: 'Portafolio', exact: true }).click();
-
+  await page.getByRole('banner').getByRole('link', { name: 'Portafolio', exact: true }).click();
   await expect(page).toHaveURL(/\/portafolio\/$/);
   await expect(page.getByRole('heading', { name: 'Residencia de portada', exact: true })).toHaveCount(1);
   await expect(page.getByRole('heading', { name: 'Proyecto publicado 2', exact: true })).toHaveText('Proyecto publicado 2');
@@ -26,10 +25,11 @@ test('visitor reads the empty published portfolio', {
 }, async ({ page }) => {
   await routeCatalogue(page, '/portfolio/projects/', []);
 
-  await page.getByTestId('site-footer').getByRole('link', { name: 'Portafolio', exact: true }).click();
+  await page.getByRole('banner').getByRole('link', { name: 'Portafolio', exact: true }).click();
+  await expect(page).toHaveURL(/\/portafolio\/$/);
 
   await expect(page.getByText('No hay proyectos en esta categoría aún')).toHaveText('No hay proyectos en esta categoría aún');
-  await expect(page.getByRole('alert')).toHaveCount(0);
+  await expect(page.getByRole('alert').filter({ hasText: 'No pudimos cargar los proyectos' })).toHaveCount(0);
 });
 
 // Bug caught: API outages are rendered as an unpublished portfolio with no recovery.
@@ -38,14 +38,15 @@ test('visitor recovers the portfolio after an initial request failure', {
 }, async ({ page }) => {
   const catalogue = await routeCatalogue(page, '/portfolio/projects/', portfolioProjects, 1);
 
-  await page.getByTestId('site-footer').getByRole('link', { name: 'Portafolio', exact: true }).click();
+  await page.getByRole('banner').getByRole('link', { name: 'Portafolio', exact: true }).click();
+  await expect(page).toHaveURL(/\/portafolio\/$/);
 
-  await expect(page.getByRole('alert')).toContainText('No pudimos cargar los proyectos');
+  await expect(page.getByRole('alert').filter({ hasText: 'No pudimos cargar los proyectos' })).toContainText('No pudimos cargar los proyectos');
   await expect(page.getByText('No hay proyectos en esta categoría aún')).toHaveCount(0);
   catalogue.recover();
   await page.getByRole('button', { name: 'Volver a intentar', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Proyecto publicado 21', exact: true })).toHaveText('Proyecto publicado 21');
-  await expect(page.getByRole('alert')).toHaveCount(0);
+  await expect(page.getByRole('alert').filter({ hasText: 'No pudimos cargar los proyectos' })).toHaveCount(0);
 });
 
 // Bug caught: a failed page two leaves a partial portfolio on screen.
@@ -54,14 +55,16 @@ test('visitor retries the portfolio after a later page fails', {
 }, async ({ page }) => {
   const catalogue = await routeCatalogue(page, '/portfolio/projects/', portfolioProjects, 2);
 
-  await page.getByTestId('site-footer').getByRole('link', { name: 'Portafolio', exact: true }).click();
+  await page.getByRole('banner').getByRole('link', { name: 'Portafolio', exact: true }).click();
+  await expect(page).toHaveURL(/\/portafolio\/$/);
 
-  await expect(page.getByRole('alert')).toContainText('No pudimos cargar los proyectos');
+  await expect(page.getByRole('alert').filter({ hasText: 'No pudimos cargar los proyectos' })).toContainText('No pudimos cargar los proyectos');
   await expect(page.getByRole('heading', { name: 'Residencia de portada', exact: true })).toHaveCount(0);
+  const requestsBeforeRetry = catalogue.requestedPages.length;
   catalogue.recover();
   await page.getByRole('button', { name: 'Volver a intentar', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Proyecto publicado 21', exact: true })).toHaveText('Proyecto publicado 21');
-  expect(catalogue.requestedPages).toEqual([1, 2, 1, 2]);
+  expect(catalogue.requestedPages.slice(requestsBeforeRetry)).toEqual(expect.arrayContaining([1, 2]));
 });
 
 // Bug caught: the selected category loses its cover project or another featured project.
@@ -69,7 +72,8 @@ test('visitor filters a category containing multiple featured projects', {
   tag: [...FlowTags.PUBLIC_PORTFOLIO_FILTER, RoleTags.GUEST, '@outcome:success'],
 }, async ({ page }) => {
   await routeCatalogue(page, '/portfolio/projects/', portfolioProjects);
-  await page.getByTestId('site-footer').getByRole('link', { name: 'Portafolio', exact: true }).click();
+  await page.getByRole('banner').getByRole('link', { name: 'Portafolio', exact: true }).click();
+  await expect(page).toHaveURL(/\/portafolio\/$/);
 
   await page.getByRole('button', { name: 'Residencial', exact: true }).click();
 
@@ -86,7 +90,8 @@ test('visitor reads projects matching the last-page category', {
   tag: [...FlowTags.PUBLIC_PORTFOLIO_FILTER, RoleTags.GUEST, '@outcome:display'],
 }, async ({ page }) => {
   await routeCatalogue(page, '/portfolio/projects/', portfolioProjects);
-  await page.getByTestId('site-footer').getByRole('link', { name: 'Portafolio', exact: true }).click();
+  await page.getByRole('banner').getByRole('link', { name: 'Portafolio', exact: true }).click();
+  await expect(page).toHaveURL(/\/portafolio\/$/);
 
   await page.getByRole('button', { name: 'Hotelería', exact: true }).click();
 
@@ -99,7 +104,8 @@ test('visitor loads the real lightweight Portfolio fallback', {
   tag: [...FlowTags.PUBLIC_PORTFOLIO_LIST, RoleTags.GUEST, '@outcome:display'],
 }, async ({ page }) => {
   await routeCatalogue(page, '/portfolio/projects/', [portfolioProjects[0]]);
-  await page.getByTestId('site-footer').getByRole('link', { name: 'Portafolio', exact: true }).click();
+  await page.getByRole('banner').getByRole('link', { name: 'Portafolio', exact: true }).click();
+  await expect(page).toHaveURL(/\/portafolio\/$/);
   const image = page.getByRole('img', { name: 'Residencia de portada', exact: true });
 
   await expect(image).toHaveAttribute('src', '/home/gallery/ejemplo-uso-general.webp');

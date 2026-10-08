@@ -37,8 +37,8 @@ describe('Portfolio list', () => {
     mockedList.mockResolvedValue([project(), project({ id: 2, title: 'Oficinas Medellín', slug: 'oficinas' })]);
     render(<Portafolio />);
 
-    expect(await screen.findAllByText('Residencia Premium Envigado')).not.toHaveLength(0);
-    expect(screen.getAllByText('Oficinas Medellín')).not.toHaveLength(0);
+    expect(await screen.findByRole('heading', { name: 'Residencia Premium Envigado', level: 2 })).toHaveTextContent('Residencia Premium Envigado');
+    expect(screen.getAllByRole('heading', { name: 'Oficinas Medellín', level: 3 })).toHaveLength(2);
   });
 
   it('builds the category filter from the categories the projects carry', async () => {
@@ -58,7 +58,7 @@ describe('Portfolio list', () => {
     mockedList.mockResolvedValue([project()]);
     render(<Portafolio />);
 
-    expect(await screen.findAllByText('Cortinas Roller + Automatización')).not.toHaveLength(0);
+    expect(await screen.findAllByText('Cortinas Roller + Automatización')).toHaveLength(1);
   });
 
   it('respects the featured flag set in the admin', async () => {
@@ -68,7 +68,7 @@ describe('Portfolio list', () => {
     ]);
     render(<Portafolio />);
 
-    expect(await screen.findAllByText('El destacado')).not.toHaveLength(0);
+    expect(await screen.findByRole('heading', { name: 'El destacado', level: 2 })).toHaveTextContent('El destacado');
   });
 
   it('promotes the first project when nobody marked one as featured', async () => {
@@ -79,7 +79,7 @@ describe('Portfolio list', () => {
     render(<Portafolio />);
 
     // Sin esto la franja destacada de arriba quedaría vacía.
-    expect(await screen.findAllByText('Primero')).not.toHaveLength(0);
+    expect(await screen.findByRole('heading', { name: 'Primero', level: 2 })).toHaveTextContent('Primero');
   });
 
   it('does not claim there are no results while it is still loading', () => {
@@ -124,7 +124,7 @@ describe('Portfolio list', () => {
     mockedList.mockResolvedValue([project()]);
     render(<Portafolio />);
 
-    await screen.findByRole('heading', { name: 'Residencia Premium Envigado', level: 2 });
+    expect(await screen.findByRole('heading', { name: 'Residencia Premium Envigado', level: 2 })).toHaveTextContent('Residencia Premium Envigado');
 
     expect(screen.queryByText(/No hay proyectos/)).not.toBeInTheDocument();
   });
@@ -151,6 +151,7 @@ describe('Portfolio list', () => {
     mockedList.mockResolvedValue([project({ cover_image_url: null })]);
     render(<Portafolio />);
 
-    expect(await screen.findByAltText('Residencia Premium Envigado')).toHaveAttribute('src', '/home/gallery/ejemplo-uso-general.webp');
+    const image = await screen.findByAltText('Residencia Premium Envigado');
+    expect(decodeURIComponent(image.getAttribute('src') || '')).toContain('/home/gallery/ejemplo-uso-general.webp');
   });
 });

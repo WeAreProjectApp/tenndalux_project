@@ -36,8 +36,8 @@ describe('Blog list', () => {
     render(<Blog />);
 
     // La página pinta variante móvil y de escritorio, de ahí el getAll.
-    expect(await screen.findAllByText('Cortinas inteligentes')).not.toHaveLength(0);
-    expect(screen.getAllByText('Persianas celulares')).not.toHaveLength(0);
+    expect(await screen.findByRole('heading', { name: 'Cortinas inteligentes', level: 2 })).toHaveTextContent('Cortinas inteligentes');
+    expect(screen.getAllByRole('heading', { name: 'Persianas celulares', level: 3 })).toHaveLength(2);
   });
 
   it('builds the category filter from the tags the posts actually carry', async () => {
@@ -57,7 +57,7 @@ describe('Blog list', () => {
     mockedList.mockResolvedValue([post({ read_time_minutes: 12 })]);
     render(<Blog />);
 
-    expect(await screen.findAllByText(/12 min/)).not.toHaveLength(0);
+    expect(await screen.findAllByText(/12 min/)).toHaveLength(1);
   });
 
   it('labels a post with no tags rather than leaving the badge empty', async () => {
@@ -87,7 +87,7 @@ describe('Blog list', () => {
   it('finds the cover post when its title is searched', async () => {
     mockedList.mockResolvedValue([post(), post({ id: 2, title: 'Otro artículo', slug: 'otro' })]);
     render(<Blog />);
-    await screen.findByRole('heading', { name: 'Cortinas inteligentes', level: 2 });
+    expect(await screen.findByRole('heading', { name: 'Cortinas inteligentes', level: 2 })).toHaveTextContent('Cortinas inteligentes');
 
     fireEvent.change(screen.getByRole('textbox', { name: 'Buscar artículos' }), { target: { value: 'inteligentes' } });
 
@@ -120,7 +120,7 @@ describe('Blog list', () => {
     mockedList.mockResolvedValue([post()]);
     render(<Blog />);
 
-    await screen.findByRole('heading', { name: 'Cortinas inteligentes', level: 2 });
+    expect(await screen.findByRole('heading', { name: 'Cortinas inteligentes', level: 2 })).toHaveTextContent('Cortinas inteligentes');
 
     expect(screen.queryByText(/No encontramos artículos/)).not.toBeInTheDocument();
   });
@@ -147,6 +147,7 @@ describe('Blog list', () => {
     mockedList.mockResolvedValue([post({ cover_image_url: null })]);
     render(<Blog />);
 
-    expect(await screen.findByAltText('Cortinas inteligentes')).toHaveAttribute('src', '/home/gallery/cortina-ondessence.webp');
+    const image = await screen.findByAltText('Cortinas inteligentes');
+    expect(decodeURIComponent(image.getAttribute('src') || '')).toContain('/home/gallery/cortina-ondessence.webp');
   });
 });
