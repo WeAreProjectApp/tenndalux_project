@@ -168,6 +168,28 @@ el árbol final coincida con el conjunto probado. Los registros de hasta tres
 causas comparten una única QA; IDs previos de errores de contenido y N+1 de
 Home se reutilizan y sus aliases duplicados quedan descartados por el helper.
 
+## Comprobación adicional del cierre
+
+La revisión del catálogo detectó que la causa previa I-M-08e80d436220 seguía
+activa: `_serve_shell` usaba texto del CMS como plantilla de reemplazo de regex.
+Una barra inversa puede interpretarse como backreference, alterar metadatos o
+producir `re.error` al abrir el detalle. El conductor amplió exclusivamente el
+alcance de t33 al renderer y a un archivo nuevo de pruebas HTTP; no adoptó
+archivos de otros dueños ni abrió limpieza cosmética de tests legados.
+
+Se exige conservar escape HTML y sustituir título/descripción como texto
+literal. El grupo de hasta tres causas `improvement-20261008-frontend-metadata`
+usa pruebas backend y gate propios sobre el nuevo commit combinado. Las seis
+verificaciones anteriores sobre 7943a08 son históricas e inmutables; no se
+reetiquetan sus artefactos con un SHA que no ejecutaron. El CI del tren nuevo
+verifica la combinación final. No se agregan IDs ni outcomes de usuario.
+El snapshot de t33 5ef5081 incluye sólo el renderer y el nuevo archivo: cuatro
+casos fallaron antes (tres errores HTTP y una descripción alterada) y los cinco
+pasaron después. Los callbacks mantienen el escape HTML. Esta prueba de
+autoría no sustituye la comprobación final de la combinación. #68 ya aterrizó
+como 1957dea y #66 como 922c062, con diff propio idéntico al probado; las otras
+dos entregas y el registro final siguen pendientes de cierre del tren nuevo.
+
 ## Pendientes y decisiones de parada
 
 Se preservan controles ya corregidos: roles CMS, campos internos, refresh
