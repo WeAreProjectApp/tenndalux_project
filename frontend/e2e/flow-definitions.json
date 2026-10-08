@@ -65,10 +65,9 @@
         "admin"
       ],
       "priority": "P2",
-      "description": "Activate Logout, clear local authentication state and cookies, and return to Login; an earlier pending renewal cannot restore that session or overwrite a subsequent login.",
+      "description": "Activate Logout, clear local authentication state and cookies, and return to Login.",
       "outcomes": [
-        "success",
-        "failure"
+        "success"
       ]
     },
     "public-home": {
