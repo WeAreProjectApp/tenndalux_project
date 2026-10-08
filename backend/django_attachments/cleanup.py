@@ -1,11 +1,10 @@
 import logging
 import os
 
-from django.core.files.storage import storages
 from django.db import models
 from django.db.models.signals import post_delete, pre_save
-from easy_thumbnails.conf import settings
 from easy_thumbnails.files import get_thumbnailer
+from easy_thumbnails.storage import get_storage
 
 logger = logging.getLogger('django.db.models')
 
@@ -37,7 +36,7 @@ def delete_file(file_instance):
     if not file_instance.name:
         return
     thumbnailer = get_thumbnailer(file_instance)
-    thumbnailer.thumbnail_storage = storages[settings.THUMBNAIL_DEFAULT_STORAGE]
+    thumbnailer.thumbnail_storage = get_storage()
     thumbnailer.delete_thumbnails()
     storage = file_instance.storage
     file_path = file_instance.path

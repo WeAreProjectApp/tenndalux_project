@@ -1,6 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { isAxiosError } from 'axios';
+import { NextIntlClientProvider, useTranslations } from 'next-intl';
+import messages from './messages';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
@@ -23,11 +26,23 @@ function slugFromPath(): string {
 }
 
 export default function BlogPostClient() {
+  return (
+    <NextIntlClientProvider locale="es" messages={messages} timeZone="America/Bogota">
+      <BlogPostDetail />
+    </NextIntlClientProvider>
+  );
+}
+
+function BlogPostDetail() {
+  const t = useTranslations('detail');
   const [post, setPost] = useState<BlogPost | null>(null);
-  const [state, setState] = useState<'loading' | 'ready' | 'missing'>('loading');
+  const [state, setState] = useState<'loading' | 'ready' | 'missing' | 'unavailable'>('loading');
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
+    let titleObserver: MutationObserver | undefined;
+    const routePath = window.location.pathname;
 
     getBlogPost(slugFromPath())
       .then((data) => {
@@ -35,20 +50,37 @@ export default function BlogPostClient() {
         setPost(data);
         setState('ready');
         // El <title> del shell es genérico hasta que se sabe qué post es.
-        document.title = data.meta_title || `${data.title} — Tenndalux`;
+        const title = data.meta_title || `${data.title} — Tenndalux`;
+        const keepTitle = () => {
+          if (!cancelled && window.location.pathname === routePath && document.title !== title) {
+            document.title = title;
+          }
+        };
+        keepTitle();
+        titleObserver = new MutationObserver(keepTitle);
+        titleObserver.observe(document.head, { childList: true, subtree: true, characterData: true });
       })
-      .catch(() => {
-        if (!cancelled) setState('missing');
+      .catch((error: unknown) => {
+        if (!cancelled) {
+          setState(isAxiosError(error) && error.response?.status === 404 ? 'missing' : 'unavailable');
+        }
       });
 
-    return () => { cancelled = true; };
-  }, []);
+    return () => {
+      cancelled = true;
+      titleObserver?.disconnect();
+    };
+  }, [attempt]);
 
-  const handleShare = () => {
-    if (navigator.share) {
-      navigator.share({ title: post?.title ?? document.title, url: window.location.href });
-    } else {
-      navigator.clipboard.writeText(window.location.href);
+  const handleShare = async () => {
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: post?.title ?? document.title, url: window.location.href });
+      } else {
+        await navigator.clipboard.writeText(window.location.href);
+      }
+    } catch {
+      // Browser integrations may be cancelled or denied; keep the article usable.
     }
   };
 
@@ -75,6 +107,19 @@ export default function BlogPostClient() {
             <div className="h-12 w-3/4 bg-stone-200 rounded" />
             <div className="h-64 bg-stone-200 rounded-2xl" />
           </div>
+        </div>
+      )}
+
+      {state === 'unavailable' && (
+        <div role="alert" className="px-4 sm:px-6 pb-32 text-center">
+          <h1 className="text-3xl font-semibold text-stone-900 mb-4">{t('unavailable')}</h1>
+          <p className="text-stone-600 mb-8">{t('explanation')}</p>
+          <button type="button" onClick={() => {
+            setState('loading');
+            setAttempt((value) => value + 1);
+          }} className="px-8 py-4 rounded-full bg-stone-900 text-stone-50 font-semibold">
+            {t('retry')}
+          </button>
         </div>
       )}
 

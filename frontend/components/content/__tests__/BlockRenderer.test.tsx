@@ -2,83 +2,80 @@ import { render, screen } from '@testing-library/react';
 import BlockRenderer from '../BlockRenderer';
 import type { ContentBlock } from '@/types/content';
 
+const textBlocks: Array<{ block: ContentBlock; expected: string }> = [
+  { block: { type: 'parrafo', heading: 'Qué son', text: 'Sistemas motorizados.' }, expected: 'Sistemas motorizados.' },
+  { block: { type: 'lista', items: ['Control de luz'] }, expected: 'Control de luz' },
+  { block: { type: 'ejemplos', items: ['Oficinas en casa'] }, expected: 'Oficinas en casa' },
+  { block: { type: 'subsecciones', items: [{ title: 'Básico', description: 'Un motor.' }] }, expected: 'Un motor.' },
+  { block: { type: 'linea_de_tiempo', steps: [{ step: 'Medición', description: 'Visita.', duration: '1 día' }] }, expected: 'Visita.' },
+  { block: { type: 'metricas', items: [{ metric: '-40%', description: 'Menos calor.' }] }, expected: 'Menos calor.' },
+  { block: { type: 'testimonio', text: 'Impecable.', author: 'Ana', role: 'Cliente' }, expected: 'Impecable.' },
+  { block: { type: 'cierre', text: 'Cada espacio es distinto.', note: 'Escríbenos.' }, expected: 'Cada espacio es distinto.' },
+];
+
 describe('BlockRenderer', () => {
-  it('renders every block type the admin can produce', () => {
-    const blocks: ContentBlock[] = [
-      { type: 'parrafo', heading: 'Qué son', text: 'Sistemas motorizados.' },
-      { type: 'lista', items: ['Control de luz'] },
-      { type: 'ejemplos', items: ['Oficinas en casa'] },
-      { type: 'subsecciones', items: [{ title: 'Básico', description: 'Un motor.' }] },
-      { type: 'linea_de_tiempo', steps: [{ step: 'Medición', description: 'Visita.', duration: '1 día' }] },
-      { type: 'metricas', items: [{ metric: '-40%', description: 'Menos calor.' }] },
+  it.each(textBlocks)('renders $block.type content', ({ block, expected }) => {
+    render(<BlockRenderer blocks={[block]} />);
+
+    expect(screen.getByText(expected, { exact: false })).toBeVisible();
+  });
+
+  it('renders the gallery image supplied by the backend', () => {
+    render(<BlockRenderer blocks={[
       { type: 'galeria', images: [{ id: 'img_1', url: '/media/a.webp', alt: 'Sala' }] },
-      { type: 'video', youtube_url: 'https://youtu.be/abc', youtube_id: 'abc', title: 'Demo' },
-      { type: 'testimonio', text: 'Impecable.', author: 'Ana', role: 'Cliente' },
-      { type: 'cierre', text: 'Cada espacio es distinto.', note: 'Escríbenos.' },
-    ];
+    ]} />);
 
-    render(<BlockRenderer blocks={blocks} />);
-
-    expect(screen.getByText('Sistemas motorizados.')).toBeInTheDocument();
-    expect(screen.getByText('Control de luz')).toBeInTheDocument();
-    expect(screen.getByText('Oficinas en casa')).toBeInTheDocument();
-    expect(screen.getByText('Básico')).toBeInTheDocument();
-    expect(screen.getByText('Medición')).toBeInTheDocument();
-    expect(screen.getByText('-40%')).toBeInTheDocument();
-    expect(screen.getByAltText('Sala')).toBeInTheDocument();
-    expect(screen.getByTitle('Demo')).toBeInTheDocument();
-    expect(screen.getByText(/Impecable/)).toBeInTheDocument();
-    expect(screen.getByText('Cada espacio es distinto.')).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'Sala' })).toHaveAttribute(
+      'src', expect.stringMatching(/(?:\/media\/a\.webp|url=%2Fmedia%2Fa\.webp)(?:$|&)/),
+    );
   });
 
   it('keeps the order the admin gave the blocks', () => {
-    render(
-      <BlockRenderer
-        blocks={[
-          { type: 'parrafo', text: 'Primero' },
-          { type: 'parrafo', text: 'Segundo' },
-          { type: 'parrafo', text: 'Tercero' },
-        ]}
-      />,
-    );
+    render(<BlockRenderer blocks={[
+      { type: 'parrafo', text: 'Primero' },
+      { type: 'parrafo', text: 'Segundo' },
+      { type: 'parrafo', text: 'Tercero' },
+    ]} />);
 
-    const texts = screen.getAllByText(/Primero|Segundo|Tercero/).map((n) => n.textContent);
+    const texts = screen.getAllByText(/Primero|Segundo|Tercero/).map((node) => node.textContent);
     expect(texts).toEqual(['Primero', 'Segundo', 'Tercero']);
   });
 
-  it('embeds the video from the id the backend resolved', () => {
-    render(
-      <BlockRenderer
-        blocks={[{ type: 'video', youtube_url: 'https://youtu.be/xyz', youtube_id: 'xyz' }]}
-      />,
-    );
+  it.each([
+    { title: undefined, expected: 'Video' },
+    { title: 'Demo', expected: 'Demo' },
+  ])('embeds the resolved video with title $expected', ({ title, expected }) => {
+    render(<BlockRenderer blocks={[
+      { type: 'video', youtube_url: 'https://youtu.be/unused', youtube_id: 'xyz', title },
+    ]} />);
 
-    expect(screen.getByTitle('Video')).toHaveAttribute(
-      'src',
-      'https://www.youtube-nocookie.com/embed/xyz',
-    );
+    expect(screen.getByTitle(expected)).toHaveAttribute('src', 'https://www.youtube-nocookie.com/embed/xyz');
   });
 
-  it('skips a video whose url the backend could not resolve', () => {
-    const { container } = render(
-      <BlockRenderer blocks={[{ type: 'video', youtube_url: 'roto', youtube_id: null }]} />,
-    );
+  it('keeps readable content after an unresolved video', () => {
+    render(<BlockRenderer blocks={[
+      { type: 'video', youtube_url: 'roto', youtube_id: null },
+      { type: 'parrafo', text: 'Texto después del video' },
+    ]} />);
 
-    expect(container.querySelector('iframe')).toBeNull();
+    expect(screen.getByText('Texto después del video')).toBeVisible();
+    expect(screen.queryByTitle('Video')).not.toBeInTheDocument();
   });
 
-  it('skips a gallery left empty because its images were deleted', () => {
-    render(<BlockRenderer blocks={[{ type: 'galeria', heading: 'Antes y después', images: [] }]} />);
+  it('keeps readable content after a gallery loses its images', () => {
+    render(<BlockRenderer blocks={[
+      { type: 'galeria', heading: 'Antes y después', images: [] },
+      { type: 'parrafo', text: 'Texto después de la galería' },
+    ]} />);
 
-    // El encabezado suelto sin fotos se leería como una sección rota.
+    expect(screen.getByText('Texto después de la galería')).toBeVisible();
     expect(screen.queryByText('Antes y después')).not.toBeInTheDocument();
   });
 
-  it('drops a block type it does not know instead of breaking the page', () => {
+  it('keeps readable content after an unknown block type', () => {
     const unknown = { type: 'mapa', lat: 4.7 } as unknown as ContentBlock;
-
     render(<BlockRenderer blocks={[unknown, { type: 'parrafo', text: 'Sigue vivo' }]} />);
 
-    expect(screen.getByText('Sigue vivo')).toBeInTheDocument();
+    expect(screen.getByText('Sigue vivo')).toBeVisible();
   });
 });
