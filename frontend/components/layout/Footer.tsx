@@ -7,14 +7,14 @@ import Image from 'next/image';
 
 export default function Footer() {
   return (
-    <footer className="bg-stone-950 text-white pt-24 pb-12 border-t border-stone-900">
+    <footer className="bg-stone-950 text-white pt-24 pb-12 border-t border-stone-900" data-testid="site-footer">
       <div className="max-w-[1240px] mx-auto px-6 sm:px-8 lg:px-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-20">
           
           {/* Brand Column */}
           <div className="space-y-6">
             <Image
-              src="/logo-tenndalux.png"
+              src="/logo-tenndalux.webp"
               alt="Tenndalux"
               width={160}
               height={40}

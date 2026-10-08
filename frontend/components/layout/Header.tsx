@@ -70,6 +70,7 @@ export default function Header() {
           { y: 0, opacity: 1, duration: 0.4 },
           '-=0.2'
         );
+      return () => { tl.kill(); };
     } else {
       if (tlRef.current) {
         tlRef.current.kill();
@@ -82,12 +83,14 @@ export default function Header() {
           }
         }
       });
+      tlRef.current = tl;
       tl.to(navLinksRef.current.filter(Boolean), {
         y: -30, opacity: 0, filter: 'blur(6px)', duration: 0.25, stagger: 0.03
       })
       .to(overlayRef.current, {
         clipPath: 'circle(0% at calc(100% - 40px) 36px)', duration: 0.5
       }, '-=0.1');
+      return () => { tl.kill(); };
     }
   }, [isMenuOpen]);
 
@@ -110,7 +113,7 @@ export default function Header() {
               className="z-[60] block"
             >
               <Image
-                src="/logo-tenndalux.png"
+                src="/logo-tenndalux.webp"
                 alt="Tenndalux"
                 width={200}
                 height={50}
@@ -189,9 +192,9 @@ export default function Header() {
       >
         {/* Top bar inside overlay mirrors main header */}
         <div className="flex items-center justify-between h-[72px] sm:h-20 px-6 sm:px-8 lg:px-12 max-w-[1400px] mx-auto w-full">
-          <Link href="/" onClick={closeMenu} className="block">
+          <Link href="/" onClick={closeMenu} className="block" data-testid="mobile-menu-logo-link">
             <Image
-              src="/logo-tenndalux.png"
+              src="/logo-tenndalux.webp"
               alt="Tenndalux"
               width={200}
               height={50}

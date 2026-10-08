@@ -45,7 +45,7 @@ for item in "$OUT_DIR"/*/; do
 done
 
 # Copy root-level static files (svgs, ico, etc.)
-for file in "$OUT_DIR"/*.svg "$OUT_DIR"/*.ico "$OUT_DIR"/*.png "$OUT_DIR"/*.txt; do
+for file in "$OUT_DIR"/*.svg "$OUT_DIR"/*.ico "$OUT_DIR"/*.png "$OUT_DIR"/*.webp "$OUT_DIR"/*.txt; do
     [ -f "$file" ] && cp "$file" "$BACKEND_DIR/static/"
 done
 

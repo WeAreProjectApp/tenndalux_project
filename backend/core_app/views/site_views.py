@@ -1,7 +1,8 @@
+from django.db.models import Prefetch, prefetch_related_objects
 from rest_framework import generics
 from rest_framework.permissions import AllowAny
 
-from core_app.models import SiteSettings, HomePage, AboutPage, WarrantyDocument
+from core_app.models import SiteSettings, HomePage, AboutPage, Project, WarrantyDocument
 from core_app.permissions import IsRoleAdminOrReadOnly
 from core_app.serializers import SiteSettingsSerializer, HomePageSerializer, AboutPageSerializer
 from core_app.serializers.site_serializers import WarrantyDocumentSerializer
@@ -22,7 +23,14 @@ class HomePageView(_SingletonPermissionsMixin, generics.RetrieveUpdateAPIView):
     serializer_class = HomePageSerializer
 
     def get_object(self):
-        return HomePage.load()
+        home = HomePage.load()
+        projects = Project.objects.all()
+        if not self.request.user.is_authenticated:
+            projects = projects.filter(is_published=True)
+        prefetch_related_objects(
+            [home], Prefetch('featured_projects', queryset=projects)
+        )
+        return home
 
 
 class AboutPageView(_SingletonPermissionsMixin, generics.RetrieveUpdateAPIView):
