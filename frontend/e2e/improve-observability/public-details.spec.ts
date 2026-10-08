@@ -19,59 +19,87 @@ async function isolate(page: Page) {
   await page.route('**/api/portfolio/projects/', (route) => route.fulfill({ json: { results: [] } }));
 }
 
-const domains = [
-  { path: 'blog', endpoint: 'blog/posts', item: post, tags: FlowTags.PUBLIC_BLOG_DETAIL, noun: 'artículo' },
-  { path: 'portafolio', endpoint: 'portfolio/projects', item: project, tags: FlowTags.PUBLIC_PORTFOLIO_DETAIL, noun: 'proyecto' },
-];
+type DetailFixture = {
+  path: string;
+  endpoint: string;
+  item: typeof post | typeof project;
+  noun: string;
+};
+const blog: DetailFixture = { path: 'blog', endpoint: 'blog/posts', item: post, noun: 'artículo' };
+const portfolio: DetailFixture = { path: 'portafolio', endpoint: 'portfolio/projects', item: project, noun: 'proyecto' };
 
-for (const domain of domains) {
-  test(`${domain.path} opens published detail from a card`, {
-    tag: [...domain.tags, '@outcome:display'],
+async function openPublishedCard(page: Page, domain: DetailFixture) {
+  await isolate(page);
+  await page.route(`**/api/${domain.endpoint}/`, (route) => route.fulfill({ json: { results: [domain.item] } }));
+  await page.route(`**/api/${domain.endpoint}/_shell/`, (route) => route.fulfill({ json: domain.item }));
+  await page.goto(`/${domain.path}`);
+  await page.getByRole('link', { name: new RegExp(domain.item.title) }).filter({ visible: true }).first().click();
+  await page.waitForURL(new RegExp(`/${domain.path}/_shell/?$`));
+  await expect(page.getByRole('heading', { name: domain.item.title, level: 1 })).toBeVisible();
+  await expect(page.getByText(domain.item.content_blocks[0].text)).toBeVisible();
+}
+
+async function returnFromMissing(page: Page, domain: DetailFixture) {
+  await isolate(page);
+  await page.route(`**/api/${domain.endpoint}/_shell/`, (route) => route.fulfill({ status: 404, json: {} }));
+  await page.goto(`/${domain.path}/_shell`);
+  await page.getByRole('link', { name: /Ver todos los/ }).click();
+}
+
+async function retryDetail(page: Page, domain: DetailFixture, failure: string) {
+  await isolate(page);
+  const endpoint = `**/api/${domain.endpoint}/_shell/`;
+  await page.route(endpoint, (route) => failure === 'network'
+    ? route.abort('failed') : route.fulfill({ status: 503, json: {} }));
+  await page.goto(`/${domain.path}/_shell`);
+  await expect(page.getByRole('heading', { name: `No pudimos cargar este ${domain.noun}` })).toBeVisible();
+  await page.unroute(endpoint);
+  await page.route(endpoint, (route) => route.fulfill({ json: domain.item }));
+  await page.getByRole('button', { name: 'Reintentar' }).click();
+  await expect(page.getByRole('alert').filter({ hasText: `No pudimos cargar este ${domain.noun}` })).toHaveCount(0);
+}
+
+test('blog opens published detail from a card', {
+  tag: [...FlowTags.PUBLIC_BLOG_DETAIL, '@outcome:display'],
+}, async ({ page }) => {
+  await openPublishedCard(page, blog);
+  await expect(page).toHaveTitle(post.meta_title);
+});
+
+test('portafolio opens published detail from a card', {
+  tag: [...FlowTags.PUBLIC_PORTFOLIO_DETAIL, '@outcome:display'],
+}, async ({ page }) => {
+  await openPublishedCard(page, portfolio);
+  await expect(page).toHaveTitle('Proyecto de prueba publicado — Tenndalux');
+});
+
+test('blog offers a return link for HTTP 404', {
+  tag: [...FlowTags.PUBLIC_BLOG_DETAIL, '@outcome:failure'],
+}, async ({ page }) => {
+  await returnFromMissing(page, blog);
+  await expect(page).toHaveURL(/\/blog\/?$/);
+});
+
+test('portafolio offers a return link for HTTP 404', {
+  tag: [...FlowTags.PUBLIC_PORTFOLIO_DETAIL, '@outcome:failure'],
+}, async ({ page }) => {
+  await returnFromMissing(page, portfolio);
+  await expect(page).toHaveURL(/\/portafolio\/?$/);
+});
+
+for (const failure of ['503', 'network']) {
+  test(`blog retries after ${failure}`, {
+    tag: [...FlowTags.PUBLIC_BLOG_DETAIL, '@outcome:failure'],
   }, async ({ page }) => {
-    await isolate(page);
-    await page.route(`**/api/${domain.endpoint}/`, (route) => route.fulfill({ json: { results: [domain.item] } }));
-    await page.route(`**/api/${domain.endpoint}/_shell/`, (route) => route.fulfill({ json: domain.item }));
-    await page.goto(`/${domain.path}`);
-
-    await page.getByRole('link', { name: new RegExp(domain.item.title) }).filter({ visible: true }).first().click();
-    await page.waitForURL(new RegExp(`/${domain.path}/_shell/?$`));
-
-    await expect(page.getByRole('heading', { name: domain.item.title, level: 1 })).toBeVisible();
-    await expect(page.getByText(domain.item.content_blocks[0].text)).toBeVisible();
-    await expect(page).toHaveTitle(domain.path === 'blog' ? post.meta_title : `${project.title} — Tenndalux`);
+    await retryDetail(page, blog, failure);
+    await expect(page.getByRole('heading', { name: post.title, level: 1 })).toBeVisible();
   });
-
-  test(`${domain.path} offers a return link for HTTP 404`, {
-    tag: [...domain.tags, '@outcome:failure'],
+  test(`portafolio retries after ${failure}`, {
+    tag: [...FlowTags.PUBLIC_PORTFOLIO_DETAIL, '@outcome:failure'],
   }, async ({ page }) => {
-    await isolate(page);
-    await page.route(`**/api/${domain.endpoint}/_shell/`, (route) => route.fulfill({ status: 404, json: {} }));
-    await page.goto(`/${domain.path}/_shell`);
-
-    await page.getByRole('link', { name: /Ver todos los/ }).click();
-
-    await expect(page).toHaveURL(new RegExp(`/${domain.path}/?$`));
+    await retryDetail(page, portfolio, failure);
+    await expect(page.getByRole('heading', { name: project.title, level: 1 })).toBeVisible();
   });
-
-  for (const failure of ['503', 'network']) {
-    test(`${domain.path} retries after ${failure}`, {
-      tag: [...domain.tags, '@outcome:failure'],
-    }, async ({ page }) => {
-      await isolate(page);
-      const endpoint = `**/api/${domain.endpoint}/_shell/`;
-      await page.route(endpoint, (route) => failure === 'network'
-        ? route.abort('failed') : route.fulfill({ status: 503, json: {} }));
-      await page.goto(`/${domain.path}/_shell`);
-      await expect(page.getByRole('heading', { name: `No pudimos cargar este ${domain.noun}` })).toBeVisible();
-      await page.unroute(endpoint);
-      await page.route(endpoint, (route) => route.fulfill({ json: domain.item }));
-
-      await page.getByRole('button', { name: 'Reintentar' }).click();
-
-      await expect(page.getByRole('heading', { name: domain.item.title, level: 1 })).toBeVisible();
-      await expect(page.getByRole('alert').filter({ hasText: `No pudimos cargar este ${domain.noun}` })).toHaveCount(0);
-    });
-  }
 }
 
 for (const integration of ['native', 'clipboard']) {
