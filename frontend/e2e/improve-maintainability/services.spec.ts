@@ -5,6 +5,7 @@ import { blogPosts, routeCatalogue } from './catalogue-fixtures';
 test.beforeEach(async ({ page }) => {
   await routeCatalogue(page, '/blog/posts/', [blogPosts[0]]);
   await page.goto('/blog/', { waitUntil: 'domcontentloaded' });
+  await expect(page.getByRole('heading', { name: 'Portada de diseño', exact: true })).toHaveText('Portada de diseño');
 });
 
 // Bug caught: navigation to Services omits the initial published curtain solution.
@@ -12,7 +13,6 @@ test('visitor reads the initial curtain solution after navigating to Services', 
   tag: [...FlowTags.PUBLIC_SERVICES_DISPLAY, RoleTags.GUEST, '@outcome:display'],
 }, async ({ page }) => {
   await page.getByTestId('site-footer').getByRole('link', { name: 'Servicios', exact: true }).click();
-
   await expect(page).toHaveURL(/\/servicios\/$/);
   await expect(page.getByRole('heading', { name: 'Cortina Ondessence', exact: true })).toHaveText('Cortina Ondessence');
   await expect(page.getByText('Ondas técnicas uniformes', { exact: true })).toHaveText('Ondas técnicas uniformes');
@@ -24,6 +24,7 @@ test('visitor switches the available service solutions', {
   tag: [...FlowTags.PUBLIC_SERVICES_TAB, RoleTags.GUEST, '@outcome:success'],
 }, async ({ page }) => {
   await page.getByTestId('site-footer').getByRole('link', { name: 'Servicios', exact: true }).click();
+  await expect(page).toHaveURL(/\/servicios\/$/);
 
   await page.getByRole('button', { name: 'Recubrimientos', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Recubrimientos para Paredes', exact: true })).toHaveText('Recubrimientos para Paredes');
@@ -42,6 +43,7 @@ test('visitor reads the compact Toldos solution details', {
 }, async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.getByTestId('site-footer').getByRole('link', { name: 'Servicios', exact: true }).click();
+  await expect(page).toHaveURL(/\/servicios\/$/);
   await page.getByRole('button', { name: 'Exteriores', exact: true }).click();
 
   await page.getByRole('button', { name: 'Toldos', exact: true }).click();
@@ -58,6 +60,7 @@ test('visitor closes the compact exterior bottom sheet through its backdrop', {
 }, async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.getByTestId('site-footer').getByRole('link', { name: 'Servicios', exact: true }).click();
+  await expect(page).toHaveURL(/\/servicios\/$/);
   await page.getByRole('button', { name: 'Exteriores', exact: true }).click();
   await page.getByRole('button', { name: 'Toldos', exact: true }).click();
   await expect(page.getByRole('dialog', { name: 'Toldos', exact: true })).toContainText('Sistema Cofrex');
@@ -77,6 +80,7 @@ test('visitor reads full exterior cards on a portrait tablet', {
 }, async ({ page }) => {
   await page.setViewportSize({ width: 768, height: 1024 });
   await page.getByTestId('site-footer').getByRole('link', { name: 'Servicios', exact: true }).click();
+  await expect(page).toHaveURL(/\/servicios\/$/);
 
   await page.getByRole('button', { name: 'Exteriores', exact: true }).click();
 
