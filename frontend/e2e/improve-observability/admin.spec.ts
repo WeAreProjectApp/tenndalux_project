@@ -99,6 +99,32 @@ async function chooseHero(page: Page, buffer: Buffer, name = 'hero-fixture.png')
   await chooseImage(page, 'hero_media', buffer, name);
 }
 
+// The worker fixture shares Home: each deletion case establishes its gallery
+// through the UI, including any attachments left by a preceding case.
+async function prepareHeroDeletion(page: Page, id: number) {
+  await openHome(page, id, false);
+  const widget = page.locator('.field-hero_media .attachments-widget');
+  const input = page.locator('.field-hero_media input[name="hero_media"]');
+  const library = await input.inputValue();
+  // The widget's only links are its unnamed delete controls. Deleted rows are
+  // hidden, so querying the visible collection again avoids stale nth indexes.
+  const deletes = widget.getByRole('link', { name: '', exact: true });
+  if (library && library !== 'None') {
+    const listUrl = (await input.getAttribute('data-list-url'))!.replace('__library_id__', library);
+    const data = await (await page.request.get(listUrl, { headers: { Accept: 'application/json' } })).json();
+    await expect(deletes).toHaveCount(data.attachments.length);
+  }
+  while (await deletes.count()) await deletes.first().click();
+  await page.getByRole('button', { name: 'Save', exact: true }).click();
+  await expect(page).toHaveURL(/\/admin\/core_app\/homepage\/$/);
+  await openHome(page, id, false);
+  await chooseHero(page, image, 'hero-to-delete.png');
+  await page.getByRole('button', { name: 'Save', exact: true }).click();
+  await expect(page).toHaveURL(/\/admin\/core_app\/homepage\/$/);
+  await openHome(page, id, false);
+  await expect(widget.getByText('hero-to-delete.png', { exact: true })).toBeVisible();
+}
+
 test('Admin saves an uploaded hero image', {
   tag: [...FlowTags.ADMIN_HOME_HERO_IMAGE_UPDATE, '@outcome:success'],
 }, async ({ page, adminServer }) => {
@@ -215,16 +241,12 @@ for (const failure of ['network', 'validation', 'empty-errors', 'unconfirmed-del
     tag: [...FlowTags.ADMIN_HOME_HERO_IMAGE_UPDATE, outcome[failure]],
   }, async ({ page, adminServer }) => {
     await login(page, adminServer.email, adminServer.password);
-    await openHome(page, adminServer.homeId, false);
-    await chooseHero(page, image, 'hero-to-delete.png');
-    await page.getByRole('button', { name: 'Save', exact: true }).click();
-    await expect(page).toHaveURL(/\/admin\/core_app\/homepage\/$/);
-    await openHome(page, adminServer.homeId);
+    await prepareHeroDeletion(page, adminServer.homeId);
     const widget = page.locator('.field-hero_media .attachments-widget');
     const input = page.locator('.field-hero_media input[name="hero_media"]');
     const updateUrl = (await input.getAttribute('data-update-url'))!.replace('__library_id__', await input.inputValue());
     const retainedAttachments = await (await page.request.get(updateUrl, { headers: { Accept: 'application/json' } })).json();
-    await widget.locator('.attachment:not(.deleted) .delete-link').click();
+    await widget.getByRole('link', { name: '', exact: true }).click();
     await page.getByLabel('Hero title:', { exact: true }).fill('Portada sin imagen');
     const failUpdate = {
       network: (route: import('@playwright/test').Route) => route.abort(),
@@ -246,7 +268,7 @@ for (const failure of ['network', 'validation', 'empty-errors', 'unconfirmed-del
     await expect.poll(() => intercepted).toBe(true);
     await expect(page.getByRole('alert')).toContainText('Error saving attachments.');
     const failureMessage = { network: 'Error saving attachments.', validation: 'Invalid ordering', 'empty-errors': 'Error saving attachments.', 'unconfirmed-deletion': 'Error saving attachments.' };
-    await expect(widget.locator('.messages')).toContainText(failureMessage[failure]);
+    await expect(widget.getByText(failureMessage[failure], { exact: true })).toBeVisible();
     await expect(widget.getByText('hero-to-delete.png', { exact: true })).toHaveCount(1);
     await expect(page.getByRole('button', { name: 'Save', exact: true })).toBeEnabled();
     const beforeRetry = await page.request.get('/api/site/home/');
