@@ -1,6 +1,14 @@
 import { expect, test } from '@playwright/test';
 import { FlowTags, RoleTags } from '../helpers/flow-tags';
 import { blogPosts, routeCatalogue } from './catalogue-fixtures';
+import { VIEWPORTS, viewportUse, type ViewportAlias } from '../helpers/viewports';
+
+async function expectPageScroll(page: import('@playwright/test').Page) {
+  const before = await page.evaluate(() => window.scrollY);
+  await page.mouse.move(200, 300);
+  await page.mouse.wheel(0, before > 0 ? -400 : 400);
+  await expect.poll(() => page.evaluate(() => window.scrollY)).not.toBe(before);
+}
 
 test.beforeEach(async ({ page }) => {
   await routeCatalogue(page, '/blog/posts/', [blogPosts[0]]);
@@ -41,7 +49,7 @@ test('visitor switches the available service solutions', {
 test('visitor reads the compact Toldos solution details', {
   tag: [...FlowTags.PUBLIC_SERVICES_EXTERIOR_MOBILE_DETAIL, RoleTags.GUEST, '@outcome:display'],
 }, async ({ page }) => {
-  await page.setViewportSize({ width: 390, height: 844 });
+  await page.setViewportSize(VIEWPORTS.compact);
   await page.getByTestId('site-footer').getByRole('link', { name: 'Servicios', exact: true }).click();
   await expect(page).toHaveURL(/\/servicios\/$/);
   await page.getByRole('button', { name: 'Exteriores', exact: true }).click();
@@ -58,7 +66,7 @@ test('visitor reads the compact Toldos solution details', {
 test('visitor closes the compact exterior bottom sheet through its backdrop', {
   tag: [...FlowTags.PUBLIC_SERVICES_EXTERIOR_MOBILE_DETAIL, RoleTags.GUEST, '@outcome:success'],
 }, async ({ page }) => {
-  await page.setViewportSize({ width: 390, height: 844 });
+  await page.setViewportSize(VIEWPORTS.compact);
   await page.getByTestId('site-footer').getByRole('link', { name: 'Servicios', exact: true }).click();
   await expect(page).toHaveURL(/\/servicios\/$/);
   await page.getByRole('button', { name: 'Exteriores', exact: true }).click();
@@ -74,18 +82,71 @@ test('visitor closes the compact exterior bottom sheet through its backdrop', {
   await expect(page.getByRole('heading', { name: 'Recubrimientos para Paredes', exact: true })).toHaveText('Recubrimientos para Paredes');
 });
 
-// Bug caught: portrait tablets receive hidden compact details instead of full exterior cards.
-test('visitor reads full exterior cards on a portrait tablet', {
-  tag: [...FlowTags.PUBLIC_SERVICES_TAB, RoleTags.GUEST, '@outcome:success'],
-}, async ({ page }) => {
-  await page.setViewportSize({ width: 768, height: 1024 });
-  await page.getByTestId('site-footer').getByRole('link', { name: 'Servicios', exact: true }).click();
-  await expect(page).toHaveURL(/\/servicios\/$/);
+// Bug caught: larger viewports receive hidden compact details instead of full exterior cards.
+for (const alias of ['portrait', 'landscape', 'desktop', 'wide'] as ViewportAlias[]) {
+  test.describe(`exterior cards @ ${alias}`, () => {
+    test.use(viewportUse(alias));
+    test('visitor reads the full exterior solution cards', {
+      tag: [...FlowTags.PUBLIC_SERVICES_TAB, RoleTags.GUEST, '@outcome:success', `@viewport:${alias}`],
+    }, async ({ page }) => {
+      // quality: allow-duplicate (per-viewport contract: public-services-tab @ canonical reference viewport)
+      await page.getByTestId('site-footer').getByRole('link', { name: 'Servicios', exact: true }).click();
+      await expect(page).toHaveURL(/\/servicios\/$/);
+      await page.getByRole('button', { name: 'Exteriores', exact: true }).click();
 
-  await page.getByRole('button', { name: 'Exteriores', exact: true }).click();
+      await expect(page.getByRole('heading', { name: 'Toldos', exact: true })).toHaveText('Toldos');
+      await expect(page.getByRole('heading', { name: 'Pérgolas', exact: true })).toHaveText('Pérgolas');
+      await expect(page.getByText('Sistema Cofrex con cofre protector (hasta 6 m x 3 m)', { exact: true })).toHaveText('Sistema Cofrex con cofre protector (hasta 6 m x 3 m)');
+      await expect(page.getByRole('button', { name: 'Toldos', exact: true })).toHaveCount(0);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    });
+  });
+}
 
-  await expect(page.getByRole('heading', { name: 'Toldos', exact: true })).toHaveText('Toldos');
-  await expect(page.getByRole('heading', { name: 'Pérgolas', exact: true })).toHaveText('Pérgolas');
-  await expect(page.getByText('Sistema Cofrex con cofre protector (hasta 6 m x 3 m)', { exact: true })).toHaveText('Sistema Cofrex con cofre protector (hasta 6 m x 3 m)');
-  await expect(page.getByRole('button', { name: 'Toldos', exact: true })).toHaveCount(0);
+test.describe('exterior detail lifecycle @ compact', () => {
+  test.use(viewportUse('compact'));
+
+  // Bug caught: sm:hidden removes the open sheet while its global scroll lock persists.
+  test('visitor resumes browsing after the exterior sheet crosses its breakpoint', {
+    tag: [...FlowTags.PUBLIC_SERVICES_EXTERIOR_MOBILE_DETAIL, RoleTags.GUEST, '@outcome:success', '@viewport:compact', '@viewport:portrait'],
+  }, async ({ page }) => {
+    await page.getByTestId('site-footer').getByRole('link', { name: 'Servicios', exact: true }).click();
+    await page.getByRole('button', { name: 'Exteriores', exact: true }).click();
+    const previousOverflow = await page.evaluate(() => document.body.style.overflow);
+    await page.getByRole('button', { name: 'Toldos', exact: true }).click();
+    const dialog = page.getByRole('dialog', { name: 'Toldos', exact: true });
+    await expect(dialog).toContainText('Sistema Cofrex con cofre protector (hasta 6 m x 3 m)');
+
+    // Resizing is the interaction under test, after the compact sheet is open.
+    await page.setViewportSize(VIEWPORTS.portrait);
+    await expect(dialog).toHaveCount(0);
+    expect(await page.evaluate(() => document.body.style.overflow)).toBe(previousOverflow);
+    await expectPageScroll(page);
+    await expect(page.getByText('Sistema Cofrex con cofre protector (hasta 6 m x 3 m)', { exact: true })).toBeVisible();
+
+    await page.setViewportSize(VIEWPORTS.compact);
+    await expect(dialog).toHaveCount(0);
+    await page.getByRole('button', { name: 'Toldos', exact: true }).click();
+    await expect(dialog).toContainText('Sistema Cofrex');
+    await page.getByRole('button', { name: 'Cerrar detalles', exact: true }).click({ position: { x: 10, y: 100 } });
+    await expect(dialog).toHaveCount(0);
+  });
+
+  // Bug caught: history navigation unmounts the sheet without restoring document scrolling.
+  test('visitor scrolls Blog after leaving an open exterior sheet', {
+    tag: [...FlowTags.PUBLIC_SERVICES_EXTERIOR_MOBILE_DETAIL, RoleTags.GUEST, '@outcome:success', '@viewport:compact'],
+  }, async ({ page }) => {
+    await page.getByTestId('site-footer').getByRole('link', { name: 'Servicios', exact: true }).click();
+    await page.getByRole('button', { name: 'Exteriores', exact: true }).click();
+    const previousOverflow = await page.evaluate(() => document.body.style.overflow);
+    await page.getByRole('button', { name: 'Toldos', exact: true }).click();
+    await expect(page.getByRole('dialog', { name: 'Toldos', exact: true })).toContainText('Sistema Cofrex');
+    await expect(page.locator('body')).toHaveCSS('overflow', 'hidden');
+
+    await page.goBack();
+    await expect(page).toHaveURL(/\/blog\/$/);
+    await expect(page.getByRole('heading', { name: 'Portada de diseño', exact: true })).toHaveText('Portada de diseño');
+    expect(await page.evaluate(() => document.body.style.overflow)).toBe(previousOverflow);
+    await expectPageScroll(page);
+  });
 });

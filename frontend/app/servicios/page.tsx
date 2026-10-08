@@ -60,14 +60,30 @@ function ServiceCatalogue() {
     }
   }, []);
 
+  useEffect(() => {
+    if (!mobileDetailExterior) return;
+    const previousOverflow = document.body.style.overflow;
+    const expandedViewport = window.matchMedia('(min-width: 40rem)');
+    const closeOnExpandedViewport = () => {
+      if (expandedViewport.matches) setMobileDetailExterior(null);
+    };
+
+    document.body.style.overflow = 'hidden';
+    expandedViewport.addEventListener('change', closeOnExpandedViewport);
+    closeOnExpandedViewport();
+
+    return () => {
+      expandedViewport.removeEventListener('change', closeOnExpandedViewport);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [mobileDetailExterior]);
+
   const openMobileExterior = (solution: ExteriorSolution) => {
     setMobileDetailExterior(solution);
-    document.body.style.overflow = 'hidden';
   };
 
   const closeMobileExterior = () => {
     setMobileDetailExterior(null);
-    document.body.style.overflow = '';
   };
 
   return (
