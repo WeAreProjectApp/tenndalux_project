@@ -314,7 +314,7 @@
         "admin"
       ],
       "priority": "P2",
-      "description": "Follow an article card and read title and content; a missing article returns to Blog and an unavailable request can retry.",
+      "description": "Follow an article card, read its title and content, and retain the matching browser title; a missing article returns to Blog and an unavailable request can retry.",
       "outcomes": [
         "display",
         "failure"
@@ -394,7 +394,7 @@
         "admin"
       ],
       "priority": "P2",
-      "description": "Follow a project card and read title and content; a missing project returns to Portfolio and an unavailable request can retry.",
+      "description": "Follow a project card, read its title and content, and retain the matching browser title; a missing project returns to Portfolio and an unavailable request can retry.",
       "outcomes": [
         "display",
         "failure"
