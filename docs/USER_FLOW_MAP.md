@@ -61,7 +61,7 @@ El cierre de los 24 huecos originales exige también ejecución verde del conjun
 | `auth-register` | auth | guest | success, error, failure | Submit viewer registration; duplicate email, password confirmation, and password-policy errors are shown; transport failure retains entered data for retry. | covered |
 | `dashboard-unauthenticated-redirect` | auth | guest | error | Opening Dashboard without an initialized authenticated session redirects to Login. | covered |
 | `dashboard-profile-display` | dashboard | viewer, editor, admin | display | Reach Dashboard through Login and read fixture-backed profile name, email, phone, and account status. | covered |
-| `dashboard-logout` | dashboard | viewer, editor, admin | success, failure | Activate Logout, clear local authentication state and cookies, and return to Login; an earlier pending renewal cannot restore that session or overwrite a subsequent login. | covered |
+| `dashboard-logout` | dashboard | viewer, editor, admin | success | Activate Logout, clear local authentication state and cookies, and return to Login. | covered |
 | `public-home` | public | guest, viewer, editor, admin | display | Reach the landing through site navigation and read concrete landing content and real media. | covered |
 | `public-header-navigation` | public | guest, viewer, editor, admin | success | Use desktop or compact-overlay navigation, including the Tenndalux WebP logo and Footer links, to reach public destinations or return Home. | covered |
 | `public-contact-submit` | leads | guest, viewer, editor, admin | success, error, failure | Complete the labeled contact form; validate optional space count, submit optional project details, show success feedback, and preserve values after a rejected request. | covered |
