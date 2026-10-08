@@ -951,9 +951,6 @@ var uploadWidget = function(element, options) {
 						oldAttachment.deleted = attachment.deleted;
 						rowNumber++;
 					}
-					if (attachment.deleted) {
-						attachments.remove(attachment.id);
-					}
 				});
 				_.forEach(oldAttachments, function(attachment, rowIndex) {
 					if (attachment.rank === -1) {
@@ -991,10 +988,23 @@ var uploadWidget = function(element, options) {
 						'Accept': 'application/json',
 					},
 					successFn: function(data) {
-						if (showErrors(data) || !data.attachments) {
+						if ((data && Object.prototype.hasOwnProperty.call(data, 'errors')) || !data || !Array.isArray(data.attachments)) {
+							showErrors(data);
 							saveFailed(errorCallback);
 							return;
 						}
+						var deletionUnconfirmed = newAttachments.some(function(attachment) {
+							return attachment.deleted && data.attachments.some(function(saved) {
+								return String(saved.id) === String(attachment.id);
+							});
+						});
+						if (deletionUnconfirmed) {
+							saveFailed(errorCallback);
+							return;
+						}
+						_.forEach(newAttachments, function(attachment) {
+							if (attachment.deleted) attachments.remove(attachment.id);
+						});
 						if (successCallback !== undefined) {
 							successCallback();
 						}

@@ -1,5 +1,5 @@
 import { test, expect } from './admin-fixture';
-import type { Page } from '@playwright/test';
+import type { Page, Request } from '@playwright/test';
 import { FlowTags } from '../helpers/flow-tags';
 
 const pdf = Buffer.from('%PDF-1.4\n1 0 obj\n<< /Type /Catalog >>\nendobj\n%%EOF\n');
@@ -73,14 +73,14 @@ test('Admin rejects a file pretending to be a PDF', {
   await expect(page.getByRole('link', { name: 'Documento inválido', exact: true })).toHaveCount(0);
 });
 
-async function openHome(page: Page, id: number) {
+async function openHome(page: Page, id: number, expectExistingImage = true) {
   await page.getByRole('link', { name: 'Home pages', exact: true }).first().click();
   await page.getByRole('rowheader').getByRole('link', { name: /^Portada/ }).click();
   await expect(page).toHaveURL(new RegExp(`/admin/core_app/homepage/${id}/change/`));
   await expect(page.locator('.field-hero_media .attachments-widget')).toBeVisible();
   await expect(page.locator('input.dz-hidden-input')).toHaveCount(2);
   const gallery = await page.locator('.field-hero_media input[name="hero_media"]').inputValue();
-  if (gallery && gallery !== 'None') {
+  if (gallery && gallery !== 'None' && expectExistingImage) {
     await expect(page.locator('.field-hero_media .caption')).not.toBeEmpty();
   }
 }
@@ -97,6 +97,55 @@ async function chooseImage(page: Page, field: string, buffer: Buffer, name: stri
 
 async function chooseHero(page: Page, buffer: Buffer, name = 'hero-fixture.png') {
   await chooseImage(page, 'hero_media', buffer, name);
+}
+
+async function openHomeForDeletion(page: Page, id: number) {
+  const requests: Request[] = [];
+  const recordRequest = (request: Request) => {
+    if (request.method() === 'GET' && request.resourceType() === 'xhr') requests.push(request);
+  };
+  page.on('request', recordRequest);
+  try {
+    await openHome(page, id, false);
+    const input = page.locator('.field-hero_media input[name="hero_media"]');
+    const library = await input.inputValue();
+    if (library && library !== 'None') {
+      const listUrl = new URL((await input.getAttribute('data-list-url'))!.replace('__library_id__', library), page.url()).href;
+      const responses = await Promise.all(requests.map(async (request) => {
+        const response = (await request.response())!;
+        expect(response.ok()).toBe(true);
+        expect(await response.finished()).toBeNull();
+        return response;
+      }));
+      const initialLoads = responses.filter((response) => response.url() === listUrl);
+      expect(initialLoads.length).toBeGreaterThan(0);
+      for (const response of initialLoads) {
+        const data = await response.json();
+        await expect(page.locator('.field-hero_media .attachments-widget').getByRole('link', { name: '', exact: true })).toHaveCount(data.attachments.length);
+      }
+    }
+  } finally {
+    page.off('request', recordRequest);
+  }
+}
+
+// The worker fixture shares Home: each deletion case establishes its gallery
+// through the UI, including any attachments left by a preceding case.
+async function prepareHeroDeletion(page: Page, id: number) {
+  await openHomeForDeletion(page, id);
+  const widget = page.locator('.field-hero_media .attachments-widget');
+  // The widget's only links are its unnamed delete controls. Deleted rows are
+  // hidden, so querying the visible collection again avoids stale nth indexes.
+  const deletes = widget.getByRole('link', { name: '', exact: true });
+  while (await deletes.count()) await deletes.first().click();
+  await page.getByRole('button', { name: 'Save', exact: true }).click();
+  await expect(page).toHaveURL(/\/admin\/core_app\/homepage\/$/);
+  await openHomeForDeletion(page, id);
+  await chooseHero(page, image, 'hero-to-delete.png');
+  await page.getByRole('button', { name: 'Save', exact: true }).click();
+  await expect(page).toHaveURL(/\/admin\/core_app\/homepage\/$/);
+  await openHomeForDeletion(page, id);
+  await expect(widget.getByText('hero-to-delete.png', { exact: true })).toBeVisible();
 }
 
 test('Admin saves an uploaded hero image', {
@@ -207,3 +256,54 @@ test('Admin recovers a hero save after a network failure', {
   await expect(page.getByLabel('Hero title:', { exact: true })).toHaveValue('Portada tras fallo de red');
   await expect(page.locator('.field-hero_media .caption')).toContainText('hero-network-recovered.png');
 });
+
+for (const failure of ['network', 'validation', 'empty-errors', 'unconfirmed-deletion'] as const) {
+  const outcome = { network: '@outcome:failure', validation: '@outcome:error', 'empty-errors': '@outcome:error', 'unconfirmed-deletion': '@outcome:failure' };
+  // Catches pending deletions being discarded before the update is acknowledged.
+  test(`Admin retains a hero deletion after ${failure} rejection`, {
+    tag: [...FlowTags.ADMIN_HOME_HERO_IMAGE_UPDATE, outcome[failure]],
+  }, async ({ page, adminServer }) => {
+    await login(page, adminServer.email, adminServer.password);
+    await prepareHeroDeletion(page, adminServer.homeId);
+    const widget = page.locator('.field-hero_media .attachments-widget');
+    const input = page.locator('.field-hero_media input[name="hero_media"]');
+    const updateUrl = (await input.getAttribute('data-update-url'))!.replace('__library_id__', await input.inputValue());
+    const retainedAttachments = await (await page.request.get(updateUrl, { headers: { Accept: 'application/json' } })).json();
+    await widget.getByRole('link', { name: '', exact: true }).click();
+    await page.getByLabel('Hero title:', { exact: true }).fill('Portada sin imagen');
+    const failUpdate = {
+      network: (route: import('@playwright/test').Route) => route.abort(),
+      validation: (route: import('@playwright/test').Route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ errors: { ORDER: [{ message: 'Invalid ordering' }] } }) }),
+      'empty-errors': (route: import('@playwright/test').Route) => route.fulfill({ status: 200, contentType: 'application/json', body: '{"errors":{}}' }),
+      'unconfirmed-deletion': (route: import('@playwright/test').Route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(retainedAttachments) }),
+    };
+    let intercepted = false;
+    await page.route('**' + updateUrl, (route) => {
+      const action = new URLSearchParams(route.request().postData() ?? '').get('action');
+      if (!intercepted && route.request().method() === 'POST' && action === 'update') {
+        intercepted = true;
+        return failUpdate[failure](route);
+      }
+      return route.continue();
+    });
+
+    await page.getByRole('button', { name: 'Save', exact: true }).click();
+    await expect.poll(() => intercepted).toBe(true);
+    await expect(page.getByRole('alert')).toContainText('Error saving attachments.');
+    const failureMessage = { network: 'Error saving attachments.', validation: 'Invalid ordering', 'empty-errors': 'Error saving attachments.', 'unconfirmed-deletion': 'Error saving attachments.' };
+    await expect(widget.getByText(failureMessage[failure], { exact: true })).toBeVisible();
+    await expect(widget.getByText('hero-to-delete.png', { exact: true })).toHaveCount(1);
+    await expect(page.getByRole('button', { name: 'Save', exact: true })).toBeEnabled();
+    const beforeRetry = await page.request.get('/api/site/home/');
+    expect((await beforeRetry.json()).hero_image_url).toBeTruthy();
+
+    await page.getByRole('button', { name: 'Save', exact: true }).click();
+
+    await expect(page).toHaveURL(/\/admin\/core_app\/homepage\/$/);
+    await openHome(page, adminServer.homeId, false);
+    await expect(page.getByLabel('Hero title:', { exact: true })).toHaveValue('Portada sin imagen');
+    await expect(widget.getByText('hero-to-delete.png', { exact: true })).toHaveCount(0);
+    const home = await page.request.get('/api/site/home/');
+    expect((await home.json()).hero_image_url).toBeNull();
+  });
+}
