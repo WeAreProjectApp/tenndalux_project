@@ -61,7 +61,7 @@ El cierre de los 24 huecos originales exige también ejecución verde del conjun
 | `auth-register` | auth | guest | success, error, failure | Submit viewer registration; duplicate email, password confirmation, and password-policy errors are shown; transport failure retains entered data for retry. | covered |
 | `dashboard-unauthenticated-redirect` | auth | guest | error | Opening Dashboard without an initialized authenticated session redirects to Login. | covered |
 | `dashboard-profile-display` | dashboard | viewer, editor, admin | display | Reach Dashboard through Login and read fixture-backed profile name, email, phone, and account status. | covered |
-| `dashboard-logout` | dashboard | viewer, editor, admin | success | Activate Logout, clear local authentication state and cookies, and return to Login. | covered |
+| `dashboard-logout` | dashboard | viewer, editor, admin | success, failure | Activate Logout, clear local authentication state and cookies, and return to Login; an earlier pending renewal cannot restore that session or overwrite a subsequent login. | covered |
 | `public-home` | public | guest, viewer, editor, admin | display | Reach the landing through site navigation and read concrete landing content and real media. | covered |
 | `public-header-navigation` | public | guest, viewer, editor, admin | success | Use desktop or compact-overlay navigation, including the Tenndalux WebP logo and Footer links, to reach public destinations or return Home. | covered |
 | `public-contact-submit` | leads | guest, viewer, editor, admin | success, error, failure | Complete the labeled contact form; validate optional space count, submit optional project details, show success feedback, and preserve values after a rejected request. | covered |
@@ -74,7 +74,7 @@ El cierre de los 24 huecos originales exige también ejecución verde del conjun
 | `public-product-details` | products | guest, viewer, editor, admin | success, display | Open a product detail dialog, read data for the selected product, and close it. | covered |
 | `public-services-display` | services | guest, viewer, editor, admin | display | Reach Services and read concrete initial solution content. | covered |
 | `public-services-tab` | services | guest, viewer, editor, admin | success | Choose Cortinas, Recubrimientos, Exteriores, or Tecnología, including a curtain model where offered. | covered |
-| `public-services-exterior-mobile-detail` | services | guest, viewer, editor, admin | success, display | Open an exterior solution card on mobile, read its bottom sheet, and close it by backdrop. | covered |
+| `public-services-exterior-mobile-detail` | services | guest, viewer, editor, admin | success, display | Open an exterior solution card on mobile, read its bottom sheet, and close it by backdrop; resizing beyond the compact breakpoint or leaving the page closes the sheet and restores scrolling. | covered |
 | `public-blog-list` | blog | guest, viewer, editor, admin | display, failure | Navigate to Blog, read API-backed cards including later pages or a valid empty state, and recover an initial or later-page API failure with retry. | covered |
 | `public-blog-filter` | blog | guest, viewer, editor, admin | success, display | Search or choose a tag, read matching cards or the no-results state, then clear filters. | covered |
 | `public-blog-detail` | blog | guest, viewer, editor, admin | display, failure | Follow an article card, read its title and content, and retain the matching browser title; a missing article returns to Blog and an unavailable request can retry. | covered |
@@ -86,7 +86,7 @@ El cierre de los 24 huecos originales exige también ejecución verde del conjun
 | `public-warranty-documents` | warranties | guest, viewer, editor, admin | success, failure, display | Reach Garantías through Footer, read published PDFs or the empty state and policy, open a document, and retry a failed list. | covered |
 | `public-home-hero-image` | public | guest, viewer, editor, admin | failure, display | Navigate Home and display the API-backed hero image; absent, unavailable, or broken CMS media retains the bundled cover. | covered |
 | `admin-warranty-document-publish` | django-admin | admin con staff/permisos Django | success, error, display | A staff user with Django model permissions creates a published PDF document, reopens its saved row and file, and sees validation for an invalid PDF. | covered |
-| `admin-home-hero-image-update` | django-admin | admin con staff/permisos Django | success, error, failure, display | A staff user with Django attachment permissions uploads or selects Home hero media, sees the saved thumbnail, rejects a non-image, and recovers a failed uploader save by seeing its alert, choosing a replacement if needed, and submitting again. | covered |
+| `admin-home-hero-image-update` | django-admin | admin con staff/permisos Django | success, error, failure, display | A staff user with Django attachment permissions uploads or selects Home hero media, sees the saved thumbnail, rejects a non-image, and recovers failed uploads or pending deletions without losing the intended change before retrying. | covered |
 
 ## Clases no aplicables
 
