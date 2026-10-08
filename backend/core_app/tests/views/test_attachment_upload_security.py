@@ -56,20 +56,24 @@ def attachment_editor(db):
 
 @pytest.fixture
 def library(db):
+    """Create the saved collection used by the isolated attachment requests."""
     return Library.objects.create(title='Existing image collection')
 
 
 @pytest.fixture(params=['attachments_library_edit_api', 'attachments_gallery_edit_api'], ids=['library', 'gallery'])
 def upload_url(request, library):
+    """Resolve each collection upload endpoint against the isolated library."""
     return reverse(f'admin:{request.param}', args=[library.pk])
 
 
 @pytest.fixture(params=[_html_upload, _svg_upload, _png_html_upload], ids=['html', 'svg', 'png-with-html-extension'])
 def active_upload(request):
+    """Provide each executable upload payload for the HTTP rejection cases."""
     return request.param()
 
 
 def _admin_upload_data(library, upload):
+    """Build a complete direct Admin submission with an image MIME claim."""
     return {
         'library': library.pk,
         'file': upload,
