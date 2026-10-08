@@ -19,6 +19,7 @@ resolveApiBaseUrl(process.env.NEXT_PUBLIC_API_URL, isBuild);
 
 const nextConfig: NextConfig = {
   ...(isBuild ? { output: 'export' as const } : {}),
+  agentRules: false,
   trailingSlash: true,
   images: {
     unoptimized: true,

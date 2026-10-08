@@ -63,6 +63,13 @@ lockfile se regenera con Node 22/npm 10.9.4. La resolución conserva los paquete
 ajenos; actualiza familia Next, un patch transitivo fastq del árbol ESLint y
 añade metadatos de paquetes WASM ya bundled por Tailwind.
 
+La comprobación HTTP real de `/_next/mcp` en Next 16.3.8 rechaza origen
+externo y `Origin: null` con 403; el cliente local completa initialize con
+200. Los tres casos pasan contra servidor exclusivo del worktree, sin
+navegador ni servicios externos. Se desactiva `agentRules` porque el arranque
+añadía un bloque generado al AGENTS.md canónico; sólo se retiró ese bloque
+producido por esta sesión, preservando exactamente las instrucciones previas.
+
 PyJWT pasa exclusivamente de 2.13.0 a 2.14.0, primer parche de la cabecera JWT
 anidada. Reproducción en memoria con SimpleJWT produjo RecursionError antes
 de la firma, también mediante POST de refresh por body. No se demostró caída de
