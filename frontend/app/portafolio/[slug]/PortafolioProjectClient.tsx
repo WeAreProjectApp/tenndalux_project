@@ -36,13 +36,23 @@ function PortfolioDetail() {
 
   useEffect(() => {
     let cancelled = false;
+    let titleObserver: MutationObserver | undefined;
+    const routePath = window.location.pathname;
 
     getPortfolioProject(slugFromPath())
       .then((data) => {
         if (cancelled) return;
         setProject(data);
         setState('ready');
-        document.title = `${data.title} — Tenndalux`;
+        const title = `${data.title} — Tenndalux`;
+        const keepTitle = () => {
+          if (!cancelled && window.location.pathname === routePath && document.title !== title) {
+            document.title = title;
+          }
+        };
+        keepTitle();
+        titleObserver = new MutationObserver(keepTitle);
+        titleObserver.observe(document.head, { childList: true, subtree: true, characterData: true });
       })
       .catch((error: unknown) => {
         if (!cancelled) {
@@ -50,7 +60,10 @@ function PortfolioDetail() {
         }
       });
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+      titleObserver?.disconnect();
+    };
   }, [attempt]);
 
   return (
@@ -113,7 +126,6 @@ function PortfolioDetail() {
 
       {state === 'ready' && project && (
         <article>
-          <title>{`${project.title} — Tenndalux`}</title>
           <header className="px-4 sm:px-6 pb-8 sm:pb-12">
             <div className="max-w-4xl mx-auto">
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>

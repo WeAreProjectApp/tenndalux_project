@@ -41,6 +41,8 @@ function BlogPostDetail() {
 
   useEffect(() => {
     let cancelled = false;
+    let titleObserver: MutationObserver | undefined;
+    const routePath = window.location.pathname;
 
     getBlogPost(slugFromPath())
       .then((data) => {
@@ -48,7 +50,15 @@ function BlogPostDetail() {
         setPost(data);
         setState('ready');
         // El <title> del shell es genérico hasta que se sabe qué post es.
-        document.title = data.meta_title || `${data.title} — Tenndalux`;
+        const title = data.meta_title || `${data.title} — Tenndalux`;
+        const keepTitle = () => {
+          if (!cancelled && window.location.pathname === routePath && document.title !== title) {
+            document.title = title;
+          }
+        };
+        keepTitle();
+        titleObserver = new MutationObserver(keepTitle);
+        titleObserver.observe(document.head, { childList: true, subtree: true, characterData: true });
       })
       .catch((error: unknown) => {
         if (!cancelled) {
@@ -56,7 +66,10 @@ function BlogPostDetail() {
         }
       });
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+      titleObserver?.disconnect();
+    };
   }, [attempt]);
 
   const handleShare = async () => {
@@ -132,7 +145,6 @@ function BlogPostDetail() {
 
       {state === 'ready' && post && (
         <article>
-          <title>{post.meta_title || `${post.title} — Tenndalux`}</title>
           <header className="px-4 sm:px-6 pb-8 sm:pb-12">
             <div className="max-w-4xl mx-auto">
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
