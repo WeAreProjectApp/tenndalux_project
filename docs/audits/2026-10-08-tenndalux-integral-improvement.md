@@ -140,6 +140,28 @@ navegador offline, alerta, datos retenidos y recuperación online, sin POST
 simulado. El mapa conserva los treinta IDs y documenta CRUD Admin fuera de
 alcance y N/A de los tres módulos locales sin negativos propios.
 
+El primer CI del tren (#70, 896de4d) ejecutó 130 casos de navegador: 128
+pasaron y dos navegaciones desde tarjetas fallaron antes de abrir el detalle.
+Los fixtures de listas de esos dos tests omitían `next`; el cliente paginado
+ahora exige el contrato DRF real (`next: null` o URL). t33 corrige exclusivamente
+sus fixtures y conserva navegación y assertions, con reproducción sobre la
+combinación. El intento rojo se guarda junto a la evidencia final; no se toma
+como validación ni se confunde con la regresión anterior de títulos.
+La corrección de t33 (88a07ce) completa los tres envelopes y espera
+DOMContentLoaded antes de interactuar con las tarjetas: mantiene los treinta
+segundos del caso y cinco segundos de las aserciones. Seis casos de tarjetas y
+recuperación pasan contra el frontend combinado Next 16.3.8. El primer intento
+local conservado tuvo cinco éxitos y un timeout durante compilación inicial,
+con contenido del detalle ya visible; no se amplió el tiempo ni se relajaron
+las comprobaciones.
+
+El gate global ampliado con Ruff real señala veinte errores anteriores en
+cuatro archivos backend sin cambios y tres advertencias de locators en
+GoogleReviews. El CI existente usa fallback de compilación cuando no tiene
+Ruff; su verde no certifica limpieza global con Ruff. La QA de esta ronda exige
+Ruff/ESLint reales y cero hallazgos en la unión de tests modificados, sin
+rebajar baseline ni ampliar el arreglo a documentación/formato antiguos.
+
 El conductor prepara el gate ampliado y el mapa/documentación en el tren.
 Tras integrar los apoyos, entregará el mismo patch por #67, verificando que
 el árbol final coincida con el conjunto probado. Los registros de hasta tres
