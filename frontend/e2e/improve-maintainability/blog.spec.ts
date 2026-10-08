@@ -131,5 +131,8 @@ test('visitor loads the real lightweight Blog fallback', {
 
   expect(width).toBeGreaterThan(0);
   expect(response.status()).toBe(200);
-  expect((await response.body()).length).toBeLessThanOrEqual(200000);
+  const body = await response.body();
+  expect(body.length).toBeLessThanOrEqual(200000);
+  expect(body.subarray(0, 4).toString('ascii')).toBe('RIFF');
+  expect(body.subarray(8, 12).toString('ascii')).toBe('WEBP');
 });
