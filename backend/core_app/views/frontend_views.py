@@ -57,9 +57,9 @@ def _serve_shell(template_path: str, *, title: str, description: str, status: in
     safe_title = html_module.escape(title)
     safe_description = html_module.escape(description)
 
-    markup = _TITLE.sub(f'<title>{safe_title}</title>', markup, count=1)
+    markup = _TITLE.sub(lambda _match: f'<title>{safe_title}</title>', markup, count=1)
     meta = f'<meta name="description" content="{safe_description}">'
-    markup, replaced = _DESCRIPTION.subn(meta, markup, count=1)
+    markup, replaced = _DESCRIPTION.subn(lambda _match: meta, markup, count=1)
 
     social = (
         f'<meta property="og:title" content="{safe_title}">'
