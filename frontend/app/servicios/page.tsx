@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { NextIntlClientProvider, useTranslations } from 'next-intl';
+import messages from './messages.json';
 import Link from 'next/link';
 import Image from 'next/image';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -36,7 +38,8 @@ type ExteriorSolution = {
   features: string[];
 };
 
-export default function Servicios() {
+function ServiceCatalogue() {
+  const t = useTranslations('exteriorDetails');
   const [selectedProductTab, setSelectedProductTab] = useState('cortinas');
   const [selectedCortina, setSelectedCortina] = useState('ondessence');
   const [mobileDetailExterior, setMobileDetailExterior] = useState<ExteriorSolution | null>(null);
@@ -103,7 +106,7 @@ export default function Servicios() {
               </a>
               
               <a
-                href="#productos"
+                href="/productos"
                 className="px-8 sm:px-14 py-4 sm:py-5 rounded-full flex items-center justify-center gap-3 transition-all hover:scale-105 border-2 border-stone-900 text-stone-900"
               >
                 <span className="text-base sm:text-lg font-medium">Ver Productos</span>
@@ -263,6 +266,7 @@ export default function Servicios() {
             ].map((tab) => (
               <button
                 key={tab.id}
+                aria-pressed={selectedProductTab === tab.id}
                 ref={tab.id === 'cortinas' ? cortinasTabRef : undefined}
                 onClick={() => setSelectedProductTab(tab.id)}
                 className={`px-5 sm:px-7 py-2.5 sm:py-3 rounded-full transition-all hover:scale-105 flex items-center gap-2 border-2 text-sm sm:text-base ${
@@ -384,6 +388,7 @@ export default function Servicios() {
                   {exteriorSolutions.map((solution, index) => (
                     <button
                       key={index}
+                      aria-label={solution.title}
                       onClick={() => openMobileExterior(solution)}
                       className="group text-left bg-white rounded-2xl overflow-hidden border border-stone-100 shadow-sm active:scale-[0.98] transition-transform"
                     >
@@ -709,8 +714,11 @@ export default function Servicios() {
       {/* Mobile Bottom Sheet: Exterior Detail */}
       {mobileDetailExterior && (
         <div className="fixed inset-0 z-50 sm:hidden" onClick={closeMobileExterior}>
-          <div className="absolute inset-0 bg-black/50" />
+          <button type="button" aria-label={t('close')} className="absolute inset-0 bg-black/50" onClick={closeMobileExterior} />
           <motion.div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="exterior-detail-title"
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
@@ -725,7 +733,7 @@ export default function Servicios() {
               <Image src={mobileDetailExterior.image} alt={mobileDetailExterior.title} fill className="object-cover" sizes="100vw" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
               <div className="absolute bottom-0 left-0 right-0 p-4">
-                <h3 className="text-xl font-bold text-white">{mobileDetailExterior.title}</h3>
+                <h3 id="exterior-detail-title" className="text-xl font-bold text-white">{mobileDetailExterior.title}</h3>
               </div>
             </div>
 
@@ -759,4 +767,8 @@ export default function Servicios() {
       )}
     </div>
   );
+}
+
+export default function Servicios() {
+  return <NextIntlClientProvider locale="es" messages={messages} timeZone="America/Bogota"><ServiceCatalogue /></NextIntlClientProvider>;
 }
