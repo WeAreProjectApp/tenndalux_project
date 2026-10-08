@@ -247,7 +247,7 @@ for (const failure of ['network', 'validation', 'empty-errors', 'unconfirmed-del
     await expect(page.getByRole('alert')).toContainText('Error saving attachments.');
     const failureMessage = { network: 'Error saving attachments.', validation: 'Invalid ordering', 'empty-errors': 'Error saving attachments.', 'unconfirmed-deletion': 'Error saving attachments.' };
     await expect(widget.locator('.messages')).toContainText(failureMessage[failure]);
-    await expect(widget.locator('.attachment.deleted')).toHaveCount(1);
+    await expect(widget.getByText('hero-to-delete.png', { exact: true })).toHaveCount(1);
     await expect(page.getByRole('button', { name: 'Save', exact: true })).toBeEnabled();
     const beforeRetry = await page.request.get('/api/site/home/');
     expect((await beforeRetry.json()).hero_image_url).toBeTruthy();
@@ -257,7 +257,7 @@ for (const failure of ['network', 'validation', 'empty-errors', 'unconfirmed-del
     await expect(page).toHaveURL(/\/admin\/core_app\/homepage\/$/);
     await openHome(page, adminServer.homeId, false);
     await expect(page.getByLabel('Hero title:', { exact: true })).toHaveValue('Portada sin imagen');
-    await expect(widget.locator('.attachment')).toHaveCount(0);
+    await expect(widget.getByText('hero-to-delete.png', { exact: true })).toHaveCount(0);
     const home = await page.request.get('/api/site/home/');
     expect((await home.json()).hero_image_url).toBeNull();
   });
