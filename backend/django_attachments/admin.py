@@ -7,7 +7,7 @@ from django.views.generic import CreateView, TemplateView
 from django.urls import path
 
 from .fields import LibraryField, GalleryField
-from .forms import ImageUploadForm
+from .forms import AttachmentImageForm, ImageUploadForm
 from .models import Attachment, Library
 from .views import AttachmentEditableMixin
 from .widgets import AdminLibraryWidget, AdminGalleryWidget
@@ -74,5 +74,9 @@ class LibraryAdmin(admin.ModelAdmin):
 		return urlpatterns
 
 
-admin.site.register(Attachment)
+class AttachmentAdmin(admin.ModelAdmin):
+	form = AttachmentImageForm
+
+
+admin.site.register(Attachment, AttachmentAdmin)
 admin.site.register(Library, LibraryAdmin)

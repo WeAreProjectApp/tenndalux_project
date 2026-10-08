@@ -13,11 +13,17 @@ from core_app.models import ContentImage, Post, User
 from core_app.utils.content_blocks import BLOCK_TYPES
 
 
+@pytest.fixture(autouse=True)
+def isolated_upload_storage(settings, tmp_path):
+    """All editor uploads remain in temporary media, including existing regression cases."""
+    settings.MEDIA_ROOT = tmp_path / 'media'
+
+
 @pytest.fixture
 def staff(db):
     """Provide a staff account allowed to access the editor-only endpoints."""
     return User.objects.create_user(
-        email='editor@tenndalux.com', password='x', is_staff=True, is_superuser=True
+        email='editor@tenndalux.com', is_staff=True, is_superuser=True
     )
 
 
@@ -138,6 +144,23 @@ def test_a_file_that_is_not_an_image_is_refused(client, staff):
 
     assert response.status_code == 400
     assert ContentImage.objects.count() == 0
+
+
+@pytest.mark.django_db
+def test_a_valid_png_with_an_html_name_is_refused(client, staff, settings):
+    """A verified PNG must not be published under an executable HTML extension."""
+    client.force_login(staff)
+    image = _png()
+    upload = SimpleUploadedFile(
+        'foto.html', image.read() + b'<script>window.uploadMarker=true</script>', content_type='image/png',
+    )
+
+    response = client.post(reverse('content-blocks-upload-image'), {'image': upload})
+
+    assert response.status_code == 400, response.json()
+    assert 'error' in response.json()
+    assert ContentImage.objects.count() == 0
+    assert not settings.MEDIA_ROOT.exists()
 
 
 @pytest.mark.django_db

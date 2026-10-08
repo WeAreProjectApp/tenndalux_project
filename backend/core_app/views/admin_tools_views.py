@@ -9,11 +9,11 @@ import io
 import json
 import zipfile
 
-from PIL import Image, UnidentifiedImageError
 from django.contrib.admin.views.decorators import staff_member_required
 from django.core.exceptions import ValidationError
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.http import require_GET, require_POST
+from django_attachments.forms import RasterImageField
 
 from core_app.models import ContentImage
 from core_app.utils.content_blocks import (
@@ -67,13 +67,12 @@ def upload_content_image(request):
             status=400,
         )
 
-    # Pillow abre el archivo de verdad. Validar sólo la extensión dejaría pasar
-    # cualquier cosa renombrada a .webp, que después rompe al generar miniaturas.
+    # Verify image bytes and the final suffix using the same boundary as the
+    # attachment admin. A real PNG named .html must not be served as active HTML.
     try:
-        Image.open(upload).verify()
-    except (UnidentifiedImageError, OSError):
-        return JsonResponse({'error': 'El archivo no es una imagen válida.'}, status=400)
-    upload.seek(0)
+        upload = RasterImageField().clean(upload)
+    except ValidationError as exc:
+        return JsonResponse({'error': ' '.join(exc.messages)}, status=400)
 
     image = ContentImage(image=upload, alt=(request.POST.get('alt') or '')[:200])
     try:
