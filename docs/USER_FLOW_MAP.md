@@ -1,159 +1,152 @@
 # Mapa de flujos de usuario — Tenndalux
 
-Actualizado: 2026-10-07. Inventario del código real, incluidos garantías, portada administrable, formulario de contacto y navegación de marca WebP.
+Actualizado: 2026-10-08. Registro de las 30 interacciones aprobadas, contrastado
+con el código real de los cuatro PR. El resto de operaciones del administrador
+queda fuera del registro, sin declarar madurez global ni inventar exenciones.
 
 ## Roles
 
-| Rol | Alcance real del frontend |
+| Rol | Alcance real en navegador |
 |---|---|
-| Guest | Navega el sitio público, consulta contenido, envía contactos, inicia sesión y se registra. |
-| Viewer | Comparte el sitio público y puede ver su perfil en Dashboard. |
-| Editor | Comparte los flujos de Viewer. No existe un CMS en el frontend para editar contenido. |
-| Admin | Comparte los flujos de Viewer. No existe un CMS en el frontend para administrar contenido o contactos. |
+| Guest | Consulta web pública, catálogos, garantías, media y FAQ; envía contactos, inicia sesión y se registra. |
+| Viewer | Comparte web pública; consulta su perfil y cierra sesión en Dashboard. |
+| Editor | Comparte superficie visible de Viewer; no hay CMS en Next. |
+| Admin | Comparte superficie de Viewer. Django Admin exige staff y permisos Django, independientes del rol JWT; staff viewer/editor con permisos también puede usarlo. |
 
-Los roles persistidos son `viewer`, `editor` y `admin`; `guest` es el visitante sin sesión.
-El Dashboard sólo muestra el perfil y permite salir. Un superusuario usa la misma superficie
-del frontend que Admin. Los permisos CRUD del CMS se prueban en backend; este mapa no inventa
-controles de frontend para esas APIs. Esta ronda registra las nuevas interacciones
-de Django Admin para garantías y portada. Requieren `is_staff` y permisos Django,
-independientemente del rol JWT; la autorización y carga se verifican por HTTP
-en backend, sin atribuirles cobertura E2E de navegador.
+## Convenciones
 
-## Conventions
-
-- `success`: acción completada; `error`: validación o guard de acceso; `failure`: petición o integración fallida; `display`: datos concretos alcanzados mediante navegación UI.
-- Las clases no declaradas son N/A según las razones de **Clases no aplicables**.
-- Cada entrada describe una interacción real del frontend con un resultado concreto. Los permisos de API pertenecen a pruebas de backend.
-- Los E2E de esta ronda usan fixtures, cookies locales y rutas HTTP interceptadas, sin acceder al despliegue ni a datos de producción.
+success: acción completada; error: validación o guard; failure: fallo de API,
+transporte o integración; display: datos concretos alcanzados por navegación UI.
+Covered es crédito estático para todos los outcomes, no ejecución sobre el SHA
+combinado. Las clases ausentes están justificadas abajo; no hay expectedSpecs: 0.
+Los E2E públicos interceptan API y leen media real. Admin usa login, SQLite/media
+locales y uploads reales. Offline provoca caída de transporte del navegador,
+sin fabricar POST exitoso ni usar datos del despliegue.
 
 ## Guest
 
-Guest usa navegación pública, catálogos, blog, portfolio, videos, FAQ, formulario de contacto,
-registro, login y el guard de Dashboard. Los enlaces externos se validan sin operar al proveedor.
-El índice siguiente enumera cada interacción y sus clases.
+Usa navegación, Home, FAQ, vídeos, catálogos, Blog, Portafolio, Garantías,
+contacto, login, registro y guard de Dashboard. Servicios enlaza realmente a
+Productos. Los enlaces externos se verifican sin operar al proveedor.
 
 ## Viewer
 
-Viewer usa la superficie pública y, con sesión, ve su perfil y puede cerrar sesión.
-Cuando el acceso vence durante el envío de contacto, ese formulario ejercita la renovación
-y repetición de la solicitud. El índice diferencia este resultado del envío público ordinario.
+Usa la web pública, perfil y logout. Sesión vencida durante contacto renueva y
+repite el payload; refresh rechazado limpia credenciales y llega a Login.
+La inicialización real usa initializeAuth y rehidratación explícita; hydrate no
+existe en el store.
 
 ## Editor
 
-Editor comparte los flujos visibles de Viewer. El frontend no renderiza controles de edición
-de contenido; su autorización para escribir se verifica en backend.
+Comparte las interacciones visibles de Viewer. Escrituras y permisos de contenido
+se prueban en backend; no existen controles CMS en Next.
 
 ## Admin
 
-Admin comparte los flujos visibles de Viewer. El frontend no renderiza controles de administración
-de contenido ni contactos; la autorización de API, incluido el superusuario, se verifica en backend.
-Con acceso de personal y permisos Django, puede publicar documentos de garantía
-y cambiar la galería de la portada desde el administrador. Blog/portafolio ya
-tenían edición allí; siguen sin specs de navegador y no se declara esa brecha cerrada.
+Con staff/permisos Django publica PDFs de garantía y cambia Hero media en el
+administrador. Rechazo de imagen y caída de transporte conservan el formulario,
+anuncian el fallo y habilitan recuperación. La media se guarda antes del
+formulario: bloquearlo no ofrece atomicidad entre widgets ni rollback global.
 
 ## E2E Coverage Index
 
-El audit estático de fuentes de esta revisión registra **6 covered · 24 missing · 0 junk-only**.
-El crédito nuevo corresponde a `public-header-navigation`; el reporte de QA de la ronda
-vincula su ejecución al SHA final que incluye este mapa.
-La tabla es también la matriz de interacciones por vista. El crédito del audit reconoce el spec;
-la ejecución real y sus resultados se conservan por separado en el reporte de QA.
-Los dos flujos públicos nuevos pasaron seis casos en el export local. Los dos
-flujos nuevos de Django Admin siguen sin E2E de navegador; la carga y validación
-de PDFs se ejercitan en backend. La edición de Home no recibe crédito E2E por
-probar únicamente la URL de su imagen en la API.
+Auditoría de fuentes: **30 covered, 0 partial, 0 missing, 0 junk-only** y
+**58 outcomes declarados**. Se examinaron 18 specs y 81 definiciones de tests;
+casos expandidos por anchos/parámetros se cuentan en reportes de runtime.
+El cierre de los 24 huecos originales exige también ejecución verde del conjunto.
 
-| Flujo | Módulo | Rol | Clases | Interacción y resultado | Audit |
+| Flujo | Módulo | Roles | Clases | Interacción y resultado | Audit estático |
 |---|---|---|---|---|---|
-| `auth-login` | auth | guest | success, error, failure | Submit credentials; success reaches Dashboard, invalid credentials show an error, transport failure keeps the form usable. | missing |
-| `auth-register` | auth | guest | success, error, failure | Submit registration for a viewer account; validate duplicate email and password confirmation; show request failure. | missing |
-| `dashboard-unauthenticated-redirect` | auth | guest | error | Open Dashboard without session and reach Login. | missing |
-| `dashboard-profile-display` | dashboard | viewer, editor, admin | display | Reach Dashboard after Login and read fixture-backed profile values. | missing |
-| `dashboard-logout` | dashboard | viewer, editor, admin | success | Activate Logout and reach Login with auth cookies cleared. | missing |
-| `public-home` | public | guest, viewer, editor, admin | display | Reach the landing through site navigation and read landing content, including responsive gallery images and the project-video modal. | covered |
-| `public-header-navigation` | public | guest, viewer, editor, admin | success | Usar navegación desktop o de menú compacto, incluido el logo WebP Tenndalux para volver a Inicio, y enlaces del Footer para llegar a una ruta pública; la marca del Footer se decodifica. | covered |
-| `public-contact-submit` | leads | guest, viewer, editor, admin | success, error, failure | Complete labeled contact form; optional number of spaces and project location are submitted when present, invalid space counts show an inline error, valid capture opens a success dialog, and rejected requests preserve entered values in a recoverable error dialog whose controls retain and restore focus. | covered |
-| `auth-session-refresh-contact` | auth | viewer, editor, admin | success, failure | Seed stale access_token and valid refresh_token cookies locally; submit contact, renew both tokens on 401, replay unchanged payload and confirm success. Rejected refresh clears cookies and redirects to Login. | covered |
-| `public-faq-toggle` | public | guest, viewer, editor, admin | success, display | Activate a question to read its answer and activate again to collapse. | missing |
-| `public-gallery-video` | public | guest, viewer, editor, admin | success, display | Open a gallery video card, read the modal player and close using the video close control. | missing |
-| `public-brand-video` | public | guest, viewer, editor, admin | success, display | Open Why Tenndalux video and close modal. | missing |
-| `public-products-display` | products | guest, viewer, editor, admin | display | Reach Products through navigation and read static product cards. | missing |
-| `public-products-filter` | products | guest, viewer, editor, admin | success | Choose category and read matching product cards. | missing |
-| `public-product-details` | products | guest, viewer, editor, admin | success, display | Select Ver Detalles, read chosen product details and close modal. | missing |
-| `public-services-display` | services | guest, viewer, editor, admin | display | Reach Services and read initial curtain solution. | missing |
-| `public-services-tab` | services | guest, viewer, editor, admin | success | Choose Cortinas, Recubrimientos, Exteriores or Tecnología; choose curtain model where offered. | missing |
-| `public-services-exterior-mobile-detail` | services | guest, viewer, editor, admin | success, display | Open mobile exterior card, read bottom sheet and close by backdrop. | missing |
-| `public-blog-list` | blog | guest, viewer, editor, admin | display, failure | Navigate to Blog, read API-backed cards; failed request settles to no results. | missing |
-| `public-blog-filter` | blog | guest, viewer, editor, admin | success, display | Search or choose tag, read matching cards or no results, then clear filters. | missing |
-| `public-blog-detail` | blog | guest, viewer, editor, admin | display, failure | Follow article card and read title/content; missing or unavailable article shows return state. | missing |
-| `public-blog-share` | blog | guest, viewer, editor, admin | success, failure | Activate Compartir using native share or clipboard fallback; rejected browser integration has no visible feedback. | missing |
-| `public-portfolio-list` | portfolio | guest, viewer, editor, admin | display, failure | Navigate to Portfolio and read API-backed cards; failed request settles to no results. | missing |
-| `public-portfolio-filter` | portfolio | guest, viewer, editor, admin | success, display | Choose category, read matching projects or no results, reset to Todos. | missing |
-| `public-portfolio-showreel` | portfolio | guest, viewer, editor, admin | success, display | Open showreel, select next or previous video, close overlay. | missing |
-| `public-portfolio-detail` | portfolio | guest, viewer, editor, admin | display, failure | Follow project card and read title/content; missing or unavailable project shows return state. | missing |
-| `public-warranty-documents` | warranties | guest, viewer, editor, admin | success, failure, display | Llegar por «Garantía» del Footer, leer títulos y PDF publicados o vacío, abrir un documento y recuperar una carga fallida con «Volver a intentar». | covered |
-| `public-home-hero-image` | public | guest, viewer, editor, admin | failure, display | Navegar al inicio y leer la imagen principal de la API; conservar el fondo original cuando falta el adjunto, falla la API o el archivo no carga. | covered |
-| `admin-warranty-document-publish` | django-admin | admin con acceso staff | success, error, display | Cargar título/PDF/orden, publicar y guardar; extensión, cabecera o tamaño inválido muestran errores del formulario. | missing |
-| `admin-home-hero-image-update` | django-admin | admin con acceso staff | success, error, display | Cargar o seleccionar imágenes en Hero media de Home pages y guardar; el formulario rechaza archivos que no son imágenes. | missing |
+| `auth-login` | auth | guest | success, error, failure | Submit credentials; success reaches Dashboard, invalid credentials show an alert, and transport failure retains values for a retry. | covered |
+| `auth-register` | auth | guest | success, error, failure | Submit viewer registration; duplicate email, password confirmation, and password-policy errors are shown; transport failure retains entered data for retry. | covered |
+| `dashboard-unauthenticated-redirect` | auth | guest | error | Opening Dashboard without an initialized authenticated session redirects to Login. | covered |
+| `dashboard-profile-display` | dashboard | viewer, editor, admin | display | Reach Dashboard through Login and read fixture-backed profile name, email, phone, and account status. | covered |
+| `dashboard-logout` | dashboard | viewer, editor, admin | success | Activate Logout, clear local authentication state and cookies, and return to Login. | covered |
+| `public-home` | public | guest, viewer, editor, admin | display | Reach the landing through site navigation and read concrete landing content and real media. | covered |
+| `public-header-navigation` | public | guest, viewer, editor, admin | success | Use desktop or compact-overlay navigation, including the Tenndalux WebP logo and Footer links, to reach public destinations or return Home. | covered |
+| `public-contact-submit` | leads | guest, viewer, editor, admin | success, error, failure | Complete the labeled contact form; validate optional space count, submit optional project details, show success feedback, and preserve values after a rejected request. | covered |
+| `auth-session-refresh-contact` | auth | viewer, editor, admin | success, failure | A stale access token refreshes and replays the unchanged contact request; rejected refresh clears tokens and redirects to Login. | covered |
+| `public-faq-toggle` | public | guest, viewer, editor, admin | success, display | Open a FAQ question to read its answer and close it again. | covered |
+| `public-gallery-video` | public | guest, viewer, editor, admin | success, display | Open a gallery video card, inspect its playable modal source, and close the dialog with focus restored. | covered |
+| `public-brand-video` | public | guest, viewer, editor, admin | success, display | Open the Why Tenndalux brand video, inspect the native player, and dismiss the modal. | covered |
+| `public-products-display` | products | guest, viewer, editor, admin | display | Reach Products from Services and read concrete product cards. | covered |
+| `public-products-filter` | products | guest, viewer, editor, admin | success | Choose a product category and reset it to show the matching cards. | covered |
+| `public-product-details` | products | guest, viewer, editor, admin | success, display | Open a product detail dialog, read data for the selected product, and close it. | covered |
+| `public-services-display` | services | guest, viewer, editor, admin | display | Reach Services and read concrete initial solution content. | covered |
+| `public-services-tab` | services | guest, viewer, editor, admin | success | Choose Cortinas, Recubrimientos, Exteriores, or Tecnología, including a curtain model where offered. | covered |
+| `public-services-exterior-mobile-detail` | services | guest, viewer, editor, admin | success, display | Open an exterior solution card on mobile, read its bottom sheet, and close it by backdrop. | covered |
+| `public-blog-list` | blog | guest, viewer, editor, admin | display, failure | Navigate to Blog, read API-backed cards including later pages or a valid empty state, and recover an initial or later-page API failure with retry. | covered |
+| `public-blog-filter` | blog | guest, viewer, editor, admin | success, display | Search or choose a tag, read matching cards or the no-results state, then clear filters. | covered |
+| `public-blog-detail` | blog | guest, viewer, editor, admin | display, failure | Follow an article card, read its title and content, and retain the matching browser title; a missing article returns to Blog and an unavailable request can retry. | covered |
+| `public-blog-share` | blog | guest, viewer, editor, admin | success, failure | Share an article using native sharing or clipboard fallback; a denied browser integration leaves the article usable without an unhandled rejection. | covered |
+| `public-portfolio-list` | portfolio | guest, viewer, editor, admin | display, failure | Navigate to Portfolio, read API-backed cards including later pages or a valid empty state, and recover an initial or later-page API failure with retry. | covered |
+| `public-portfolio-filter` | portfolio | guest, viewer, editor, admin | success, display | Choose a category, read its projects, and reset to Todos. | covered |
+| `public-portfolio-showreel` | portfolio | guest, viewer, editor, admin | success, display | Open the showreel, read its current video, choose next or previous video, and close the overlay. | covered |
+| `public-portfolio-detail` | portfolio | guest, viewer, editor, admin | display, failure | Follow a project card, read its title and content, and retain the matching browser title; a missing project returns to Portfolio and an unavailable request can retry. | covered |
+| `public-warranty-documents` | warranties | guest, viewer, editor, admin | success, failure, display | Reach Garantías through Footer, read published PDFs or the empty state and policy, open a document, and retry a failed list. | covered |
+| `public-home-hero-image` | public | guest, viewer, editor, admin | failure, display | Navigate Home and display the API-backed hero image; absent, unavailable, or broken CMS media retains the bundled cover. | covered |
+| `admin-warranty-document-publish` | django-admin | admin con staff/permisos Django | success, error, display | A staff user with Django model permissions creates a published PDF document, reopens its saved row and file, and sees validation for an invalid PDF. | covered |
+| `admin-home-hero-image-update` | django-admin | admin con staff/permisos Django | success, error, failure, display | A staff user with Django attachment permissions uploads or selects Home hero media, sees the saved thumbnail, rejects a non-image, and recovers a failed uploader save by seeing its alert, choosing a replacement if needed, and submitting again. | covered |
 
 ## Clases no aplicables
 
-- Garantías público: `error` N/A, no recibe datos del visitante. API fallida tiene
-  alerta y reintento; el PDF de política sigue disponible durante ese fallo.
-- Portada administrable: `success/error` de escritura N/A en Home público;
-  `failure` es la recuperación ante API/archivo fallido.
-- Garantías y portada en Django Admin: `failure` de transporte N/A, no hay UI
-  específica de recuperación; la validación y permisos pertenecen también a backend.
-- Favicon: asset estático, no flujo de usuario. Verificar metadata, export y
-  respuesta HTTP, sin crear tags para inflar cobertura.
+| Área | Clases N/A | Razón |
+|---|---|---|
+| Login/registro | display | El dato autenticado pertenece al perfil de Dashboard. |
+| Guard Dashboard | success, failure, display | Denegación/redirect, sin pantalla de datos propia. |
+| Perfil Dashboard | success, error, failure | No edita ni ofrece recuperación de carga propia; el guard es de auth. |
+| Logout | error, failure, display | Limpieza local, sin petición o vista de datos nueva. |
+| Navegación, FAQ, tabs, filtros y catálogos estáticos | error/failure según flujo | Interacción local sin validación ni petición remota propia. |
+| Vídeos/modales locales | error, failure | No muestran recuperación propia de transporte; reproducción/media se verifican de verdad. |
+| Contacto | display | Captura datos, no es listado o detalle. |
+| Refresh durante contacto | error, display | Validación y feedback pertenecen al contacto. |
+| Listas/detalles Blog y Portafolio | success, error | Lectura, sin escritura o formulario validable. |
+| Filtros Blog y Portafolio | error, failure | Filtro local; fallo API pertenece a la lista. |
+| Compartir Blog | error, display | Sin entrada validable o vista; rechazo de integración sí es failure. |
+| Garantías público | error | Sin entrada del visitante; carga fallida sí es failure. |
+| Hero público | success, error | No escribe; ausencia/API/media fallida activa fallback. |
+| PDF de Django Admin | failure | Formulario estándar sin recuperación propia de transporte. |
 
-- Catálogos estáticos, acordeones, tabs, showreels y modales locales: error/failure N/A porque no exponen petición o validación remota; la carga de media no tiene UI de error propia.
-- Listados y detalles API: error/success de escritura N/A, son lectura. Filtros locales: error/failure N/A.
-- Login/registro: display N/A, el perfil pertenece a Dashboard. Guard de Dashboard: sólo error, sin vista persistente.
-- Dashboard: success pertenece a logout; error/failure de carga de perfil N/A en la página actual. Logout es local y no tiene error/failure.
-- Contacto: display N/A, no es vista de datos. Error incluye requeridos nativos y cantidad opcional inválida; failure conserva las respuestas y permite cerrar el diálogo recuperable por controles, Escape o fondo. Renovación durante contacto: success/failure, sin validación propia de formulario.
-- Handoffs a WhatsApp, correo, teléfono, redes y PDFs: validar enlaces en pruebas de componentes cuando cambien; no operar proveedores externos.
+Home uploader sí declara failure: HTTP/transporte fallido anuncia alerta, habilita
+Save y permite reenviar o seleccionar otra imagen. El detector agrupa dashboard,
+products y services como módulos sin negativos; las razones N/A anteriores
+explican ese read-out, sin crear tags de resultados inexistentes.
 
 ## Evidencia de mapa
 
-Cambios de esta entrega: `frontend/app/garantias/page.tsx`,
-`frontend/components/legal/WarrantyDocuments.tsx`, `frontend/components/home/Hero.tsx`,
-`backend/core_app/models/warranty.py`, `backend/core_app/admin.py` y
-`backend/core_app/serializers/site_serializers.py`. El flujo original
-`public-home` conserva su cobertura de galería; no acredita la nueva imagen CMS.
+El renderer Django conserva title, description y Open Graph como texto literal
+escapado en el HTML inicial de Blog/Portafolio. Cinco pruebas HTTP ejercen
+barras inversas y escape HTML en las rutas reales; esto añade cobertura backend
+sin crear ruta, control, outcome ni crédito E2E. Referencias:
+`backend/core_app/views/frontend_views.py:44-73,96-136` y
+`backend/core_app/tests/views/test_frontend_metadata_literals.py:27-104`,
+comprobados en `9eb037bc1e01aedf49a00505f4fe06ce7fa1cefe`.
 
-Fuente: `frontend/app/**/page.tsx`, `frontend/components/{home,layout,servicios}/`,
-`frontend/lib/services/http.ts` y `frontend/lib/services/leads.ts`. Se preservan `auth-login`
-y `public-home`; el registro previo sólo contenía esos dos flujos.
+- Auth/menú/vídeos: PR #68, f631cc1bcd3d3c3a08b9fcd84d23b12233275417;
+  authStore.ts:73, Header.tsx:160, VideoModal.tsx:34 y specs improve-responsive.
+- Catálogos y Productos alcanzable: PR #66, e889900caf446745a72a3845ff2b2d5265bcbf97;
+  services/content.ts, ambas listas, servicios/page.tsx:109 y improve-maintainability.
+- Detalles/títulos/FAQ/adjuntos: PR #69, 64c6be842c7981de13a1943fe26781c1d2559c47;
+  ambos Client, FAQ.tsx:73, admin_attachments.js:67, attachments.js:700,
+  cleanup.py:40 y improve-observability.
+- Registro: PR #67, auth_serializers.py:39.
+- La auditoría mecánica y ejecución combinada se conservan por separado en
+  test-results/improve-20261008-final y en el reporte QA del toolkit. Tags y
+  capturas no sustituyen ejecución.
 
-Antes de esta ronda sólo existía `frontend/e2e/smoke.spec.ts`. La auditoría actual reconoce
-`public-home` y `auth-session-refresh-contact`; el resto queda pendiente. La combinación
-incorpora `gallery-media.spec.ts`: sus diez casos cubren imágenes reales y apertura/cierre
-del video en cinco anchos, etiquetados como display de `public-home`; no conceden crédito
-al flujo separado `public-gallery-video` sin su tag específico. Las constantes de tags
-y la sincronización del registro no son evidencia de ejecución. Esta ronda valida únicamente
-las causas seleccionadas; los demás huecos son deuda pendiente.
+## Riesgos fuera del registro aprobado
 
-Esta revisión comprueba `backend/core_app/views/site_views.py`: para visitantes,
-`/api/site/home/` filtra los proyectos destacados no publicados; las sesiones
-autenticadas conservan la selección autorizada. No agrega un flujo de navegador:
-`frontend/lib/services/site.ts` y `Hero.tsx` sólo consumen `hero_image_url`.
-La navegación existente sí incorpora la marca WebP: Header usa el enlace
-accesible «Tenndalux» en escritorio y overlay, Footer muestra la misma imagen y
-`build_to_django.sh` publica los WebP de raíz. El spec
-`public-logo-navigation.spec.ts` prueba esos contratos bajo
-`public-header-navigation`; no crea un flujo de logo ni uno responsive.
-La animación de cierre del menú se cancela al reabrirlo, para que una finalización
-anterior no oculte un overlay ya activo; sostiene el mismo flujo
-`public-header-navigation` y no agrega un outcome.
+Django Admin también gestiona usuarios, proyectos, posts, servicios, taxonomías,
+leads, páginas y bloques (backend/core_app/admin.py:36). Esos CRUD no tienen ID
+entre estos 30; pruebas HTTP no les conceden cobertura de navegador. El store
+conserva actualización de perfil sin control UI en Dashboard: no se inventa flujo.
+Permisos API preservados: viewer autenticado lee privados por contrato,
+editor/admin escribe contenido y admin gestiona contactos/configuración.
 
 ## Selectores y entorno
 
-Formularios: `getByLabel`; botones/enlaces: `getByRole`. El feedback de contacto usa
-`role=dialog` y cierre `aria-label=Cerrar`. Videos con div clickeable y botones sin nombre
-requieren nombres accesibles antes de autoría futura. Los E2E de la ronda usan endpoints
-interceptados y cookies de fixture locales; nunca datos o servicios de producción.
-Para la marca, la disciplina de selectores está presente: el Header expone
-`banner`, enlaces con nombre accesible derivado de `alt="Tenndalux"` y botones
-`aria-label`; el Footer usa `data-testid="site-footer"` y el overlay compacto
-`data-testid="mobile-menu-logo-link"`.
+Roles/labels predominan; test IDs identifican datos y tarjetas estables. El
+widget de terceros requiere clases/inputs propios para archivo, miniatura y
+validación. Matriz: 412×915, 835×1194, 1195×835, 1440×900 y 2560×1440.
+Toda ejecución mutante sirve un worktree local con DB/media temporales, sin
+.env, DB del despliegue, SMTP externo, migrate ni deploy.

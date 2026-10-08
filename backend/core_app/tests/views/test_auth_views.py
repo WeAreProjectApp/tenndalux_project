@@ -15,8 +15,8 @@ def test_register_user_success(api_client):
         url,
         {
             "email": "new_user@example.com",
-            "password": "newuserpassword",
-            "password_confirm": "newuserpassword",
+            "password": "Satin!48Drape#62",
+            "password_confirm": "Satin!48Drape#62",
             "first_name": "New",
             "last_name": "User",
             "phone": "123456789",
@@ -28,6 +28,9 @@ def test_register_user_success(api_client):
     assert "tokens" in response.data
     assert "access" in response.data["tokens"]
     assert "refresh" in response.data["tokens"]
+    registered = User.objects.get(email="new_user@example.com")
+    assert registered.check_password("Satin!48Drape#62")
+    assert registered.role == User.ROLE_VIEWER
 
 
 @pytest.mark.django_db
@@ -105,3 +108,44 @@ def test_profile_update_ignores_privilege_fields(api_client, existing_user):
     assert existing_user.role == User.ROLE_VIEWER
     assert existing_user.is_staff is False
     assert existing_user.is_superuser is False
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    ("password", "email", "first_name", "expected_error"),
+    [
+        ("password123", "weak@example.test", "", "too common"),
+        ("98374012", "weak@example.test", "", "entirely numeric"),
+        ("marioncarrillo", "marioncarrillo@example.test", "", "similar to the email"),
+        ("CamilaVargas", "weak@example.test", "CamilaVargas", "similar to the first name"),
+    ],
+    ids=("common", "numeric", "email-similarity", "name-similarity"),
+)
+def test_registration_rejects_invalid_password(api_client, password, email, first_name, expected_error):
+    """Fails if public registration bypasses a configured Django password validator."""
+    response = api_client.post(
+        reverse("register-user"),
+        {"email": email, "password": password, "password_confirm": password, "first_name": first_name},
+        format="json",
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert expected_error in str(response.data["details"]["password"])
+    assert not User.objects.filter(email=email).exists()
+    assert "tokens" not in response.data
+
+
+@pytest.mark.django_db
+def test_registration_rejects_password_confirmation(api_client):
+    """Fails if a password policy change allows mismatched confirmation to create an account."""
+    email = "mismatch@example.test"
+    response = api_client.post(
+        reverse("register-user"),
+        {"email": email, "password": "Satin!48Drape#62", "password_confirm": "Different!48Drape"},
+        format="json",
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert "password_confirm" in response.data["details"]
+    assert not User.objects.filter(email=email).exists()
+    assert "tokens" not in response.data
