@@ -1,3 +1,4 @@
+import { FlowTags } from './helpers/flow-tags';
 import { expect, test, type Locator, type Page } from '@playwright/test';
 
 type GalleryPhoto = {
@@ -93,9 +94,9 @@ for (const viewport of videoViewports) {
 
     // Bug caught: the breakpoint hides gallery media or breaks the existing full-video modal interaction.
     test(`returns to the gallery after viewing its labelled video at ${viewport.name}`, {
-      tag: ['@flow:public-home', '@outcome:display', `@viewport:${viewport.name}`],
+      tag: [...FlowTags.PUBLIC_GALLERY_VIDEO, '@outcome:display', '@outcome:success', `@viewport:${viewport.name}`],
     }, async ({ page }) => {
-      // quality: allow-duplicate (per-viewport contract: public-home @ exact acceptance viewport)
+      // quality: allow-duplicate (per-viewport contract: public-gallery-video @ exact acceptance viewport)
       await loadPublicHome(page);
 
       const gallery = page.locator('section').filter({
@@ -106,12 +107,8 @@ for (const viewport of videoViewports) {
       await viewport.prepareVideo(page, galleryImage);
       await expect(galleryImage).toBeVisible();
       await expect(galleryImage).toHaveAttribute('src', '/home/gallery/cortina-ondessence.webp');
-      const visibleVideo = gallery.getByLabel(galleryVideoLabel, { exact: true }).filter({ visible: true });
-      // quality: allow-fragile-selector (the labelled video has an overlay; its nearest explicitly marked card is the stable click target across Swiper and grid copies)
-      const videoCard = visibleVideo.locator('xpath=ancestor::*[@data-testid="gallery-video-card"][1]');
-      await expect(visibleVideo).toBeInViewport({ ratio: 0.9 });
-      const cardBox = (await videoCard.boundingBox())!;
-      await page.mouse.click(cardBox.x + cardBox.width / 2, cardBox.y + cardBox.height / 2);
+      const videoCard = gallery.getByRole('button', { name: `Reproducir ${galleryVideoLabel}`, exact: true }).filter({ visible: true });
+      await videoCard.click();
 
       const closeButton = page.getByRole('button', { name: 'Cerrar video', exact: true });
       const modalVideo = page.locator('video[controls]');
@@ -119,9 +116,10 @@ for (const viewport of videoViewports) {
       await expect(closeButton).toBeVisible();
       await expect(webmSource).toHaveCount(1);
       await expect(webmSource).toHaveAttribute('src', fullVideoPath);
-      const closeBox = (await closeButton.boundingBox())!;
-      await page.mouse.click(closeBox.x + closeBox.width / 2, closeBox.y + closeBox.height / 2);
+      await expect.poll(() => modalVideo.evaluate((video: HTMLVideoElement) => video.readyState >= 2 && !video.paused)).toBe(true);
+      await closeButton.click();
       await expect(modalVideo).toHaveCount(0);
+      await expect(videoCard).toBeFocused();
     });
   });
 }

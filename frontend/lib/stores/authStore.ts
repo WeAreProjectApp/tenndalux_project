@@ -10,6 +10,8 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { createTranslator } from 'next-intl';
+import messages from './auth.messages.json';
 import * as http from '@/lib/services/http';
 import type {
   User,
@@ -22,6 +24,17 @@ import type {
   ProfileUpdateResponse,
 } from '@/types/user';
 
+const t = createTranslator({ locale: 'en', timeZone: 'America/Bogota', messages, namespace: 'Auth' });
+let initialization: Promise<void> | null = null;
+
+function authenticationError(error: unknown, fallback: string): string {
+  const response = (error as { response?: { data?: { details?: Record<string, unknown>; error?: string } } })?.response?.data;
+  const details = Object.values(response?.details ?? {}).flat().filter(
+    (message): message is string => typeof message === 'string',
+  );
+  return details.join(' ') || response?.error || fallback;
+}
+
 interface AuthState {
   // State
   user: User | null;
@@ -31,6 +44,7 @@ interface AuthState {
   
   // Getters
   isAuthenticated: boolean;
+  isInitialized: boolean;
   
   // Actions
   register: (payload: RegisterPayload) => Promise<{ success: boolean; error?: string }>;
@@ -52,9 +66,8 @@ export const useAuthStore = create<AuthState>()(
       error: null,
       
       // Computed
-      get isAuthenticated() {
-        return !!get().user && http.isAuthenticated();
-      },
+      isAuthenticated: false,
+      isInitialized: false,
       
       // Actions
       register: async (payload) => {
@@ -65,13 +78,11 @@ export const useAuthStore = create<AuthState>()(
           const { user, tokens } = response.data;
           
           http.setTokens(tokens.access, tokens.refresh);
-          set({ user, isLoading: false });
+          set({ user, isLoading: false, isAuthenticated: true });
           
           return { success: true };
-        } catch (error: any) {
-          const errorMessage = error.response?.data?.details?.email?.[0] || 
-                               error.response?.data?.error || 
-                               'Registration failed';
+        } catch (error: unknown) {
+          const errorMessage = authenticationError(error, t('registrationFailed'));
           set({ error: errorMessage, isLoading: false });
           return { success: false, error: errorMessage };
         }
@@ -85,13 +96,11 @@ export const useAuthStore = create<AuthState>()(
           const { user, tokens } = response.data;
           
           http.setTokens(tokens.access, tokens.refresh);
-          set({ user, isLoading: false });
+          set({ user, isLoading: false, isAuthenticated: true });
           
           return { success: true };
-        } catch (error: any) {
-          const errorMessage = error.response?.data?.details?.non_field_errors?.[0] || 
-                               error.response?.data?.error || 
-                               'Login failed';
+        } catch (error: unknown) {
+          const errorMessage = authenticationError(error, t('loginFailed'));
           set({ error: errorMessage, isLoading: false });
           return { success: false, error: errorMessage };
         }
@@ -99,7 +108,7 @@ export const useAuthStore = create<AuthState>()(
       
       logout: () => {
         http.clearTokens();
-        set({ user: null, error: null });
+        set({ user: null, error: null, isAuthenticated: false, isLoading: false });
       },
       
       fetchProfile: async () => {
@@ -113,11 +122,11 @@ export const useAuthStore = create<AuthState>()(
           const response = await http.get<ProfileResponse>('/auth/profile/');
           const { user } = response.data;
           
-          set({ user, isLoading: false });
+          set({ user, isLoading: false, isAuthenticated: true });
           return { success: true };
-        } catch (error: any) {
-          const errorMessage = error.response?.data?.error || 'Failed to fetch profile';
-          set({ error: errorMessage, isLoading: false, user: null });
+        } catch (error: unknown) {
+          const errorMessage = authenticationError(error, 'Failed to fetch profile');
+          set({ error: errorMessage, isLoading: false, user: null, isAuthenticated: false });
           return { success: false, error: errorMessage };
         }
       },
@@ -148,8 +157,8 @@ export const useAuthStore = create<AuthState>()(
           set({ user, isUpdating: false });
           
           return { success: true };
-        } catch (error: any) {
-          const errorMessage = error.response?.data?.error || 'Failed to update profile';
+        } catch (error: unknown) {
+          const errorMessage = authenticationError(error, 'Failed to update profile');
           set({ error: errorMessage, isUpdating: false });
           return { success: false, error: errorMessage };
         }
@@ -159,14 +168,29 @@ export const useAuthStore = create<AuthState>()(
         set({ error: null });
       },
       
-      initializeAuth: async () => {
-        if (http.isAuthenticated() && !get().user) {
-          await get().fetchProfile();
+      initializeAuth: () => {
+        if (get().isInitialized) return Promise.resolve();
+        if (!initialization) {
+          initialization = (async () => {
+            await useAuthStore.persist.rehydrate();
+            if (!http.isAuthenticated()) {
+              set({ user: null, isAuthenticated: false });
+            } else if (!get().user) {
+              await get().fetchProfile();
+            } else {
+              set({ isAuthenticated: true });
+            }
+          })().finally(() => {
+            set({ isInitialized: true });
+            initialization = null;
+          });
         }
+        return initialization;
       },
     }),
     {
       name: 'auth-storage',
+      skipHydration: true,
       partialize: (state) => ({ user: state.user }), // Only persist user
     }
   )
