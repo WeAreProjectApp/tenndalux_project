@@ -24,7 +24,9 @@ class HomePageView(_SingletonPermissionsMixin, generics.RetrieveUpdateAPIView):
 
     def get_object(self):
         home = HomePage.load()
-        projects = Project.objects.all()
+        projects = Project.objects.select_related('gallery__primary_attachment').prefetch_related(
+            'categories', 'styles', 'spaces'
+        )
         if not self.request.user.is_authenticated:
             projects = projects.filter(is_published=True)
         prefetch_related_objects(

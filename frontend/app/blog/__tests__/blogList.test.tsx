@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import Blog from '../page';
 import { listBlogPosts } from '@/lib/services/content';
 import type { BlogPost } from '@/types/content';
@@ -36,8 +36,8 @@ describe('Blog list', () => {
     render(<Blog />);
 
     // La página pinta variante móvil y de escritorio, de ahí el getAll.
-    expect(await screen.findAllByText('Cortinas inteligentes')).not.toHaveLength(0);
-    expect(screen.getAllByText('Persianas celulares')).not.toHaveLength(0);
+    expect(await screen.findByRole('heading', { name: 'Cortinas inteligentes', level: 2 })).toHaveTextContent('Cortinas inteligentes');
+    expect(screen.getAllByRole('heading', { name: 'Persianas celulares', level: 3 })).toHaveLength(2);
   });
 
   it('builds the category filter from the tags the posts actually carry', async () => {
@@ -57,7 +57,7 @@ describe('Blog list', () => {
     mockedList.mockResolvedValue([post({ read_time_minutes: 12 })]);
     render(<Blog />);
 
-    expect(await screen.findAllByText(/12 min/)).not.toHaveLength(0);
+    expect(await screen.findAllByText(/12 min/)).toHaveLength(1);
   });
 
   it('labels a post with no tags rather than leaving the badge empty', async () => {
@@ -82,5 +82,72 @@ describe('Blog list', () => {
     render(<Blog />);
 
     expect(await screen.findByText(/No encontramos artículos/)).toBeInTheDocument();
+  });
+
+  it('finds the cover post when its title is searched', async () => {
+    mockedList.mockResolvedValue([post(), post({ id: 2, title: 'Otro artículo', slug: 'otro' })]);
+    render(<Blog />);
+    expect(await screen.findByRole('heading', { name: 'Cortinas inteligentes', level: 2 })).toHaveTextContent('Cortinas inteligentes');
+
+    fireEvent.change(screen.getByRole('textbox', { name: 'Buscar artículos' }), { target: { value: 'inteligentes' } });
+
+    expect(screen.getAllByRole('heading', { name: 'Cortinas inteligentes', level: 3 })).toHaveLength(2);
+    expect(screen.queryByRole('heading', { name: 'Otro artículo' })).not.toBeInTheDocument();
+  });
+
+  it('includes the cover post in its category', async () => {
+    mockedList.mockResolvedValue([post()]);
+    render(<Blog />);
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Tecnología' }));
+
+    expect(screen.getAllByRole('heading', { name: 'Cortinas inteligentes', level: 3 })).toHaveLength(2);
+    expect(screen.queryByText(/No encontramos artículos/)).not.toBeInTheDocument();
+  });
+
+  it('restores the cover without a duplicate card after clearing the category', async () => {
+    mockedList.mockResolvedValue([post()]);
+    render(<Blog />);
+    fireEvent.click(await screen.findByRole('button', { name: 'Tecnología' }));
+
+    fireEvent.click(screen.getByRole('button', { name: 'Todos', exact: true }));
+
+    expect(screen.getByRole('heading', { name: 'Cortinas inteligentes', level: 2 })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Cortinas inteligentes', level: 3 })).not.toBeInTheDocument();
+  });
+
+  it('does not show an empty notice beside a lone cover post', async () => {
+    mockedList.mockResolvedValue([post()]);
+    render(<Blog />);
+
+    expect(await screen.findByRole('heading', { name: 'Cortinas inteligentes', level: 2 })).toHaveTextContent('Cortinas inteligentes');
+
+    expect(screen.queryByText(/No encontramos artículos/)).not.toBeInTheDocument();
+  });
+
+  it('distinguishes a failed request from an empty catalogue', async () => {
+    mockedList.mockRejectedValue(new Error('Unavailable'));
+    render(<Blog />);
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('No pudimos cargar los artículos');
+    expect(screen.queryByText(/No encontramos artículos/)).not.toBeInTheDocument();
+  });
+
+  it('recovers published articles on a manual retry', async () => {
+    mockedList.mockRejectedValueOnce(new Error('Unavailable')).mockResolvedValueOnce([post()]);
+    render(<Blog />);
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Volver a intentar' }));
+
+    expect(await screen.findByRole('heading', { name: 'Cortinas inteligentes', level: 2 })).toBeInTheDocument();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  it('uses the bundled WebP when no cover was uploaded', async () => {
+    mockedList.mockResolvedValue([post({ cover_image_url: null })]);
+    render(<Blog />);
+
+    const image = await screen.findByAltText('Cortinas inteligentes');
+    expect(decodeURIComponent(image.getAttribute('src') || '')).toContain('/home/gallery/cortina-ondessence.webp');
   });
 });

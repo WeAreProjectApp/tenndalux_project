@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { NextIntlClientProvider, useTranslations } from 'next-intl';
+import messages from './messages.json';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -422,7 +424,8 @@ const products = [
   },
 ];
 
-export default function Productos() {
+function ProductCatalogue() {
+  const t = useTranslations('productDetails');
   const [selectedCategory, setSelectedCategory] = useState('todos');
   const [selectedProduct, setSelectedProduct] = useState<typeof products[0] | null>(null);
 
@@ -460,6 +463,7 @@ export default function Productos() {
             {categories.map((category) => (
               <button
                 key={category.id}
+                aria-pressed={selectedCategory === category.id}
                 onClick={() => setSelectedCategory(category.id)}
                 className={`px-4 sm:px-6 py-2.5 sm:py-3 rounded-full transition-all hover:scale-105 flex items-center gap-1.5 sm:gap-2 border text-sm sm:text-base ${
                   selectedCategory === category.id 
@@ -482,6 +486,7 @@ export default function Productos() {
             {filteredProducts.map((product, index) => (
               <motion.div
                 key={product.id}
+                data-testid={`product-card-${product.id}`}
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
@@ -606,6 +611,9 @@ export default function Productos() {
           >
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="product-detail-title"
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
@@ -614,7 +622,7 @@ export default function Productos() {
               {/* Header */}
               <div className="sticky top-0 bg-white border-b border-stone-100 p-4 sm:p-8 flex items-center justify-between z-10">
                 <div>
-                  <h2 className="text-xl sm:text-3xl font-semibold mb-1 sm:mb-2 text-stone-900">
+                  <h2 id="product-detail-title" className="text-xl sm:text-3xl font-semibold mb-1 sm:mb-2 text-stone-900">
                     {selectedProduct.name}
                   </h2>
                   <p className="text-base text-stone-500">
@@ -622,6 +630,7 @@ export default function Productos() {
                   </p>
                 </div>
                 <button
+                  aria-label={t('close')}
                   onClick={() => setSelectedProduct(null)}
                   className="w-12 h-12 rounded-full flex items-center justify-center hover:bg-stone-100 transition-colors"
                 >
@@ -728,4 +737,8 @@ export default function Productos() {
       </AnimatePresence>
     </div>
   );
+}
+
+export default function Productos() {
+  return <NextIntlClientProvider locale="es" messages={messages} timeZone="America/Bogota"><ProductCatalogue /></NextIntlClientProvider>;
 }

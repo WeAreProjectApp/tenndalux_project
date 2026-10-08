@@ -19,6 +19,8 @@ const observed: Element[] = [];
 const realObserve = window.IntersectionObserver.prototype.observe;
 
 beforeAll(() => {
+  HTMLDialogElement.prototype.showModal = function () { this.setAttribute('open', ''); };
+  HTMLDialogElement.prototype.close = function () { this.removeAttribute('open'); };
   window.IntersectionObserver.prototype.observe = function (target: Element) {
     observed.push(target);
     return realObserve.call(this, target);
@@ -40,20 +42,19 @@ describe('Gallery', () => {
     }
   });
 
-  it('plays the clips only while they are on screen', () => {
+  it('observes the displayed project clips', () => {
     render(<Gallery />);
 
-    expect(observed.length).toBeGreaterThan(0);
+    expect(observed).toContain(screen.getAllByLabelText('Proyecto 1 — instalación de cortinas')[0]);
     expect(window.HTMLMediaElement.prototype.play).toHaveBeenCalled();
   });
 
   it('opens the modal with the full video, not the clip', () => {
     render(<Gallery />);
 
-    const clip = screen.getAllByLabelText('Proyecto 3 — instalación de cortinas')[0];
-    fireEvent.click(clip.closest('.group')!);
+    fireEvent.click(screen.getAllByRole('button', { name: 'Reproducir Proyecto 3 — instalación de cortinas' })[0]);
 
-    const source = document.querySelector('video[controls] source');
+    const source = screen.getByTestId('video-webm-source');
     expect(source).toHaveAttribute('src', '/videos/proyectos/proyecto-3.webm');
     // Si abriera el clip, el visitante vería 7 segundos y no el proyecto.
     expect(source).not.toHaveAttribute('src', '/videos/proyectos/proyecto-3-clip.webm');
@@ -64,7 +65,8 @@ describe('Gallery', () => {
 
     fireEvent.click(screen.getAllByAltText('Cortina Classic elegante')[0].closest('.group')!);
 
-    expect(document.querySelector('video[controls]')).toBeNull();
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(screen.getAllByAltText('Cortina Classic elegante')).toHaveLength(2);
   });
 
   it('shows a poster frame so the card is never a black rectangle', () => {
@@ -77,7 +79,7 @@ describe('Gallery', () => {
   it('never preloads the clips, so opening the home does not fetch them', () => {
     render(<Gallery />);
 
-    document.querySelectorAll('video:not([controls])').forEach((video) => {
+    screen.getAllByLabelText(/instalación de cortinas|Instalación de cortinas motorizadas/, { selector: 'video' }).forEach((video) => {
       expect(video).toHaveAttribute('preload', 'none');
     });
   });

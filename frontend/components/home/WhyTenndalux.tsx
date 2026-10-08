@@ -10,6 +10,8 @@ import {
   ShieldCheckIcon,
   UserGroupIcon
 } from '@heroicons/react/24/outline';
+import { NextIntlClientProvider, useTranslations } from 'next-intl';
+import messages from './videoTriggers.messages.json';
 import VideoModal from '@/components/ui/VideoModal';
 import { whatsappUrl } from '@/lib/whatsapp';
 
@@ -41,6 +43,11 @@ const benefits = [
 const VIDEO_SRC = '/videos/optimized/copy_429DCD28-111F-43D8-BC3D-9277828BFA0D.webm';
 
 export default function WhyTenndalux() {
+  return <NextIntlClientProvider locale="es" messages={messages} timeZone="America/Bogota"><WhyTenndaluxContent /></NextIntlClientProvider>;
+}
+
+function WhyTenndaluxContent() {
+  const t = useTranslations('VideoTriggers');
   const [isVideoOpen, setIsVideoOpen] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
   const videoRef = useRef<HTMLDivElement>(null);
@@ -90,8 +97,10 @@ export default function WhyTenndalux() {
           <div className="grid lg:grid-cols-2 gap-10 lg:gap-24 items-center">
             {/* Left: Video */}
             <div ref={videoRef} className="relative">
-              <div 
-                className="relative aspect-[9/16] max-w-[380px] mx-auto rounded-[2.5rem] overflow-hidden shadow-2xl cursor-pointer group"
+              <button
+                type="button"
+                aria-label={t('brand')}
+                className="relative block w-full aspect-[9/16] max-w-[380px] mx-auto rounded-[2.5rem] overflow-hidden shadow-2xl cursor-pointer group"
                 onClick={() => setIsVideoOpen(true)}
               >
                 <video
@@ -110,7 +119,7 @@ export default function WhyTenndalux() {
                     <PlayIcon className="w-10 h-10 text-stone-900 ml-1" />
                   </div>
                 </div>
-              </div>
+              </button>
 
               {/* Decorative */}
               <div className="absolute -bottom-8 -right-8 w-64 h-64 bg-gradient-to-br from-stone-700 to-transparent rounded-full blur-3xl opacity-50 -z-10" />
