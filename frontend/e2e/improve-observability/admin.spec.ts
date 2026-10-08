@@ -1,5 +1,5 @@
 import { test, expect } from './admin-fixture';
-import type { Page } from '@playwright/test';
+import type { Page, Request } from '@playwright/test';
 import { FlowTags } from '../helpers/flow-tags';
 
 const pdf = Buffer.from('%PDF-1.4\n1 0 obj\n<< /Type /Catalog >>\nendobj\n%%EOF\n');
@@ -99,29 +99,52 @@ async function chooseHero(page: Page, buffer: Buffer, name = 'hero-fixture.png')
   await chooseImage(page, 'hero_media', buffer, name);
 }
 
+async function openHomeForDeletion(page: Page, id: number) {
+  const requests: Request[] = [];
+  const recordRequest = (request: Request) => {
+    if (request.method() === 'GET' && request.resourceType() === 'xhr') requests.push(request);
+  };
+  page.on('request', recordRequest);
+  try {
+    await openHome(page, id, false);
+    const input = page.locator('.field-hero_media input[name="hero_media"]');
+    const library = await input.inputValue();
+    if (library && library !== 'None') {
+      const listUrl = new URL((await input.getAttribute('data-list-url'))!.replace('__library_id__', library), page.url()).href;
+      const responses = await Promise.all(requests.map(async (request) => {
+        const response = (await request.response())!;
+        expect(response.ok()).toBe(true);
+        expect(await response.finished()).toBeNull();
+        return response;
+      }));
+      const initialLoads = responses.filter((response) => response.url() === listUrl);
+      expect(initialLoads.length).toBeGreaterThan(0);
+      for (const response of initialLoads) {
+        const data = await response.json();
+        await expect(page.locator('.field-hero_media .attachments-widget').getByRole('link', { name: '', exact: true })).toHaveCount(data.attachments.length);
+      }
+    }
+  } finally {
+    page.off('request', recordRequest);
+  }
+}
+
 // The worker fixture shares Home: each deletion case establishes its gallery
 // through the UI, including any attachments left by a preceding case.
 async function prepareHeroDeletion(page: Page, id: number) {
-  await openHome(page, id, false);
+  await openHomeForDeletion(page, id);
   const widget = page.locator('.field-hero_media .attachments-widget');
-  const input = page.locator('.field-hero_media input[name="hero_media"]');
-  const library = await input.inputValue();
   // The widget's only links are its unnamed delete controls. Deleted rows are
   // hidden, so querying the visible collection again avoids stale nth indexes.
   const deletes = widget.getByRole('link', { name: '', exact: true });
-  if (library && library !== 'None') {
-    const listUrl = (await input.getAttribute('data-list-url'))!.replace('__library_id__', library);
-    const data = await (await page.request.get(listUrl, { headers: { Accept: 'application/json' } })).json();
-    await expect(deletes).toHaveCount(data.attachments.length);
-  }
   while (await deletes.count()) await deletes.first().click();
   await page.getByRole('button', { name: 'Save', exact: true }).click();
   await expect(page).toHaveURL(/\/admin\/core_app\/homepage\/$/);
-  await openHome(page, id, false);
+  await openHomeForDeletion(page, id);
   await chooseHero(page, image, 'hero-to-delete.png');
   await page.getByRole('button', { name: 'Save', exact: true }).click();
   await expect(page).toHaveURL(/\/admin\/core_app\/homepage\/$/);
-  await openHome(page, id, false);
+  await openHomeForDeletion(page, id);
   await expect(widget.getByText('hero-to-delete.png', { exact: true })).toBeVisible();
 }
 
