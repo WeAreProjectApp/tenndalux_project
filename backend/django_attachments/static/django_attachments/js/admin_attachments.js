@@ -39,25 +39,12 @@
         var form = mainContent.getElementsByTagName('form')[0];
 
         function saveAllWidgets(widgets, inputs) {
-            return new Promise((resolve, reject) => {
-                var notSaved = inputs.length;
-
-                widgets.forEach(function(w, i) {
+            return Promise.all(widgets.map(function(w, i) {
+                return new Promise((resolve, reject) => {
                     var input = inputs[i];
 
                     function saveAttachments() {
-                        w.save(function() {
-                            notSaved--;
-                            if (notSaved === 0) {
-                                resolve();
-                            }
-                        }, function(error) {
-                            console.error('Error saving attachments:', error);
-                            notSaved--;
-                            if (notSaved === 0) {
-                                resolve();
-                            }
-                        });
+                        w.save(resolve, reject);
                     }
 
                     if (input.value && input.value !== 'None') {
@@ -69,20 +56,18 @@
                                 updateUrls(input, w);
                                 saveAttachments();
                             } else {
-                                console.error('Error creating library.');
-                                notSaved--;
-                                if (notSaved === 0) {
-                                    resolve();
-                                }
+                                reject(new Error('Error creating library.'));
                             }
                         });
                     }
                 });
-            });
+            }));
         }
 
         form.addEventListener('submit', function(e) {
             e.preventDefault();
+            var previousError = form.querySelector('.attachments-save-error');
+            if (previousError !== null) previousError.remove();
             var btn = e.submitter;
             if (btn !== null) {
                 btn.disabled = true;
@@ -92,10 +77,14 @@
                 if (btn !== null) {
                     btn.disabled = false;
                 }
-                interceptSubmit = false;
                 form.submit();
             }).catch((error) => {
                 console.error('Error saving widgets:', error);
+                var message = document.createElement('p');
+                message.className = 'errornote attachments-save-error';
+                message.setAttribute('role', 'alert');
+                message.textContent = error.message;
+                form.prepend(message);
                 if (btn !== null) {
                     btn.disabled = false;
                 }

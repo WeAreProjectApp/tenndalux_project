@@ -1,6 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { isAxiosError } from 'axios';
+import { NextIntlClientProvider, useTranslations } from 'next-intl';
+import messages from './messages';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { ArrowLeft, ArrowRight, MapPin, Calendar } from 'lucide-react';
@@ -18,8 +21,18 @@ function slugFromPath(): string {
 }
 
 export default function PortafolioProjectClient() {
+  return (
+    <NextIntlClientProvider locale="es" messages={messages} timeZone="America/Bogota">
+      <PortfolioDetail />
+    </NextIntlClientProvider>
+  );
+}
+
+function PortfolioDetail() {
+  const t = useTranslations('detail');
   const [project, setProject] = useState<PortfolioProject | null>(null);
-  const [state, setState] = useState<'loading' | 'ready' | 'missing'>('loading');
+  const [state, setState] = useState<'loading' | 'ready' | 'missing' | 'unavailable'>('loading');
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -31,12 +44,14 @@ export default function PortafolioProjectClient() {
         setState('ready');
         document.title = `${data.title} — Tenndalux`;
       })
-      .catch(() => {
-        if (!cancelled) setState('missing');
+      .catch((error: unknown) => {
+        if (!cancelled) {
+          setState(isAxiosError(error) && error.response?.status === 404 ? 'missing' : 'unavailable');
+        }
       });
 
     return () => { cancelled = true; };
-  }, []);
+  }, [attempt]);
 
   return (
     <div className="min-h-screen bg-[#FAFAF9]">
@@ -63,6 +78,19 @@ export default function PortafolioProjectClient() {
         </div>
       )}
 
+      {state === 'unavailable' && (
+        <div role="alert" className="px-4 sm:px-6 pb-32 text-center">
+          <h1 className="text-3xl font-semibold text-stone-900 mb-4">{t('unavailable')}</h1>
+          <p className="text-stone-600 mb-8">{t('explanation')}</p>
+          <button type="button" onClick={() => {
+            setState('loading');
+            setAttempt((value) => value + 1);
+          }} className="px-8 py-4 rounded-full bg-stone-900 text-stone-50 font-semibold">
+            {t('retry')}
+          </button>
+        </div>
+      )}
+
       {state === 'missing' && (
         <div className="px-4 sm:px-6 pb-32 text-center">
           <div className="max-w-xl mx-auto">
@@ -85,6 +113,7 @@ export default function PortafolioProjectClient() {
 
       {state === 'ready' && project && (
         <article>
+          <title>{`${project.title} — Tenndalux`}</title>
           <header className="px-4 sm:px-6 pb-8 sm:pb-12">
             <div className="max-w-4xl mx-auto">
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>

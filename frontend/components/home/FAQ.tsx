@@ -77,6 +77,10 @@ export default function FAQ() {
               className="border-2 border-stone-200 rounded-3xl overflow-hidden transition-all duration-300 hover:border-stone-300 bg-stone-50/30"
             >
               <button
+                id={`faq-question-${index}`}
+                type="button"
+                aria-expanded={openIndex === index}
+                aria-controls={`faq-answer-${index}`}
                 onClick={() => setOpenIndex(openIndex === index ? null : index)}
                 className="w-full flex items-center justify-between p-8 text-left focus:outline-none"
               >
@@ -90,6 +94,10 @@ export default function FAQ() {
                 />
               </button>
               <div
+                id={`faq-answer-${index}`}
+                role="region"
+                aria-labelledby={`faq-question-${index}`}
+                aria-hidden={openIndex !== index}
                 className={`grid transition-all duration-300 ease-in-out ${
                   openIndex === index ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
                 }`}

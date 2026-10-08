@@ -514,12 +514,18 @@ var messagesContainer = function(element, tagName) {
 		messageElement.className = className;
 		messageElement.appendChild(document.createTextNode(message));
 		element.appendChild(messageElement);
+		if (timeout === 0) return;
 		setTimeout(function() {
-			element.removeChild(messageElement);
+			if (messageElement.parentNode === element) element.removeChild(messageElement);
 			if (element.childNodes.length === 0) {
 				element.style.display = 'none';
 			}
 		}, timeout || 10000);
+	};
+
+	self.clear = function() {
+		element.textContent = '';
+		element.style.display = 'none';
 	};
 
 	return self;
@@ -571,6 +577,21 @@ var uploadWidget = function(element, options) {
 	var attachments = attachmentsContainer(filesElement, self.fileWidget);
 	var messages = messagesContainer(messagesElement);
 	var queueSuccessCallback;
+	var queueErrorCallback;
+	var queueFailed = false;
+
+	var showErrors = function(data) {
+		if (!data || data.errors === undefined) return false;
+		_.forEachDict(data.errors, function(key, errors) {
+			_.forEach(errors, function(error) { messages.show(error.message, 'error', 0); });
+		});
+		return true;
+	};
+
+	var saveFailed = function(errorCallback) {
+		if (!messagesElement.childNodes.length) messages.show('Error saving attachments.', 'error', 0);
+		if (errorCallback !== undefined) errorCallback(new Error('Error saving attachments.'));
+	};
 
 	var fireListeners = function(event) {
 		_.forEach(listeners[event], function(listener) {
@@ -676,10 +697,13 @@ var uploadWidget = function(element, options) {
 		}
 	};
 
-	self.save = function(successCallback) {
+	self.save = function(successCallback, errorCallback) {
+		queueFailed = false;
+		messages.clear();
+		queueErrorCallback = errorCallback;
 		if (dropzone === undefined) {
 			setTimeout(function() {
-				saveUploads(successCallback);
+				saveUploads(successCallback, errorCallback);
 			}, 0);
 		}
 		else {
@@ -709,13 +733,12 @@ var uploadWidget = function(element, options) {
 							dropzone.processQueue();
 						},
 						failFn: function() {
-							queueSuccessCallback = successCallback;
-							dropzone.processQueue();
+							saveFailed(errorCallback);
 						}
 					});
 				}
 				else {
-					saveUploads(successCallback);
+					saveUploads(successCallback, errorCallback);
 				}
 			}, 0);
 		}
@@ -791,29 +814,31 @@ var uploadWidget = function(element, options) {
 					attachments.load(data.attachments);
 				}
 				else {
+					queueFailed = true;
 					attachments.remove(upload.previewWidget.getId());
-					if (data.errors !== undefined) {
-						_.forEachDict(data.errors, function(key, errorList) {
-							_.forEach(errorList, function(errorMessage) {
-								messages.show(errorMessage.message, 'error');
-							});
-						});
-					}
+					showErrors(data);
+					dropzone.removeFile(upload);
 				}
 				upload.previewWidget = undefined;
 			},
 			error: function(upload, errorMessage, response) {
+				queueFailed = true;
+				messages.show(typeof errorMessage === 'string' ? errorMessage : 'Error saving attachments.', 'error', 0);
 				attachments.remove(upload.previewWidget.getId());
 				upload.previewWidget = undefined;
+				dropzone.removeFile(upload);
 				if (response && window._settings && window._settings.debug) {
 					ajaxForwardError(response);
 				}
 			},
 			queuecomplete: function() {
-				if (self.updateUrl !== null) {
-					saveUploads(queueSuccessCallback);
-					queueSuccessCallback = undefined;
+				if (queueFailed) {
+					saveFailed(queueErrorCallback);
+				} else if (self.updateUrl !== null) {
+					saveUploads(queueSuccessCallback, queueErrorCallback);
 				}
+				queueSuccessCallback = undefined;
+				queueErrorCallback = undefined;
 				if (!self.autoProcess) {
 					dropzone.options.autoProcessQueue = false;
 				}
@@ -894,7 +919,7 @@ var uploadWidget = function(element, options) {
 		return sortable;
 	};
 
-	var saveUploads = function(successCallback) {
+	var saveUploads = function(successCallback, errorCallback) {
 		var listUrl = self.listUrl;
 		if (self.librarySign !== undefined) {
 			var separator = listUrl.indexOf('?') === -1 ? '?' : '&';
@@ -906,6 +931,10 @@ var uploadWidget = function(element, options) {
 				'Accept': 'application/json',
 			},
 			successFn: function(data) {
+				if (showErrors(data) || !data.attachments) {
+					saveFailed(errorCallback);
+					return;
+				}
 				var oldAttachments = data.attachments;
 				var newAttachments = attachments.toList();
 				var formData = {'action': 'update', 'attachments': 'json'};
@@ -962,13 +991,19 @@ var uploadWidget = function(element, options) {
 						'Accept': 'application/json',
 					},
 					successFn: function(data) {
+						if (showErrors(data) || !data.attachments) {
+							saveFailed(errorCallback);
+							return;
+						}
 						if (successCallback !== undefined) {
 							successCallback();
 						}
 						fireListeners('saved');
-					}
+					},
+					failFn: function() { saveFailed(errorCallback); }
 				});
-			}
+			},
+			failFn: function() { saveFailed(errorCallback); }
 		});
 	};
 
