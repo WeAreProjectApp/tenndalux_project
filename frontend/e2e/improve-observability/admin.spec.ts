@@ -81,13 +81,13 @@ async function openHome(page: Page, id: number) {
   await expect(page.locator('input.dz-hidden-input')).toHaveCount(2);
   const gallery = await page.locator('.field-hero_media input[name="hero_media"]').inputValue();
   if (gallery && gallery !== 'None') {
-    await expect(page.locator('.field-hero_media .attachment-finished')).toBeVisible();
+    await expect(page.locator('.field-hero_media .caption')).not.toBeEmpty();
   }
 }
 
 async function chooseImage(page: Page, field: string, buffer: Buffer, name: string) {
   const widget = page.locator(`.field-${field} .attachments-widget`);
-  const deletes = widget.locator('.attachment-finished .delete-link');
+  const deletes = widget.locator('.attachment:not(.deleted) .delete-link');
   for (const button of await deletes.all()) await button.click();
   const chooser = page.waitForEvent('filechooser');
   await widget.click();
@@ -112,7 +112,7 @@ test('Admin saves an uploaded hero image', {
   await expect(page).toHaveURL(/\/admin\/core_app\/homepage\/$/);
   await openHome(page, adminServer.homeId);
   await expect(page.getByLabel('Hero title:', { exact: true })).toHaveValue('Portada con imagen guardada');
-  await expect(page.locator('.field-hero_media .attachment-finished .caption')).toContainText('hero-fixture.png');
+  await expect(page.locator('.field-hero_media .caption')).toContainText('hero-fixture.png');
 });
 
 test('Admin displays a saved hero thumbnail', {
@@ -127,7 +127,8 @@ test('Admin displays a saved hero thumbnail', {
 
   await openHome(page, adminServer.homeId);
 
-  const thumbnail = page.locator('.field-hero_media .attachment-finished img');
+  const thumbnail = page.locator('.field-hero_media .attachment:not(.deleted) img');
+  await expect(page.locator('.field-hero_media .attachment:not(.deleted)')).toHaveCount(1);
   await expect(thumbnail).toBeVisible();
   await expect.poll(() => thumbnail.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBeGreaterThan(0);
   const response = await page.request.get('/api/site/home/');
@@ -152,7 +153,7 @@ test('Admin rejects a non-image hero upload without saving the form', {
 
   await expect(page.locator('.field-hero_media .messages')).toContainText(/image|imagen/i);
   await expect(page.getByLabel('Hero title:', { exact: true })).toHaveValue('This invalid form must not persist');
-  await expect(page.locator('.field-testimonials_section .attachment-finished .caption')).toContainText('valid-testimonial.png');
+  await expect(page.locator('.field-testimonials_section .caption')).toContainText('valid-testimonial.png');
   await expect(page).toHaveURL(new RegExp(`/admin/core_app/homepage/${adminServer.homeId}/change/`));
   await page.reload();
   await expect(page.getByLabel('Hero title:', { exact: true })).toHaveValue(originalTitle);
@@ -176,5 +177,5 @@ test('Admin recovers a hero upload after validation rejection', {
   await expect(page).toHaveURL(/\/admin\/core_app\/homepage\/$/);
   await openHome(page, adminServer.homeId);
   await expect(page.getByLabel('Hero title:', { exact: true })).toHaveValue('Portada recuperada');
-  await expect(page.locator('.field-hero_media .attachment-finished .caption')).toContainText('hero-recovered.png');
+  await expect(page.locator('.field-hero_media .caption')).toContainText('hero-recovered.png');
 });

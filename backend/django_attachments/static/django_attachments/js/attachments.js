@@ -777,7 +777,7 @@ var uploadWidget = function(element, options) {
 		var dropzone = new Dropzone(widgetElement, {
 			url: self.uploadUrl,
 			paramName: 'file',
-			clickable: true,
+			clickable: [widgetElement, messagesElement],
 			autoProcessQueue: false,
 			addRemoveLinks: true,
 			sending: function(file, xhr, formData) {
