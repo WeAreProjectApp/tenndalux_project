@@ -1,6 +1,6 @@
 {
-  "version": "2.0.2",
-  "lastUpdated": "2026-10-07",
+  "version": "2.1.0",
+  "lastUpdated": "2026-10-08",
   "flows": {
     "auth-login": {
       "name": "Login",
@@ -9,7 +9,7 @@
         "guest"
       ],
       "priority": "P1",
-      "description": "Submit credentials; success reaches Dashboard, invalid credentials show an error, transport failure keeps the form usable.",
+      "description": "Submit credentials; success reaches Dashboard, invalid credentials show an alert, and transport failure retains values for a retry.",
       "outcomes": [
         "success",
         "error",
@@ -23,7 +23,7 @@
         "guest"
       ],
       "priority": "P2",
-      "description": "Submit registration for a viewer account; validate duplicate email and password confirmation; show request failure.",
+      "description": "Submit viewer registration; duplicate email, password confirmation, and password-policy errors are shown; transport failure retains entered data for retry.",
       "outcomes": [
         "success",
         "error",
@@ -37,7 +37,7 @@
         "guest"
       ],
       "priority": "P1",
-      "description": "Open Dashboard without session and reach Login.",
+      "description": "Opening Dashboard without an initialized authenticated session redirects to Login.",
       "outcomes": [
         "error"
       ]
@@ -51,7 +51,7 @@
         "admin"
       ],
       "priority": "P2",
-      "description": "Reach Dashboard after Login and read fixture-backed profile values.",
+      "description": "Reach Dashboard through Login and read fixture-backed profile name, email, phone, and account status.",
       "outcomes": [
         "display"
       ]
@@ -65,7 +65,7 @@
         "admin"
       ],
       "priority": "P2",
-      "description": "Activate Logout and reach Login with auth cookies cleared.",
+      "description": "Activate Logout, clear local authentication state and cookies, and return to Login.",
       "outcomes": [
         "success"
       ]
@@ -80,7 +80,7 @@
         "admin"
       ],
       "priority": "P2",
-      "description": "Reach the landing through site navigation and read landing content, including responsive gallery images and the project-video modal.",
+      "description": "Reach the landing through site navigation and read concrete landing content and real media.",
       "outcomes": [
         "display"
       ]
@@ -95,7 +95,7 @@
         "admin"
       ],
       "priority": "P2",
-      "description": "Use desktop or compact-overlay navigation, including the Tenndalux WebP logo, to return Home or reach a public route or contact anchor; Footer branding remains decodable and Footer links reach their public route.",
+      "description": "Use desktop or compact-overlay navigation, including the Tenndalux WebP logo and Footer links, to reach public destinations or return Home.",
       "outcomes": [
         "success"
       ]
@@ -110,7 +110,7 @@
         "admin"
       ],
       "priority": "P1",
-      "description": "Complete labeled contact form; optional number of spaces and project location are submitted when present, invalid space counts show an inline error, valid capture opens a success dialog, and rejected requests preserve entered values in a recoverable error dialog whose controls retain and restore focus.",
+      "description": "Complete the labeled contact form; validate optional space count, submit optional project details, show success feedback, and preserve values after a rejected request.",
       "outcomes": [
         "success",
         "error",
@@ -126,7 +126,7 @@
         "admin"
       ],
       "priority": "P1",
-      "description": "Seed stale access_token and valid refresh_token cookies locally; submit contact, renew both tokens on 401, replay unchanged payload and confirm success. Rejected refresh clears cookies and redirects to Login.",
+      "description": "A stale access token refreshes and replays the unchanged contact request; rejected refresh clears tokens and redirects to Login.",
       "outcomes": [
         "success",
         "failure"
@@ -142,7 +142,7 @@
         "admin"
       ],
       "priority": "P3",
-      "description": "Activate a question to read its answer and activate again to collapse.",
+      "description": "Open a FAQ question to read its answer and close it again.",
       "outcomes": [
         "success",
         "display"
@@ -158,7 +158,7 @@
         "admin"
       ],
       "priority": "P3",
-      "description": "Open a gallery video card, read the modal player and close using the video close control.",
+      "description": "Open a gallery video card, inspect its playable modal source, and close the dialog with focus restored.",
       "outcomes": [
         "success",
         "display"
@@ -174,7 +174,7 @@
         "admin"
       ],
       "priority": "P3",
-      "description": "Open Why Tenndalux video and close modal.",
+      "description": "Open the Why Tenndalux brand video, inspect the native player, and dismiss the modal.",
       "outcomes": [
         "success",
         "display"
@@ -190,7 +190,7 @@
         "admin"
       ],
       "priority": "P3",
-      "description": "Reach Products through navigation and read static product cards.",
+      "description": "Reach Products from Services and read concrete product cards.",
       "outcomes": [
         "display"
       ]
@@ -205,7 +205,7 @@
         "admin"
       ],
       "priority": "P3",
-      "description": "Choose category and read matching product cards.",
+      "description": "Choose a product category and reset it to show the matching cards.",
       "outcomes": [
         "success"
       ]
@@ -220,7 +220,7 @@
         "admin"
       ],
       "priority": "P3",
-      "description": "Select Ver Detalles, read chosen product details and close modal.",
+      "description": "Open a product detail dialog, read data for the selected product, and close it.",
       "outcomes": [
         "success",
         "display"
@@ -236,7 +236,7 @@
         "admin"
       ],
       "priority": "P2",
-      "description": "Reach Services and read initial curtain solution.",
+      "description": "Reach Services and read concrete initial solution content.",
       "outcomes": [
         "display"
       ]
@@ -251,7 +251,7 @@
         "admin"
       ],
       "priority": "P3",
-      "description": "Choose Cortinas, Recubrimientos, Exteriores or Tecnología; choose curtain model where offered.",
+      "description": "Choose Cortinas, Recubrimientos, Exteriores, or Tecnología, including a curtain model where offered.",
       "outcomes": [
         "success"
       ]
@@ -266,7 +266,7 @@
         "admin"
       ],
       "priority": "P3",
-      "description": "Open mobile exterior card, read bottom sheet and close by backdrop.",
+      "description": "Open an exterior solution card on mobile, read its bottom sheet, and close it by backdrop.",
       "outcomes": [
         "success",
         "display"
@@ -282,7 +282,7 @@
         "admin"
       ],
       "priority": "P2",
-      "description": "Navigate to Blog, read API-backed cards; failed request settles to no results.",
+      "description": "Navigate to Blog, read API-backed cards including later pages or a valid empty state, and recover an initial or later-page API failure with retry.",
       "outcomes": [
         "display",
         "failure"
@@ -298,7 +298,7 @@
         "admin"
       ],
       "priority": "P3",
-      "description": "Search or choose tag, read matching cards or no results, then clear filters.",
+      "description": "Search or choose a tag, read matching cards or the no-results state, then clear filters.",
       "outcomes": [
         "success",
         "display"
@@ -314,7 +314,7 @@
         "admin"
       ],
       "priority": "P2",
-      "description": "Follow article card and read title/content; missing or unavailable article shows return state.",
+      "description": "Follow an article card and read title and content; a missing article returns to Blog and an unavailable request can retry.",
       "outcomes": [
         "display",
         "failure"
@@ -330,7 +330,7 @@
         "admin"
       ],
       "priority": "P4",
-      "description": "Activate Compartir using native share or clipboard fallback; rejected browser integration has no visible feedback.",
+      "description": "Share an article using native sharing or clipboard fallback; a denied browser integration leaves the article usable without an unhandled rejection.",
       "outcomes": [
         "success",
         "failure"
@@ -346,7 +346,7 @@
         "admin"
       ],
       "priority": "P2",
-      "description": "Navigate to Portfolio and read API-backed cards; failed request settles to no results.",
+      "description": "Navigate to Portfolio, read API-backed cards including later pages or a valid empty state, and recover an initial or later-page API failure with retry.",
       "outcomes": [
         "display",
         "failure"
@@ -362,7 +362,7 @@
         "admin"
       ],
       "priority": "P3",
-      "description": "Choose category, read matching projects or no results, reset to Todos.",
+      "description": "Choose a category, read its projects, and reset to Todos.",
       "outcomes": [
         "success",
         "display"
@@ -378,7 +378,7 @@
         "admin"
       ],
       "priority": "P3",
-      "description": "Open showreel, select next or previous video, close overlay.",
+      "description": "Open the showreel, read its current video, choose next or previous video, and close the overlay.",
       "outcomes": [
         "success",
         "display"
@@ -394,7 +394,7 @@
         "admin"
       ],
       "priority": "P2",
-      "description": "Follow project card and read title/content; missing or unavailable project shows return state.",
+      "description": "Follow a project card and read title and content; a missing project returns to Portfolio and an unavailable request can retry.",
       "outcomes": [
         "display",
         "failure"
@@ -410,7 +410,7 @@
         "admin"
       ],
       "priority": "P2",
-      "description": "Reach Garantías through Footer Garantía; read published PDFs or empty state and the persistent policy. Recover from a failed list by using Volver a intentar.",
+      "description": "Reach Garantías through Footer, read published PDFs or the empty state and policy, open a document, and retry a failed list.",
       "outcomes": [
         "success",
         "failure",
@@ -427,7 +427,7 @@
         "admin"
       ],
       "priority": "P1",
-      "description": "Navigate to Home and display the API-backed primary hero image; absent, unavailable, or broken CMS media retains the bundled cover.",
+      "description": "Navigate Home and display the API-backed hero image; absent, unavailable, or broken CMS media retains the bundled cover.",
       "outcomes": [
         "failure",
         "display"
@@ -440,7 +440,7 @@
         "admin"
       ],
       "priority": "P1",
-      "description": "Staff with model permissions creates or edits title, PDF, order and publication state, then reads saved row; invalid file input shows form validation.",
+      "description": "A staff user with Django model permissions creates a published PDF document, reopens its saved row and file, and sees validation for an invalid PDF.",
       "outcomes": [
         "success",
         "error",
@@ -454,10 +454,11 @@
         "admin"
       ],
       "priority": "P1",
-      "description": "Staff with model and attachment permissions uploads or selects Hero gallery media and saves Home pages; non-image uploads are rejected.",
+      "description": "A staff user with Django attachment permissions uploads or selects Home hero media, sees the saved thumbnail, rejects a non-image, and recovers a failed uploader save by seeing its alert, choosing a replacement if needed, and submitting again.",
       "outcomes": [
         "success",
         "error",
+        "failure",
         "display"
       ]
     }
