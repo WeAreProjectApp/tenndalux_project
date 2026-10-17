@@ -86,13 +86,46 @@ def test_lead_notification_reaches_every_configured_address(api_client):
 
 @pytest.mark.django_db
 @override_settings(LEADS_NOTIFICATION_EMAILS=[], MAILERS=LOCMEM_MAILERS)
-def test_lead_is_stored_even_with_no_recipient_configured(api_client):
-    """Estado por defecto hasta que el cliente entregue su correo."""
-    response = api_client.post(reverse('lead-list'), PAYLOAD, format='json')
+def test_lead_is_stored_even_with_no_recipient_configured(api_client, caplog):
+    """Falla si un destinatario sin configurar vuelve a descartar el aviso en silencio."""
+    with caplog.at_level(logging.ERROR, logger='core_app.tasks'):
+        response = api_client.post(reverse('lead-list'), PAYLOAD, format='json')
 
     assert response.status_code == status.HTTP_201_CREATED
     assert Lead.objects.count() == 1
     assert mail.outbox == []
+    assert [record.levelno for record in caplog.records] == [logging.ERROR]
+    assert 'LEADS_NOTIFICATION_EMAILS is empty' in caplog.text
+    assert PAYLOAD['email'] not in caplog.text
+    assert PAYLOAD['full_name'] not in caplog.text
+
+
+@pytest.mark.django_db
+@override_settings(
+    LEADS_NOTIFICATION_EMAILS=['ventas@tenndalux.com'],
+    MAILERS=LOCMEM_MAILERS,
+)
+def test_lead_notification_sent_is_logged_without_contact_data(api_client, caplog):
+    """Falla si un aviso entregado deja de quedar en el log o filtra datos de contacto."""
+    with caplog.at_level(logging.INFO, logger='core_app.tasks'):
+        api_client.post(reverse('lead-list'), PAYLOAD, format='json')
+
+    lead = Lead.objects.get()
+    assert len(mail.outbox) == 1
+    assert f'Lead notification sent; lead_id={lead.pk} recipients_count=1' in caplog.text
+    assert 'ventas@tenndalux.com' not in caplog.text
+    assert PAYLOAD['email'] not in caplog.text
+    assert PAYLOAD['full_name'] not in caplog.text
+    assert PAYLOAD['message'] not in caplog.text
+
+
+def test_core_app_logs_reach_a_handler():
+    """Falla si los registros de la app vuelven a perderse por falta de handler en producción."""
+    core_app_logger = logging.getLogger('core_app')
+
+    assert any(isinstance(handler, logging.StreamHandler) for handler in core_app_logger.handlers)
+    # Records must still propagate, or caplog-based diagnostics stop seeing them.
+    assert core_app_logger.propagate is True
 
 
 @pytest.mark.django_db
