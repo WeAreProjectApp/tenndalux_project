@@ -51,7 +51,9 @@ backend/venv/bin/python backend/manage.py check_client_delivery --email solicitu
 ```
 
 Ejecutar desde el clon de deploy de `tenndalux_project` en
-`vps-projectapp-prod`, después de publicar la migración y recargar servicios.
+`vps-projectapp-prod`, después de publicar la migración y **reiniciar** (no
+recargar) `tenndalux_project` y `tenndalux-huey`: el `.env` se lee al arrancar
+cada proceso y Huey es quien envía el aviso.
 La salida muestra permisos pendientes y claves de configuración faltantes,
 sin mostrar valores secretos. `--smtp-login` conecta/autentica, pero no envía
 mensajes. Si falta la cuenta, el operador decide cómo recuperar su acceso.
@@ -77,6 +79,14 @@ comprobada la cuenta ni configurado el SMTP por tener el código listo.
 6. Abrir `/favicon.ico?v=tenndalux-1`: debe responder 200 con la T de la marca.
 7. El operador envía una solicitud de prueba autorizada y confirma recepción
    en el Gmail indicado. Si falla el correo, la solicitud permanece en Leads.
+   - En `journalctl -u tenndalux-huey` aparece
+     `Lead notification sent; lead_id=… recipients_count=1` y ninguna línea
+     `Lead notification delivery failed` ni `LEADS_NOTIFICATION_EMAILS is empty`.
+   - En Gmail el aviso está en **Recibidos** (no sólo en Enviados), sin leer,
+     fuera de Spam y con Reply-To del visitante de prueba. Si quedó sólo en
+     Enviados, la cuenta se lo mandó a sí misma sin etiqueta de entrada: usar
+     otra cuenta remitente para que el remitente y el destinatario difieran.
+   - Borrar después la solicitud de prueba.
 
 ## Documento y comunicaciones
 

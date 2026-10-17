@@ -216,10 +216,10 @@ MAILERS = {
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@tenndalux.com')
 
 # Where the leads from the website form are delivered. Comma-separated, so the
-# client can add or drop recipients without a code change. Empty is a valid
-# state and the intended default: the lead is still stored and visible in the
-# admin, only the notification is skipped. Nothing else has to be touched to
-# turn it on -- set the address in backend/.env and restart the service.
+# client can add or drop recipients without a code change. Set it in
+# backend/.env together with the SMTP login and restart both the web service
+# and Huey, which is the process that sends. Left empty, the lead is still
+# stored but nobody is told about it, and the task logs that as an error.
 LEADS_NOTIFICATION_EMAILS = [
     address.strip()
     for address in config('LEADS_NOTIFICATION_EMAILS', default='').split(',')
@@ -316,6 +316,12 @@ LOGGING = {
         'backups': {
             'handlers': ['backup_file', 'console'],
             'level': 'INFO',
+        },
+        # Without it the app's own records (lead notifications included) fall
+        # through to a root logger with no handler and never reach journald.
+        'core_app': {
+            'handlers': ['console'],
+            'level': LOG_LEVEL,
         },
     },
 }

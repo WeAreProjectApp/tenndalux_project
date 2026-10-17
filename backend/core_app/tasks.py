@@ -41,9 +41,9 @@ def send_lead_notification(lead_id: int) -> None:
     """Email a freshly submitted lead to whoever is configured to receive it."""
     recipients = settings.LEADS_NOTIFICATION_EMAILS
     if not recipients:
-        # Expected until the client hands over the address: the lead is already
-        # stored, so nothing is lost by not notifying yet.
-        logger.info('LEADS_NOTIFICATION_EMAILS is empty; skipping lead %s', lead_id)
+        # The lead is already stored, but nobody will hear about it: a missing
+        # recipient is a deployment mistake, not a state to stay quiet about.
+        logger.error('LEADS_NOTIFICATION_EMAILS is empty; lead %s was stored but not notified', lead_id)
         return
 
     lead = Lead.objects.filter(pk=lead_id).first()
@@ -70,4 +70,12 @@ def send_lead_notification(lead_id: int) -> None:
         logger.error(
             'Lead notification delivery failed; error_type=%s',
             type(exc).__name__,
+        )
+    else:
+        # Proof in the logs that the SMTP server accepted the message, which a
+        # skipped notification cannot fake. Counts only: no addresses.
+        logger.info(
+            'Lead notification sent; lead_id=%s recipients_count=%d',
+            lead_id,
+            len(recipients),
         )
