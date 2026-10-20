@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { FlowTags } from '../helpers/flow-tags';
+import { clickWhenHydrated } from '../helpers/hydration';
 
 test('FAQ collapses the selected answer', {
   tag: [...FlowTags.PUBLIC_FAQ_TOGGLE, '@outcome:success'],
@@ -9,7 +10,7 @@ test('FAQ collapses the selected answer', {
   const question = page.getByRole('button', { name: '¿Cuánto tiempo tarda la fabricación e instalación?' });
   await expect(question).toHaveAttribute('aria-expanded', 'true');
 
-  await question.click();
+  await clickWhenHydrated(question);
 
   await expect(question).toHaveAttribute('aria-expanded', 'false');
   await expect(page.getByRole('region', { name: '¿Cuánto tiempo tarda la fabricación e instalación?' })).toHaveCount(0);
@@ -22,7 +23,7 @@ test('FAQ displays the selected answer', {
   await page.goto('/');
   const question = page.getByRole('button', { name: '¿Qué garantía ofrecen?' });
 
-  await question.click();
+  await clickWhenHydrated(question);
 
   await expect(question).toHaveAttribute('aria-expanded', 'true');
   await expect(page.getByRole('region', { name: '¿Qué garantía ofrecen?' })).toContainText('Ofrecemos hasta 5 años de garantía');

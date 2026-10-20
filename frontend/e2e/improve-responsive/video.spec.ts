@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { FlowTags } from '../helpers/flow-tags';
+import { clickWhenHydrated, waitForHydration } from '../helpers/hydration';
 import { viewportUse, type ViewportAlias } from '../helpers/viewports';
 import { expectNoDocumentOverflow, expectTouchTarget, reachHomeThroughUi } from './helpers';
 
@@ -15,6 +16,7 @@ for (const alias of ['compact', 'portrait', 'landscape', 'desktop', 'wide'] as V
       // quality: allow-duplicate (per-viewport contract: public-brand-video @ canonical reference viewport)
       await reachHomeThroughUi(page);
       const opener = page.getByRole('button', { name: 'Reproducir video de Tenndalux' });
+      await waitForHydration(opener);
       await opener.press('Enter');
       const dialog = page.getByRole('dialog', { name: 'Cortinas motorizadas Tenndalux' });
       const player = dialog.getByLabel('Cortinas motorizadas Tenndalux', { selector: 'video' });
@@ -41,7 +43,7 @@ for (const alias of ['compact', 'portrait'] as const) {
         // quality: allow-duplicate (per-viewport contract: video dismissal @ compact and portrait)
         await reachHomeThroughUi(page);
         const opener = page.getByRole('button', { name: 'Reproducir video de Tenndalux' });
-        await opener.click();
+        await clickWhenHydrated(opener);
         const dialog = page.getByRole('dialog');
         await expect(dialog.getByRole('button', { name: 'Cerrar video' })).toBeFocused();
         await page.keyboard.press('Shift+Tab');
