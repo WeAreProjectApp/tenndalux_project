@@ -1,5 +1,5 @@
 import { FlowTags } from './helpers/flow-tags';
-import { clickWhenHydrated } from './helpers/hydration';
+import { clickWhenHydrated, waitForHydration } from './helpers/hydration';
 import { expect, test, type Locator, type Page } from '@playwright/test';
 
 type GalleryPhoto = {
@@ -70,6 +70,8 @@ async function scrollGalleryIntoView(_page: Page, galleryImage: Locator) {
 }
 
 async function swipeToNextGalleryItem(page: Page, galleryImage: Locator) {
+  // Swiper attaches its drag listeners while React commits the hydration.
+  await waitForHydration(galleryImage);
   await galleryImage.scrollIntoViewIfNeeded();
   const box = await galleryImage.boundingBox();
   expect(box).not.toBeNull();
