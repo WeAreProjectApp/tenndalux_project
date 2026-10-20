@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { FlowTags, RoleTags } from '../helpers/flow-tags';
+import { clickWhenHydrated } from '../helpers/hydration';
 import { portfolioProjects, routeCatalogue } from './catalogue-fixtures';
 
 test.beforeEach(async ({ page }) => {
@@ -14,7 +15,7 @@ test('visitor reads the selected showreel after navigating to Portfolio', {
   await page.getByRole('banner').getByRole('link', { name: 'Portafolio', exact: true }).click();
   await expect(page).toHaveURL(/\/portafolio\/$/);
 
-  await page.getByRole('button', { name: 'Ver video: Automatización en Acción', exact: true }).click();
+  await clickWhenHydrated(page.getByRole('button', { name: 'Ver video: Automatización en Acción', exact: true }));
 
   const dialog = page.getByRole('dialog', { name: 'Videos del portafolio', exact: true });
   await expect(dialog).toContainText('Automatización en Acción');
@@ -29,7 +30,7 @@ test('visitor changes the showreel selection', {
 }, async ({ page }) => {
   await page.getByRole('banner').getByRole('link', { name: 'Portafolio', exact: true }).click();
   await expect(page).toHaveURL(/\/portafolio\/$/);
-  await page.getByRole('button', { name: 'Ver video: Automatización en Acción', exact: true }).click();
+  await clickWhenHydrated(page.getByRole('button', { name: 'Ver video: Automatización en Acción', exact: true }));
   const dialog = page.getByRole('dialog', { name: 'Videos del portafolio', exact: true });
 
   await dialog.getByRole('button', { name: 'Video siguiente', exact: true }).click();
@@ -47,7 +48,7 @@ test('visitor closes the portfolio showreel', {
 }, async ({ page }) => {
   await page.getByRole('banner').getByRole('link', { name: 'Portafolio', exact: true }).click();
   await expect(page).toHaveURL(/\/portafolio\/$/);
-  await page.getByRole('button', { name: 'Ver video: Automatización en Acción', exact: true }).click();
+  await clickWhenHydrated(page.getByRole('button', { name: 'Ver video: Automatización en Acción', exact: true }));
   await expect(page.getByRole('dialog')).toContainText('Automatización en Acción');
 
   await page.getByRole('button', { name: 'Cerrar video', exact: true }).click();

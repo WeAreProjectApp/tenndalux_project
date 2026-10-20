@@ -1,4 +1,5 @@
 import { FlowTags } from './helpers/flow-tags';
+import { clickWhenHydrated, waitForHydration } from './helpers/hydration';
 import { expect, test, type Locator, type Page } from '@playwright/test';
 
 type GalleryPhoto = {
@@ -69,6 +70,8 @@ async function scrollGalleryIntoView(_page: Page, galleryImage: Locator) {
 }
 
 async function swipeToNextGalleryItem(page: Page, galleryImage: Locator) {
+  // Swiper attaches its drag listeners while React commits the hydration.
+  await waitForHydration(galleryImage);
   await galleryImage.scrollIntoViewIfNeeded();
   const box = await galleryImage.boundingBox();
   expect(box).not.toBeNull();
@@ -108,7 +111,7 @@ for (const viewport of videoViewports) {
       await expect(galleryImage).toBeVisible();
       await expect(galleryImage).toHaveAttribute('src', '/home/gallery/cortina-ondessence.webp');
       const videoCard = gallery.getByRole('button', { name: `Reproducir ${galleryVideoLabel}`, exact: true }).filter({ visible: true });
-      await videoCard.click();
+      await clickWhenHydrated(videoCard);
 
       const closeButton = page.getByRole('button', { name: 'Cerrar video', exact: true });
       const modalVideo = page.locator('video[controls]');

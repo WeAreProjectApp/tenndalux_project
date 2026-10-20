@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { FlowTags, RoleTags } from '../helpers/flow-tags';
+import { clickWhenHydrated } from '../helpers/hydration';
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/servicios/', { waitUntil: 'domcontentloaded' });
@@ -23,7 +24,7 @@ test('visitor filters products by Persianas', {
 }, async ({ page }) => {
   await page.getByRole('link', { name: 'Ver Productos', exact: true }).click();
 
-  await page.getByRole('button', { name: 'Persianas', exact: true }).click();
+  await clickWhenHydrated(page.getByRole('button', { name: 'Persianas', exact: true }));
 
   await expect(page.getByRole('button', { name: 'Ver Detalles', exact: true })).toHaveCount(2);
   await expect(page.getByTestId('product-card-horizontales')).toContainText('Persianas Horizontales');
@@ -38,7 +39,7 @@ test('visitor reads the selected Ondessence product details', {
 }, async ({ page }) => {
   await page.getByRole('link', { name: 'Ver Productos', exact: true }).click();
 
-  await page.getByTestId('product-card-ondessence').getByRole('button', { name: 'Ver Detalles', exact: true }).click();
+  await clickWhenHydrated(page.getByTestId('product-card-ondessence').getByRole('button', { name: 'Ver Detalles', exact: true }));
 
   const dialog = page.getByRole('dialog', { name: 'Cortina Ondessence', exact: true });
   await expect(dialog.getByRole('heading', { name: 'Cortina Ondessence', exact: true })).toHaveText('Cortina Ondessence');
@@ -51,7 +52,7 @@ test('visitor closes the selected product details', {
   tag: [...FlowTags.PUBLIC_PRODUCT_DETAILS, RoleTags.GUEST, '@outcome:success'],
 }, async ({ page }) => {
   await page.getByRole('link', { name: 'Ver Productos', exact: true }).click();
-  await page.getByTestId('product-card-ondessence').getByRole('button', { name: 'Ver Detalles', exact: true }).click();
+  await clickWhenHydrated(page.getByTestId('product-card-ondessence').getByRole('button', { name: 'Ver Detalles', exact: true }));
   await expect(page.getByRole('dialog')).toContainText('Cortina Ondessence');
 
   await page.getByRole('button', { name: 'Cerrar detalles', exact: true }).click();

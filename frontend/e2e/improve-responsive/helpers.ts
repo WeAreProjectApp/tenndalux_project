@@ -1,4 +1,5 @@
 import { expect, type Locator, type Page, type Route } from '@playwright/test';
+import { waitForHydration } from '../helpers/hydration';
 
 export const user = {
   id: 11, email: 'viewer@example.test', first_name: 'Ana', last_name: 'Luz',
@@ -20,11 +21,13 @@ export async function isolatePublicApi(page: Page) {
 }
 
 export async function fillLogin(page: Page) {
+  await waitForHydration(page.getByLabel('Email', { exact: true }));
   await page.getByLabel('Email', { exact: true }).fill(credentials.email);
   await page.getByLabel('Password', { exact: true }).fill(credentials.password);
 }
 
 export async function fillRegistration(page: Page) {
+  await waitForHydration(page.getByLabel('Email *', { exact: true }));
   await page.getByLabel('Email *', { exact: true }).fill(credentials.email);
   await page.getByLabel('First Name').fill(user.first_name);
   await page.getByLabel('Last Name').fill(user.last_name);
