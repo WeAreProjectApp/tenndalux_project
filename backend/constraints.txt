@@ -1,10 +1,10 @@
 # Reproducible Python 3.12 resolution for backend/requirements.txt.
 # Update one package per commit and verify each commit in CI.
 asgiref==3.12.1
-certifi==2026.7.22
+certifi==2026.10.19
 charset-normalizer==3.5.1
 coverage==7.15.4
-Django==6.1
+Django==6.1.1
 django-cleanup==9.0.0
 django-cors-headers==4.9.0
 django-dbbackup==5.3.0
@@ -25,7 +25,7 @@ pillow==12.3.0
 pip==26.2.1
 pluggy==1.6.0
 Pygments==2.21.0
-PyJWT==2.14.0
+PyJWT==2.15.0
 pytest==9.1.1
 pytest-cov==7.1.0
 pytest-django==4.14.0
@@ -35,5 +35,5 @@ redis==8.1.0
 requests==2.34.2
 sqlparse==0.6.0
 typing_extensions==4.16.0
-urllib3==2.7.0
+urllib3==2.8.0
 wheel==0.48.0
