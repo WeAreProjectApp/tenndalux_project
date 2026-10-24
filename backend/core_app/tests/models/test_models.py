@@ -42,7 +42,7 @@ def test_about_page_singleton_load():
 
 @pytest.mark.django_db
 def test_home_page_refuses_a_second_record_on_validation():
-    """Falla si una segunda Home vuelve a validar: al guardarse pisaría la existente (pk=1)."""
+    """Falla si una segunda Home vuelve a validar: al guardarse se escribiría sobre la existente (pk=1)."""
     HomePage.load()
 
     with pytest.raises(ValidationError) as excinfo:

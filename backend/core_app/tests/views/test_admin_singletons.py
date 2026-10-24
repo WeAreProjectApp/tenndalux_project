@@ -43,7 +43,7 @@ def test_home_changelist_offers_no_second_record_and_says_why(client, superuser,
 
 @pytest.mark.django_db
 def test_home_add_sends_to_the_existing_record_without_overwriting_it(client, superuser, home):
-    """Falla si «añadir» otra Home vuelve a pisar en silencio la existente, que save() fija en pk=1."""
+    """Falla si «añadir» otra Home vuelve a escribirse sobre la existente (pk=1), que terminaba en un 500."""
     client.force_login(superuser)
 
     response = client.post(reverse('admin:core_app_homepage_add'), {'hero_title': 'Inicio duplicado'})
