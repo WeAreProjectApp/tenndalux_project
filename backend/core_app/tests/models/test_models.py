@@ -1,4 +1,5 @@
 import pytest
+from django.core.exceptions import ValidationError
 
 from core_app.models import AboutPage, Category, HomePage, SiteSettings
 
@@ -37,3 +38,29 @@ def test_about_page_singleton_load():
     assert a1.pk == 1
     assert a2.pk == 1
     assert AboutPage.objects.count() == 1
+
+
+@pytest.mark.django_db
+def test_home_page_refuses_a_second_record_on_validation():
+    """Falla si una segunda Home vuelve a validar: al guardarse pisaría la existente (pk=1)."""
+    HomePage.load()
+
+    with pytest.raises(ValidationError) as excinfo:
+        HomePage(hero_title='Segunda portada').full_clean()
+
+    assert excinfo.value.message_dict == {
+        '__all__': ['Solo puede existir un registro de «home page». Edite el existente.'],
+    }
+    assert HomePage.objects.count() == 1
+
+
+@pytest.mark.django_db
+def test_home_page_existing_record_still_validates_and_saves():
+    """Falla si la restricción de registro único impide editar la Home existente."""
+    home = HomePage.load()
+    home.hero_title = 'Portada editada'
+
+    home.full_clean()
+    home.save()
+
+    assert HomePage.objects.get().hero_title == 'Portada editada'
