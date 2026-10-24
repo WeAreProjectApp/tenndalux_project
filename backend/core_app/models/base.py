@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.db import models
 
 
@@ -12,6 +13,18 @@ class TimestampedModel(models.Model):
 class SingletonModel(models.Model):
     class Meta:
         abstract = True
+
+    @classmethod
+    def single_record_message(cls):
+        return f'Solo puede existir un registro de «{cls._meta.verbose_name}». Edite el existente.'
+
+    def clean(self):
+        super().clean()
+        # save() pins every record to pk=1, so a second one is written over the
+        # first, which in the admin ended in a 500 (created_at cannot be NULL):
+        # refuse it while it can still be explained.
+        if self._state.adding and type(self).objects.exists():
+            raise ValidationError(self.single_record_message())
 
     def save(self, *args, **kwargs):
         self.pk = 1
