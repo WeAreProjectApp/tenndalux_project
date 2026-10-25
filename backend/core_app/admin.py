@@ -6,12 +6,15 @@ and display options for better management experience.
 
 The admin index only lists the modules of the client guide (document 242):
 Documentos de garantía, Posts, Projects and Home pages. Every other model stays
-registered but hidden from the index (see HiddenFromIndexMixin).
+registered but hidden from the index (see HiddenFromIndexMixin). Singleton
+pages admit a single record (see SingletonAdminMixin), and the whole admin
+reads «Módulo administrativo».
 """
 from django import forms
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.contrib.auth.admin import GroupAdmin, UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import Group
+from django.shortcuts import redirect
 from django.utils.translation import gettext_lazy as _
 from rest_framework_simplejwt.token_blacklist.admin import BlacklistedTokenAdmin, OutstandingTokenAdmin
 from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, OutstandingToken
@@ -41,6 +44,16 @@ from .models import (
 )
 
 
+# The client wants the admin to read only «Módulo administrativo», never Django's
+# «Django administration» (header, login) or «Django site admin» (browser tab).
+ADMIN_NAME = 'Módulo administrativo'
+admin.site.site_header = ADMIN_NAME
+admin.site.site_title = ADMIN_NAME
+admin.site.index_title = ADMIN_NAME
+# Django titles a page «<page> | <site>», which on the index would repeat the name.
+admin.site.index_template = 'core_app/admin_index.html'
+
+
 class HiddenFromIndexMixin:
     """
     Hide a model from the admin index, its app page and the sidebar, as the
@@ -53,6 +66,33 @@ class HiddenFromIndexMixin:
 
     def has_module_permission(self, request):
         return False
+
+
+class SingletonAdminMixin:
+    """
+    Keep a SingletonModel at one record, and tell the user why.
+
+    The client guide wants a single Home. SingletonModel.save() pins every
+    record to pk=1, so a second "add" was written over the first one and ended
+    in a 500. Once the record exists there is no "Add" button, and the add page
+    sends the user to the existing record with a notice instead of saving.
+    """
+
+    def has_add_permission(self, request):
+        return super().has_add_permission(request) and not self.model.objects.exists()
+
+    def add_view(self, request, form_url='', extra_context=None):
+        existing = self.model.objects.first()
+        if existing is None:
+            return super().add_view(request, form_url, extra_context)
+        self.message_user(request, self.model.single_record_message(), messages.WARNING)
+        opts = self.model._meta
+        return redirect(f'admin:{opts.app_label}_{opts.model_name}_change', existing.pk)
+
+    def changelist_view(self, request, extra_context=None):
+        if request.method == 'GET' and self.model.objects.exists():
+            self.message_user(request, self.model.single_record_message(), messages.INFO)
+        return super().changelist_view(request, extra_context)
 
 
 @admin.register(User)
@@ -190,12 +230,12 @@ class LeadAdmin(HiddenFromIndexMixin, admin.ModelAdmin):
 
 
 @admin.register(SiteSettings)
-class SiteSettingsAdmin(HiddenFromIndexMixin, AttachmentsAdminMixin, admin.ModelAdmin):
+class SiteSettingsAdmin(HiddenFromIndexMixin, SingletonAdminMixin, AttachmentsAdminMixin, admin.ModelAdmin):
     list_display = ('company_name', 'phone', 'email', 'city', 'updated_at')
 
 
 @admin.register(HomePage)
-class HomePageAdmin(AttachmentsAdminMixin, admin.ModelAdmin):
+class HomePageAdmin(SingletonAdminMixin, AttachmentsAdminMixin, admin.ModelAdmin):
     list_display = ('hero_title', 'updated_at')
     filter_horizontal = ('featured_projects',)
 
@@ -208,7 +248,7 @@ class WarrantyDocumentAdmin(admin.ModelAdmin):
 
 
 @admin.register(AboutPage)
-class AboutPageAdmin(HiddenFromIndexMixin, AttachmentsAdminMixin, admin.ModelAdmin):
+class AboutPageAdmin(HiddenFromIndexMixin, SingletonAdminMixin, AttachmentsAdminMixin, admin.ModelAdmin):
     list_display = ('title', 'updated_at')
 
 
