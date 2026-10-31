@@ -8,7 +8,9 @@ from core_app.models import Product
 
 
 class ProductAdminForm(forms.ModelForm):
-    image = RasterImageField(required=False, label='Imagen')
+    image = RasterImageField(
+        required=False, label='Imagen', help_text=Product._meta.get_field('image').help_text,
+    )
 
     class Meta:
         model = Product

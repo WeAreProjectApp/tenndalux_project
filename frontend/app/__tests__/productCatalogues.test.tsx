@@ -101,3 +101,11 @@ it.each([['Productos', Products], ['Servicios', Services]])('explains an empty %
 
   expect(await screen.findByText(/No hay productos disponibles/)).toBeInTheDocument();
 });
+
+it.each([{ response: {} }, { response: [{ key: 'unknown-product' }] }])('retains the page when the catalogue response is malformed: $response', async ({ response: data }) => {
+  mockedGet.mockResolvedValue({ data });
+  render(<Products />);
+
+  expect(await screen.findByRole('alert')).toHaveTextContent('No pudimos cargar los productos.');
+  expect(screen.getByRole('heading', { name: 'Nuestros Productos' })).toBeInTheDocument();
+});

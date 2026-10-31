@@ -12,7 +12,7 @@ test.beforeEach(async ({ page }) => {
 test('visitor reaches the published product cards from Services', {
   tag: [...FlowTags.PUBLIC_PRODUCTS_DISPLAY, RoleTags.GUEST, '@outcome:display'],
 }, async ({ page }) => {
-  await page.getByRole('link', { name: 'Ver Productos', exact: true }).click();
+  await clickWhenHydrated(page.getByRole('link', { name: 'Ver Productos', exact: true }));
 
   await expect(page).toHaveURL(/\/productos\/$/);
   await expect(page.getByTestId('product-card-ondessence')).toContainText('Cortina Ondessence');
@@ -24,7 +24,7 @@ test('visitor reaches the published product cards from Services', {
 test('visitor filters products by Persianas', {
   tag: [...FlowTags.PUBLIC_PRODUCTS_FILTER, RoleTags.GUEST, '@outcome:success'],
 }, async ({ page }) => {
-  await page.getByRole('link', { name: 'Ver Productos', exact: true }).click();
+  await clickWhenHydrated(page.getByRole('link', { name: 'Ver Productos', exact: true }));
 
   await clickWhenHydrated(page.getByRole('button', { name: 'Persianas', exact: true }));
 
@@ -39,7 +39,7 @@ test('visitor filters products by Persianas', {
 test('visitor reads the selected Ondessence product details', {
   tag: [...FlowTags.PUBLIC_PRODUCT_DETAILS, RoleTags.GUEST, '@outcome:display'],
 }, async ({ page }) => {
-  await page.getByRole('link', { name: 'Ver Productos', exact: true }).click();
+  await clickWhenHydrated(page.getByRole('link', { name: 'Ver Productos', exact: true }));
 
   await clickWhenHydrated(page.getByTestId('product-card-ondessence').getByRole('button', { name: 'Ver Detalles', exact: true }));
 
@@ -53,7 +53,7 @@ test('visitor reads the selected Ondessence product details', {
 test('visitor closes the selected product details', {
   tag: [...FlowTags.PUBLIC_PRODUCT_DETAILS, RoleTags.GUEST, '@outcome:success'],
 }, async ({ page }) => {
-  await page.getByRole('link', { name: 'Ver Productos', exact: true }).click();
+  await clickWhenHydrated(page.getByRole('link', { name: 'Ver Productos', exact: true }));
   await clickWhenHydrated(page.getByTestId('product-card-ondessence').getByRole('button', { name: 'Ver Detalles', exact: true }));
   await expect(page.getByRole('dialog')).toContainText('Cortina Ondessence');
 

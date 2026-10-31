@@ -4,8 +4,8 @@ Django Admin configuration for core_app models.
 Provides customized admin interfaces with search, filtering,
 and display options for better management experience.
 
-The admin index only lists the modules of the client guide (document 242):
-Documentos de garantía, Posts, Projects and Home pages. Every other model stays
+The admin index lists the client guide modules and the fixed product catalogue:
+Documentos de garantía, Posts, Projects, Home pages and Productos. Every other model stays
 registered but hidden from the index (see HiddenFromIndexMixin). Singleton
 pages admit a single record (see SingletonAdminMixin), and the whole admin
 reads «Módulo administrativo».

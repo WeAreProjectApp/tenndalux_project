@@ -29,7 +29,19 @@ export type ProductCard = ProductDetails & {
 
 export async function listProducts(): Promise<Product[]> {
   const response = await get<Product[]>('/products/');
+  const data: unknown = response.data;
+  if (!Array.isArray(data) || !data.every(isProduct)) {
+    throw new Error('Invalid product catalogue');
+  }
   return response.data;
+}
+
+function isProduct(value: unknown): value is Product {
+  if (!value || typeof value !== 'object') return false;
+  const product = value as Record<string, unknown>;
+  return ['key', 'name', 'category', 'description', 'image_url']
+    .every((field) => typeof product[field] === 'string')
+    && Object.hasOwn(details, product.key as string);
 }
 
 export function toProductCard(product: Product): ProductCard {

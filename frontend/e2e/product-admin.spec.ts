@@ -11,7 +11,7 @@ async function openProduct(page: Page, name: string) {
 }
 
 test.beforeEach(async ({ page, adminServer }) => {
-  await page.goto('/admin/');
+  await page.goto('/admin/', { waitUntil: 'domcontentloaded' });
   await page.getByLabel('Email address:').fill(adminServer.email);
   await page.getByLabel('Password:', { exact: true }).fill(adminServer.password);
   await page.getByRole('button', { name: 'Log in' }).click();
@@ -34,17 +34,22 @@ test('client saves the shared product presentation from Django Admin', {
   await page.route('**/media/products/**', async (route) => {
     await route.fulfill({ response: await page.request.get(`${adminServer.url}${new URL(route.request().url()).pathname}`) });
   });
-  await page.goto(`${frontend}/servicios/`);
+  const serviceRead = page.waitForResponse('**/api/products/');
+  await page.goto(`${frontend}/servicios/`, { waitUntil: 'domcontentloaded' });
+  await serviceRead;
   await expect(page.getByRole('heading', { name: 'Ondas de lino', exact: true })).toHaveText('Ondas de lino');
   await expect(page.getByRole('img', { name: 'Ondas de lino', exact: true })).toHaveJSProperty('naturalWidth', 16);
+  const productsRead = page.waitForResponse('**/api/products/');
   await page.getByRole('link', { name: 'Ver Productos', exact: true }).click();
-  await page.getByRole('button', { name: 'Persianas', exact: true }).click();
+  await productsRead;
   const card = page.getByTestId('product-card-ondessence');
+  await expect(card).toContainText('Ondas de lino');
+  await page.getByRole('button', { name: 'Persianas', exact: true }).click();
   await expect(card).toContainText('Una cortina de lino elegida por el cliente.');
   await card.getByRole('button', { name: 'Ver Detalles', exact: true }).click();
   const dialog = page.getByRole('dialog', { name: 'Ondas de lino', exact: true });
   await expect(dialog).toContainText('Salas amplias');
-  await expect(dialog.getByRole('img')).toHaveJSProperty('naturalWidth', 16);
+  await expect(dialog.getByRole('img', { name: 'Ondas de lino', exact: true })).toHaveJSProperty('naturalWidth', 16);
 });
 
 test('client sees the fixed product catalogue from the admin index', {
