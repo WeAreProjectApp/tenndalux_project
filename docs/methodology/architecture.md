@@ -1,5 +1,23 @@
 # Architecture — Tenndalux
 
+## Productos administrables — 31/10/2026
+
+`Product` pertenece a `core_app`: identificador inmutable, orden y foto inicial
+internos, con nombre/categoría/descripción/imagen editables. Las categorías son
+choices, no registros ni relaciones con el portafolio. Las migraciones 0008 y
+0009 crean el modelo y los 15 registros sin descargar archivos. Repetir la
+carga inicial preserva las ediciones existentes.
+
+`GET /api/products/` devuelve el catálogo ordenado sin paginación (15 elementos),
+con `key`, `name`, `category`, `description`, `image_url`; escritura sólo en Admin.
+La consulta usa una sola tabla y no tiene N+1. Las páginas clientes Productos y
+Servicios leen mediante el wrapper HTTP y `useProducts`; las listas técnicas
+quedan estáticas, asociadas por identificador. No requieren rebuild tras editar.
+
+La imagen reemplazada vive en media con nombre UUID y validación raster de 5 MB.
+Retirar el reemplazo recupera la imagen inicial de `public/products/`. La API
+evita caché persistente; cada visita vuelve a leer los cambios guardados.
+
 > **Garantías y portada (06/10/2026):** `WarrantyDocument` administra PDFs públicos
 > mediante Django Admin; `GET /api/site/warranties/` sólo lista publicados en
 > orden y no permite escrituras. `/garantias/` es otra página exportada servida

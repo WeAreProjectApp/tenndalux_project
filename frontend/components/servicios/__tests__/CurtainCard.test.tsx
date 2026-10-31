@@ -1,8 +1,10 @@
 import { render, screen } from '@testing-library/react';
 import CurtainCard from '../CurtainCard';
-import { CURTAINS } from '@/lib/data/curtains';
+import { CURTAIN_DETAILS } from '@/lib/data/curtains';
+import products from '@/e2e/fixtures/products.json';
 
-const curtain = CURTAINS[0];
+const curtain = { ...CURTAIN_DETAILS[0], title: products[0].name,
+  description: products[0].description, image: products[0].image_url, shortLabel: products[0].name };
 
 describe('CurtainCard', () => {
   it('shows the image before the text on mobile, and beside it from md up', () => {

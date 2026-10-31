@@ -34,6 +34,9 @@ def test_admin_server(live_server, transactional_db):
         content_type__app_label__in=['core_app', 'django_attachments'],
         content_type__model__in=['homepage', 'warrantydocument', 'library', 'attachment'],
     ))
+    user.user_permissions.add(*Permission.objects.filter(
+        content_type__app_label='core_app', codename__in=['view_product', 'change_product'],
+    ))
     home = HomePage.load()
     home.hero_title = 'Portada original de fixture'
     home.save()

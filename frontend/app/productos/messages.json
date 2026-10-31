@@ -1,4 +1,10 @@
 {
+  "productCatalogue": {
+    "loading": "Cargando productos…",
+    "error": "No pudimos cargar los productos. Inténtalo de nuevo.",
+    "retry": "Reintentar",
+    "empty": "No hay productos disponibles en esta categoría."
+  },
   "productDetails": {
     "close": "Cerrar detalles"
   }

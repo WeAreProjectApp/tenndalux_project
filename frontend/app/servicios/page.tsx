@@ -26,7 +26,10 @@ import 'swiper/css';
 import 'swiper/css/pagination';
 import CurtainChainSelector from '@/components/servicios/CurtainChainSelector';
 import CurtainCard from '@/components/servicios/CurtainCard';
-import { CURTAINS } from '@/lib/data/curtains';
+import { CURTAIN_DETAILS } from '@/lib/data/curtains';
+import { useProducts } from '@/lib/hooks/useProducts';
+import { productImageUrl } from '@/lib/services/products';
+import CatalogueStatus from '@/components/products/CatalogueStatus';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { whatsappUrl } from '@/lib/whatsapp';
@@ -46,7 +49,14 @@ function ServiceCatalogue() {
   const productsSectionRef = useRef<HTMLElement>(null);
   // De este botón cuelga la cadenilla del selector de cortinas.
   const cortinasTabRef = useRef<HTMLButtonElement>(null);
-  const activeCurtain = CURTAINS.find((c) => c.id === selectedCortina) ?? CURTAINS[0];
+  const { products, loading, error, retry } = useProducts();
+  const curtains = CURTAIN_DETAILS.flatMap((detail) => {
+    const product = products.find((entry) => entry.key === detail.id);
+    return product ? [{ ...detail, title: product.name, shortLabel: product.name,
+      description: product.description, image: productImageUrl(product.image_url) }] : [];
+  });
+  const activeCurtain = curtains.find((curtain) => curtain.id === selectedCortina) ?? curtains[0];
+  const wallCovering = products.find((product) => product.key === 'recubrimientos');
 
   // Read URL hash to auto-select tab and scroll to products section
   useEffect(() => {
@@ -297,11 +307,15 @@ function ServiceCatalogue() {
             ))}
           </div>
 
+          {selectedProductTab !== 'tecnologia' && (
+            <CatalogueStatus loading={loading} error={error} empty={!products.length} onRetry={retry} />
+          )}
+
           {/* Cortinas */}
-          {selectedProductTab === 'cortinas' && (
+          {selectedProductTab === 'cortinas' && activeCurtain && (
             <>
               <CurtainChainSelector
-                curtains={CURTAINS}
+                curtains={curtains}
                 selectedId={selectedCortina}
                 onSelect={setSelectedCortina}
                 originRef={cortinasTabRef}
@@ -313,7 +327,7 @@ function ServiceCatalogue() {
           )}
 
           {/* Recubrimientos para Paredes */}
-          {selectedProductTab === 'paredes' && (
+          {selectedProductTab === 'paredes' && wallCovering && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -322,10 +336,10 @@ function ServiceCatalogue() {
               <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-center mb-8 md:mb-12">
                 <div>
                   <h3 className="text-2xl sm:text-3xl font-semibold mb-4 sm:mb-6 text-stone-900">
-                    Recubrimientos para Paredes
+                    {wallCovering.name}
                   </h3>
                   <p className="text-sm sm:text-lg mb-5 sm:mb-8 text-stone-600 leading-relaxed">
-                    Paredes que hablan de ti. Vinilo, textil y ecológico con instalación profesional y materiales libres de compuestos nocivos.
+                    {wallCovering.description}
                   </p>
                   
                   <div className="space-y-4 mb-8">
@@ -345,7 +359,7 @@ function ServiceCatalogue() {
                   </div>
 
                   <a
-                    href={whatsappUrl('el catálogo de recubrimientos para paredes')}
+                    href={whatsappUrl(`el catálogo de ${wallCovering.name}`)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="px-10 py-5 rounded-full inline-flex items-center gap-3 transition-all hover:scale-105 bg-stone-900 text-stone-50"
@@ -357,8 +371,8 @@ function ServiceCatalogue() {
 
                 <div className="relative aspect-[4/3] rounded-2xl overflow-hidden shadow-xl">
                   <Image
-                    src="/products/recubrimientos/papel-tapiz.webp"
-                    alt="Recubrimientos"
+                    src={productImageUrl(wallCovering.image_url)}
+                    alt={wallCovering.name}
                     fill
                     className="object-cover"
                     sizes="(max-width: 768px) 100vw, 50vw"
@@ -370,32 +384,18 @@ function ServiceCatalogue() {
 
           {/* Soluciones para Exterior */}
           {selectedProductTab === 'exterior' && (() => {
-            const exteriorSolutions: ExteriorSolution[] = [
-              {
-                title: 'Toldos',
-                description: 'Brazos extensibles y verticales. Sistemas Cofrex, Crab y PTP con mecanismos en acero colado y guías de acero.',
-                image: '/products/exterior/toldo-principal.webp',
-                features: ['Toldos verticales con soportes en acero inoxidable', 'Sistema Cofrex con cofre protector (hasta 6 m x 3 m)', 'Sistema Crab con barra estructural (hasta 12 m x 4 m)', 'Sistema PTP liviano (hasta 6 m x 3.5 m)'],
-              },
-              {
-                title: 'Pérgolas',
-                description: 'Retráctiles y bioclimáticas. Estructura y diseño para crear espacios exteriores únicos y funcionales.',
-                image: '/products/exterior/toldos-exterior.webp',
-                features: ['Ingeniería estructural', 'Diseño arquitectónico', 'Materiales premium', 'Automatización disponible'],
-              },
-              {
-                title: 'Cortinas Exteriores',
-                description: 'Protección solar y privacidad para espacios al aire libre con diseño y funcionalidad.',
-                image: '/products/exterior/toldos-exterior-2.webp',
-                features: ['Protección solar efectiva', 'Privacidad exterior', 'Diseño personalizado', 'Materiales resistentes a intemperie'],
-              },
-              {
-                title: 'Películas Solares',
-                description: 'Bloqueo UV y protección de vidrio. Control térmico sin sacrificar visibilidad.',
-                image: '/products/general/uso-general.webp',
-                features: ['Bloqueo UV y protección de vidrio', 'Reducción de calor', 'Ahorro energético comprobado', 'Instalación sin obra'],
-              },
-            ];
+            const exteriorFeatures: Record<string, string[]> = {
+              'toldos-verticales': ['Toldos verticales con soportes en acero inoxidable'],
+              'toldos-extensibles': ['Sistema Cofrex con cofre protector (hasta 6 m x 3 m)', 'Sistema Crab con barra estructural (hasta 12 m x 4 m)', 'Sistema PTP liviano (hasta 6 m x 3.5 m)'],
+              pergolas: ['Ingeniería estructural', 'Diseño arquitectónico', 'Materiales premium', 'Automatización disponible'],
+              'cortinas-exteriores': ['Protección solar efectiva', 'Privacidad exterior', 'Diseño personalizado', 'Materiales resistentes a intemperie'],
+              'peliculas-solares': ['Bloqueo UV y protección de vidrio', 'Reducción de calor', 'Ahorro energético comprobado', 'Instalación sin obra'],
+            };
+            const exteriorSolutions: ExteriorSolution[] = Object.entries(exteriorFeatures).flatMap(([key, features]) => {
+              const product = products.find((entry) => entry.key === key);
+              return product ? [{ title: product.name, description: product.description,
+                image: productImageUrl(product.image_url), features }] : [];
+            });
 
             return (
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>

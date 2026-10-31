@@ -1,7 +1,7 @@
 # Mapa de flujos de usuario — Tenndalux
 
-Actualizado: 2026-10-08. Registro de las 30 interacciones aprobadas, contrastado
-con el código real de los cuatro PR. El resto de operaciones del administrador
+Actualizado: 2026-10-31. Registro de las 32 interacciones aprobadas, contrastado
+con el código real, incluida la edición compartida de productos. El resto de operaciones del administrador
 queda fuera del registro, sin declarar madurez global ni inventar exenciones.
 
 ## Roles
@@ -44,14 +44,16 @@ se prueban en backend; no existen controles CMS en Next.
 ## Admin
 
 Con staff/permisos Django publica PDFs de garantía y cambia Hero media en el
-administrador. Rechazo de imagen y caída de transporte conservan el formulario,
+administrador. También edita los 15 productos existentes: nombre, categoría,
+descripción e imagen; conserva los otros accesos y no administra categorías ni
+crea/elimina productos. Rechazo de imagen y caída de transporte conservan el formulario,
 anuncian el fallo y habilitan recuperación. La media se guarda antes del
 formulario: bloquearlo no ofrece atomicidad entre widgets ni rollback global.
 
 ## E2E Coverage Index
 
-Auditoría de fuentes: **30 covered, 0 partial, 0 missing, 0 junk-only** y
-**58 outcomes declarados**. Se examinaron 18 specs y 81 definiciones de tests;
+Auditoría de fuentes: **32 covered, 0 partial, 0 missing, 0 junk-only** y
+**64 outcomes declarados**. Se examinaron 20 specs y 92 definiciones de tests;
 casos expandidos por anchos/parámetros se cuentan en reportes de runtime.
 El cierre de los 24 huecos originales exige también ejecución verde del conjunto.
 
@@ -69,10 +71,10 @@ El cierre de los 24 huecos originales exige también ejecución verde del conjun
 | `public-faq-toggle` | public | guest, viewer, editor, admin | success, display | Open a FAQ question to read its answer and close it again. | covered |
 | `public-gallery-video` | public | guest, viewer, editor, admin | success, display | Open a gallery video card, inspect its playable modal source, and close the dialog with focus restored. | covered |
 | `public-brand-video` | public | guest, viewer, editor, admin | success, display | Open the Why Tenndalux brand video, inspect the native player, and dismiss the modal. | covered |
-| `public-products-display` | products | guest, viewer, editor, admin | display | Reach Products from Services and read concrete product cards. | covered |
+| `public-products-display` | products | guest, viewer, editor, admin | display, failure | Navegar desde Servicios y leer productos administrados, vacío explícito o reintentar una API fallida. | covered |
 | `public-products-filter` | products | guest, viewer, editor, admin | success | Choose a product category and reset it to show the matching cards. | covered |
 | `public-product-details` | products | guest, viewer, editor, admin | success, display | Open a product detail dialog, read data for the selected product, and close it. | covered |
-| `public-services-display` | services | guest, viewer, editor, admin | display | Reach Services and read concrete initial solution content. | covered |
+| `public-services-display` | services | guest, viewer, editor, admin | display, failure | Navegar a Servicios y leer la misma presentación guardada del producto, vacío o recuperación de API. | covered |
 | `public-services-tab` | services | guest, viewer, editor, admin | success | Choose Cortinas, Recubrimientos, Exteriores, or Tecnología, including a curtain model where offered. | covered |
 | `public-services-exterior-mobile-detail` | services | guest, viewer, editor, admin | success, display | Open an exterior solution card on mobile, read its bottom sheet, and close it by backdrop; resizing beyond the compact breakpoint or leaving the page closes the sheet and restores scrolling. | covered |
 | `public-blog-list` | blog | guest, viewer, editor, admin | display, failure | Navigate to Blog, read API-backed cards including later pages or a valid empty state, and recover an initial or later-page API failure with retry. | covered |
@@ -88,6 +90,27 @@ El cierre de los 24 huecos originales exige también ejecución verde del conjun
 | `admin-warranty-document-publish` | django-admin | admin con staff/permisos Django | success, error, display | A staff user with Django model permissions creates a published PDF document, reopens its saved row and file, and sees validation for an invalid PDF. | covered |
 | `admin-home-hero-image-update` | django-admin | admin con staff/permisos Django | success, error, failure, display | A staff user with Django attachment permissions uploads or selects Home hero media, sees the saved thumbnail, rejects a non-image, and recovers failed uploads or pending deletions without losing the intended change before retrying. | covered |
 
+| `admin-product-edit` | django-admin | admin con staff/permisos Django | success, error, display | Desde el índice, consultar los 15 productos y guardar nombre, categoría, descripción y foto; comprobar la imagen real en Servicios/Productos y rechazar archivos inválidos. | covered |
+| `public-favicon` | public | guest | display | Navegar de Servicios a Productos y comprobar la referencia y los bytes del ICO publicado. | covered |
+
+## Matriz del cambio de productos
+
+| Vista | Interacción | Clase | Inicio → resultado |
+|---|---|---|---|
+| Admin / Productos | Abrir lista y ficha | display | Índice → 15 filas → ficha sin controles de alta/baja. |
+| Admin / Productos | Guardar presentación | success | Editar cuatro campos → guardar → datos e imagen reales visibles en ambas páginas. |
+| Admin / Productos | Subir archivo inválido | error | Ficha → guardar bytes inválidos → mensaje y valores conservados. |
+| Productos | Leer catálogo o vacío | display | Servicios → Ver Productos → tarjetas o explicación de ausencia. |
+| Productos | Reintentar carga | failure | API 503 → Reintentar → catálogo recuperado. |
+| Servicios | Leer catálogo o vacío | display | Pie de Productos → Servicios → presentación compartida o vacío. |
+| Servicios | Reintentar carga | failure | API 503 → Reintentar → cortina recuperada. |
+| Sitio | Ver icono de marca | display | Servicios → Productos → URL publicada y bytes ICO válidos. |
+
+El admin estándar no implementa recuperación propia de errores de transporte:
+`failure` no aplica a su formulario. Los catálogos públicos no escriben ni
+validan entradas, por eso `success/error` corresponden a los filtros o al admin.
+El favicon no tiene formulario ni recuperación propia: sólo `display`.
+
 ## Clases no aplicables
 
 | Área | Clases N/A | Razón |
@@ -96,7 +119,7 @@ El cierre de los 24 huecos originales exige también ejecución verde del conjun
 | Guard Dashboard | success, failure, display | Denegación/redirect, sin pantalla de datos propia. |
 | Perfil Dashboard | success, error, failure | No edita ni ofrece recuperación de carga propia; el guard es de auth. |
 | Logout | error, failure, display | Limpieza local, sin petición o vista de datos nueva. |
-| Navegación, FAQ, tabs, filtros y catálogos estáticos | error/failure según flujo | Interacción local sin validación ni petición remota propia. |
+| Navegación, FAQ, tabs y filtros locales | error/failure según flujo | Interacción local sin validación ni petición remota propia. |
 | Vídeos/modales locales | error, failure | No muestran recuperación propia de transporte; reproducción/media se verifican de verdad. |
 | Contacto | display | Captura datos, no es listado o detalle. |
 | Refresh durante contacto | error, display | Validación y feedback pertenecen al contacto. |

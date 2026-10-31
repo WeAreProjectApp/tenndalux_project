@@ -1,5 +1,25 @@
 # Active context
 
+## Productos administrables — 2026-10-31
+
+Rama propia `feat/31102026-product-admin`, base `origin/master`. Agregar los
+15 productos existentes al administrador con edición de nombre, categoría fija,
+descripción e imagen; sin altas ni bajas. Conservar los accesos del cliente.
+Productos y Servicios compartirán esos datos, con fotos locales iniciales de
+Servicios y textos de Productos. La información técnica permanece fija.
+El favicon público responde 404 en `/favicon.ico`, pero su archivo de marca
+responde 200 en `/static/favicon.ico`; corregir referencia y compatibilidad.
+Entrega: PR abierto con CI verde. Migraciones, permisos y deploy los aplica
+el operador; no se usa la base de producción desde este worktree.
+
+Implementación en PR #88. Verificación funcional: 45 pruebas backend, 16 unit/
+componentes y ocho casos nuevos de navegador, incluida una foto real guardada
+en Django y leída por ambas páginas. Catálogo: una consulta para los 15 productos.
+Gate estricto 100/100; mapa de 32 flujos sin huecos ni junk-only. Una respuesta
+API malformada conserva la página y muestra Reintentar. El operador pidió
+cerrar con `$merge-queue` tras el CI verde; publicación y permisos siguen siendo
+operaciones manuales. El estado de integración se consulta en el PR.
+
 ## Requisitos del cliente — 2026-10-06
 
 Rama propia `feat/06102026-cms-client-requirements`, base `origin/master`.

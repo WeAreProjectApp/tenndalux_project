@@ -1,5 +1,18 @@
 # Technical Reference — Tenndalux
 
+## Productos y favicon — 31/10/2026
+
+La entrega requiere las migraciones aditivas 0008/0009 y conceder únicamente
+`view_product`/`change_product` a la cuenta de cliente existente. El admin prohíbe
+altas/bajas incluso para superusuarios. No se cambian los permisos previos ni
+la contraseña. `check_client_delivery` incluye los nuevos permisos requeridos.
+
+El favicon se referencia como `/static/favicon.ico?v=tenndalux-2`; el export
+copia el ICO y collectstatic lo publica. Una regla exacta de Nginx redirige
+`/favicon.ico` hacia esa ruta. La configuración de desarrollo de Next reescribe
+la ruta estática al archivo de public para reproducir el contrato de producción.
+Operación y validación: `docs/product-admin-operations.md`.
+
 > **Entrega cliente (06/10/2026):** la coordenada vigente de `projects.yml` es
 > producción en `vps-projectapp-prod`, dominio `tenndalux.com`. Migración 0007
 > agrega documentos de garantía; el deploy la aplica el operador. Gmail usa

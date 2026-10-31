@@ -9,7 +9,7 @@ from django.urls import reverse
 from core_app.management.commands.check_client_delivery import REQUIRED_PERMISSIONS
 from core_app.models import Tag, User
 
-GUIDE_MODELS = {'HomePage', 'Post', 'Project', 'WarrantyDocument'}
+GUIDE_MODELS = {'HomePage', 'Post', 'Project', 'WarrantyDocument', 'Product'}
 
 
 def _listed_models(response):
