@@ -1,6 +1,6 @@
 {
   "version": "2.1.2",
-  "lastUpdated": "2026-10-08",
+  "lastUpdated": "2026-10-31",
   "flows": {
     "auth-login": {
       "name": "Login",
@@ -190,9 +190,10 @@
         "admin"
       ],
       "priority": "P3",
-      "description": "Reach Products from Services and read concrete product cards.",
+      "description": "Reach Products from Services and read concrete product cards. The catalogue reads saved product data, explains empty results, and allows retrying a failed read.",
       "outcomes": [
-        "display"
+        "display",
+        "failure"
       ]
     },
     "public-products-filter": {
@@ -236,9 +237,10 @@
         "admin"
       ],
       "priority": "P2",
-      "description": "Reach Services and read concrete initial solution content.",
+      "description": "Reach Services and read concrete initial solution content. The catalogue reads saved product data, explains empty results, and allows retrying a failed read.",
       "outcomes": [
-        "display"
+        "display",
+        "failure"
       ]
     },
     "public-services-tab": {
@@ -459,6 +461,32 @@
         "success",
         "error",
         "failure",
+        "display"
+      ]
+    },
+    "admin-product-edit": {
+      "name": "Edit the fixed product catalogue",
+      "module": "django-admin",
+      "roles": [
+        "admin"
+      ],
+      "priority": "P1",
+      "description": "The client reaches Products from the admin index and edits name, category, description and image. Saved values appear in Products and Services; invalid uploads show an error. Creation, deletion and category administration are unavailable.",
+      "outcomes": [
+        "success",
+        "error",
+        "display"
+      ]
+    },
+    "public-favicon": {
+      "name": "Display the brand favicon",
+      "module": "public",
+      "roles": [
+        "guest"
+      ],
+      "priority": "P3",
+      "description": "Navigate to Products through Services; the page references the published brand ICO rather than a missing root file.",
+      "outcomes": [
         "display"
       ]
     }

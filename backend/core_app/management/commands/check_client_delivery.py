@@ -17,6 +17,7 @@ REQUIRED_PERMISSIONS = tuple(
     for model in CONTENT_MODELS
     for action in ('view', 'add', 'change')
 ) + (
+    'core_app.view_product', 'core_app.change_product',
     'core_app.view_homepage', 'core_app.change_homepage',
     'django_attachments.view_library', 'django_attachments.add_library',
     'django_attachments.change_library', 'django_attachments.view_attachment',

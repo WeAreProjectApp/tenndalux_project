@@ -1,5 +1,20 @@
 # Product Requirements — Tenndalux
 
+## Catálogo administrable — 31/10/2026
+
+- El cliente edita únicamente nombre, categoría, descripción e imagen de los
+  15 productos existentes. No crea ni elimina productos ni administra categorías.
+- Categorías fijas: Cortinas de Diseño, Soluciones Prácticas, Persianas,
+  Exteriores y Recubrimientos. Independientes de las categorías del portafolio.
+- Conserva sus accesos anteriores a Home, Blog, Portafolio y Garantías.
+- Productos y Servicios muestran la misma presentación guardada; «Ideal para»
+  y datos técnicos se conservan en código. La categoría controla los filtros de
+  Productos; Servicios conserva su organización por tipo de solución.
+- Inicio: textos de Productos y fotos locales de Servicios. Toldos verticales
+  y de brazos extensibles se presentan por separado también en Servicios.
+- El favicon usa el ICO de marca publicado en `/static/favicon.ico`, con versión
+  de caché nueva; el acceso convencional raíz se redirige en Nginx.
+
 ## Requisitos confirmados — 06/10/2026
 
 El operador confirmó múltiples documentos de garantía públicos, únicamente PDF

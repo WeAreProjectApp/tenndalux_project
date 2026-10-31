@@ -1,8 +1,10 @@
 import { expect, test } from '@playwright/test';
 import { FlowTags, RoleTags } from '../helpers/flow-tags';
 import { clickWhenHydrated } from '../helpers/hydration';
+import { routeProducts } from '../helpers/products';
 
 test.beforeEach(async ({ page }) => {
+  await routeProducts(page);
   await page.goto('/servicios/', { waitUntil: 'domcontentloaded' });
 });
 

@@ -25,6 +25,11 @@ const nextConfig: NextConfig = {
     unoptimized: true,
   },
   ...(devOrigins.length ? { allowedDevOrigins: devOrigins } : {}),
+  ...(!isBuild ? {
+    async rewrites() {
+      return [{ source: '/static/favicon.ico', destination: '/favicon.ico' }];
+    },
+  } : {}),
 };
 
 export default nextConfig;

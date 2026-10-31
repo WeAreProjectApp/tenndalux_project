@@ -1,0 +1,470 @@
+{
+  "ondessence": {
+    "tagline": "Producto Insignia",
+    "idealPara": [
+      "Salas amplias",
+      "Dormitorios principales",
+      "Hoteles",
+      "Espacios institucionales",
+      "Ventanales piso a techo"
+    ],
+    "beneficios": [
+      "Ondas técnicas uniformes y continuas",
+      "Movimiento fluido y silencioso",
+      "Tejidos europeos certificados Light Fastness Clase 6",
+      "Instalación premium con planchado a vapor",
+      "Automatización compatible con voz"
+    ],
+    "especificaciones": [
+      "Ancho máximo: 11.80 m",
+      "Altura máxima: 5.10 m",
+      "Proporciones: 2.3 (sutil) o 2.8 (profunda)",
+      "Compatible con riel curvo y ángulos 90°",
+      "Automatización RF, Wi-Fi y app gratuita"
+    ],
+    "opciones": [
+      "Velo",
+      "Translúcidas",
+      "Semi-blackout",
+      "Blackout",
+      "Retardantes al fuego"
+    ],
+    "featured": true
+  },
+  "luminux": {
+    "tagline": "Velo Contemporáneo",
+    "idealPara": [
+      "Espacios sociales",
+      "Salas modernas",
+      "Comedores",
+      "Áreas de diseño protagonista"
+    ],
+    "beneficios": [
+      "Entrada de luz controlada con privacidad",
+      "Estética continua y decorativa",
+      "Movimiento visual ligero",
+      "Motorización opcional",
+      "Instalación profesional"
+    ],
+    "especificaciones": [
+      "Luminux M: onda tipo montaña continua",
+      "Luminux S: onda tipo S intercalada",
+      "Riel delgado de aluminio alta precisión",
+      "Sistema de giro interno tipo vertical",
+      "Recolección lateral, central o a extremos",
+      "Compatible con ventanales piso a techo"
+    ],
+    "opciones": [
+      "Versión M (Montaña)",
+      "Versión S (Intercalada)",
+      "Motorización",
+      "Accionamiento manual"
+    ],
+    "featured": false
+  },
+  "dunes": {
+    "tagline": "Onda Montaña Segmentada",
+    "idealPara": [
+      "Espacios donde se requiere diseño protagonista",
+      "Proyectos de alto valor estético",
+      "Salas formales",
+      "Hoteles boutique"
+    ],
+    "beneficios": [
+      "Estética sofisticada y única",
+      "Movimiento definido y estructurado",
+      "Control suave de luz natural",
+      "Automatización opcional",
+      "Instalación técnica especializada"
+    ],
+    "especificaciones": [
+      "Sistema segmentado de ondas independientes",
+      "Cada ola es un tramo independiente de tela",
+      "Mayor control estructural en caída",
+      "Compatible con automatización"
+    ],
+    "opciones": [
+      "Motorización",
+      "Diferentes densidades de tela",
+      "Varias alturas"
+    ],
+    "featured": false
+  },
+  "celulares": {
+    "tagline": "Eficiencia Térmica",
+    "idealPara": [
+      "Climas extremos",
+      "Oficinas con ruido exterior",
+      "Habitaciones que requieren aislamiento",
+      "Proyectos sustentables"
+    ],
+    "beneficios": [
+      "Reducción de costos de climatización hasta 30%",
+      "Aislamiento acústico efectivo",
+      "Instalación dentro del marco",
+      "Sistema seguro para niños (TwinPull)",
+      "Alta eficiencia energética"
+    ],
+    "especificaciones": [
+      "Requiere 6.5 cm de profundidad en marco",
+      "Cámara de aire interna para aislamiento",
+      "Sistema Top Down Bottom Up disponible",
+      "Versión Día y Noche (dos telas)",
+      "Recubrimiento de aluminio en blackout",
+      "Motorización RF + Bluetooth"
+    ],
+    "opciones": [
+      "Transparentes",
+      "Translúcidas",
+      "Blackout",
+      "Retardante al fuego",
+      "Sistema Día/Noche",
+      "Manual",
+      "TwinPull",
+      "Motorizado"
+    ],
+    "featured": false
+  },
+  "enrollables": {
+    "tagline": "Minimalismo Funcional",
+    "idealPara": [
+      "Oficinas",
+      "Cocinas",
+      "Baños",
+      "Espacios minimalistas",
+      "Ventanas pequeñas y medianas"
+    ],
+    "beneficios": [
+      "Diseño limpio y discreto",
+      "Fácil mantenimiento",
+      "Perfiles Coverlight eliminan filtraciones",
+      "Guías laterales para blackout total",
+      "Cabezal Modern 3 premium"
+    ],
+    "especificaciones": [
+      "Cabezal Modern 3",
+      "Perfiles Coverlight Boston",
+      "Guías laterales en blanco y negro",
+      "Compatible con motorización",
+      "Tejidos screen, translúcidos y blackout"
+    ],
+    "opciones": [
+      "Screen",
+      "Translúcidas",
+      "Blackout",
+      "Fibra de vidrio",
+      "Poliéster",
+      "Algodón",
+      "PET reciclado",
+      "Retardante al fuego"
+    ],
+    "featured": false
+  },
+  "roller-duo": {
+    "tagline": "Doble Funcionalidad",
+    "idealPara": [
+      "Habitaciones",
+      "Oficinas en casa",
+      "Estudios",
+      "Espacios multiuso"
+    ],
+    "beneficios": [
+      "Regula luz sin subir la cortina",
+      "Perfil inferior técnico de lujo",
+      "Doble funcionalidad en un solo producto",
+      "Automatización compatible",
+      "Franjas opacas y transparentes alternadas"
+    ],
+    "especificaciones": [
+      "Sistema de doble capa",
+      "Franjas opacas y transparentes alternadas",
+      "Cabezal de lujo",
+      "Perfil inferior premium",
+      "Compatible con motorización"
+    ],
+    "opciones": [
+      "Motorización",
+      "Diferentes anchos de franja",
+      "Manual"
+    ],
+    "featured": false
+  },
+  "paneles": {
+    "tagline": "Diseño Modular",
+    "idealPara": [
+      "Ventanas amplias",
+      "Divisores de espacio",
+      "Puertas corredizas",
+      "Espacios abiertos"
+    ],
+    "beneficios": [
+      "Modularidad hasta 11.5 metros",
+      "Diseño arquitectónico contemporáneo",
+      "Fácil operación",
+      "Gran impacto visual",
+      "Riel exclusivo"
+    ],
+    "especificaciones": [
+      "Paños de 50-60 cm",
+      "Rieles de 2 a 10 vías",
+      "Instalación consecutiva hasta 11.5 metros",
+      "Recogida lateral, central o combinada",
+      "Motorización opcional"
+    ],
+    "opciones": [
+      "Manual",
+      "Motorizado",
+      "2 a 10 vías",
+      "Diferentes telas"
+    ],
+    "featured": false
+  },
+  "horizontales": {
+    "tagline": "Clásico Renovado",
+    "idealPara": [
+      "Oficinas",
+      "Estudios",
+      "Bibliotecas",
+      "Espacios clásicos",
+      "Hogares tradicionales"
+    ],
+    "beneficios": [
+      "Acabado artesanal en madera",
+      "Poliéster con nanopartículas resistente al agua",
+      "Aluminio moderno e industrial",
+      "Control preciso de luz"
+    ],
+    "especificaciones": [
+      "Madera Basswood acabado artesanal",
+      "Aluminio Micro, Mini y Classic 50",
+      "Poliéster resistente a rayaduras",
+      "Opciones retardantes al fuego",
+      "Laminillas perforadas o sólidas"
+    ],
+    "opciones": [
+      "Madera Basswood",
+      "Aluminio Micro",
+      "Aluminio Mini",
+      "Classic 50",
+      "Poliéster",
+      "Manual",
+      "Motorizado"
+    ],
+    "featured": false
+  },
+  "verticales": {
+    "tagline": "Versatilidad Moderna",
+    "idealPara": [
+      "Ventanas amplias",
+      "Puertas de vidrio",
+      "Ventanas trapezoidales",
+      "Espacios corporativos"
+    ],
+    "beneficios": [
+      "Adaptación a ventanas inclinadas",
+      "Sistema de liberación para limpieza",
+      "Riel delgado discreto",
+      "Motorización disponible",
+      "Adaptable a formas irregulares"
+    ],
+    "especificaciones": [
+      "Lamas de 9 cm y 13 cm",
+      "Adaptable a ventanas trapezoidales",
+      "Sistema de liberación para limpieza",
+      "Riel delgado con carros equidistantes",
+      "Colección screen, blackout y decorativa"
+    ],
+    "opciones": [
+      "Lamas 9 cm",
+      "Lamas 13 cm",
+      "Screen",
+      "Blackout",
+      "Decorativa",
+      "Motorización"
+    ],
+    "featured": false
+  },
+  "recubrimientos": {
+    "tagline": "Paredes que Hablan",
+    "idealPara": [
+      "Salas",
+      "Habitaciones",
+      "Oficinas",
+      "Espacios comerciales",
+      "Hoteles"
+    ],
+    "beneficios": [
+      "Texturas premium y exclusivas",
+      "Instalación profesional certificada",
+      "Diseños personalizados",
+      "Materiales libres de compuestos nocivos",
+      "Resistencia a la humedad"
+    ],
+    "especificaciones": [
+      "Opciones en vinilo, textil y ecológico",
+      "Resistentes a humedad",
+      "Instalación profesional",
+      "Materiales libres de compuestos nocivos",
+      "Alta durabilidad"
+    ],
+    "opciones": [
+      "Vinilo",
+      "Textil",
+      "Ecológico",
+      "Resistente a humedad",
+      "Diseños personalizados"
+    ],
+    "featured": false
+  },
+  "toldos-verticales": {
+    "tagline": "Protección Solar",
+    "idealPara": [
+      "Terrazas",
+      "Balcones",
+      "Patios",
+      "Áreas comerciales",
+      "Restaurantes"
+    ],
+    "beneficios": [
+      "Mecanismos en acero colado",
+      "Soportes en acero inoxidable",
+      "Protección UV superior",
+      "Instalación profesional",
+      "Motorización disponible"
+    ],
+    "especificaciones": [
+      "Mecanismos en acero colado",
+      "Guías con varilla o guaya de acero",
+      "Soportes en acero inoxidable",
+      "Brazos extensibles y verticales",
+      "Telas resistentes a rayos UV"
+    ],
+    "opciones": [
+      "Motorización",
+      "Sensores",
+      "Manual",
+      "Diferentes tamaños"
+    ],
+    "featured": false
+  },
+  "toldos-extensibles": {
+    "tagline": "Ingeniería Premium",
+    "idealPara": [
+      "Terrazas amplias",
+      "Áreas de piscina",
+      "Jardines",
+      "Espacios comerciales grandes"
+    ],
+    "beneficios": [
+      "Sistemas de alta ingeniería",
+      "Cofre protector disponible",
+      "Hasta 12 metros de ancho",
+      "Estructuras reforzadas",
+      "Automatización y sensores"
+    ],
+    "especificaciones": [
+      "Sistema Cofrex: cofre protector, hasta 6m x 3m",
+      "Sistema Crab: barra cuadrada, hasta 12m x 4m",
+      "Sistema PTP: liviano, hasta 6m x 3.5m",
+      "Telas resistentes a rayos UV",
+      "Motorización y sensores disponibles"
+    ],
+    "opciones": [
+      "Sistema Cofrex",
+      "Sistema Crab",
+      "Sistema PTP",
+      "Motorización",
+      "Sensores de viento/sol"
+    ],
+    "featured": false
+  },
+  "pergolas": {
+    "tagline": "Arquitectura Exterior",
+    "idealPara": [
+      "Jardines",
+      "Terrazas",
+      "Áreas de recreación",
+      "Espacios sociales exteriores"
+    ],
+    "beneficios": [
+      "Ingeniería estructural certificada",
+      "Diseño arquitectónico personalizado",
+      "Materiales premium",
+      "Automatización disponible",
+      "Retráctiles y bioclimáticas"
+    ],
+    "especificaciones": [
+      "Diseño retráctil y bioclimático",
+      "Ingeniería estructural",
+      "Materiales premium resistentes",
+      "Automatización disponible",
+      "Diseños personalizados"
+    ],
+    "opciones": [
+      "Retráctil",
+      "Bioclimática",
+      "Motorización",
+      "Diseño personalizado"
+    ],
+    "featured": false
+  },
+  "cortinas-exteriores": {
+    "tagline": "Control Solar Exterior",
+    "idealPara": [
+      "Pérgolas",
+      "Terrazas",
+      "Gazebos",
+      "Espacios semi-abiertos"
+    ],
+    "beneficios": [
+      "Protección solar efectiva",
+      "Privacidad exterior",
+      "Telas resistentes a intemperie",
+      "Motorización disponible",
+      "Fácil operación"
+    ],
+    "especificaciones": [
+      "Telas resistentes a rayos UV",
+      "Resistentes a humedad",
+      "Motorización opcional",
+      "Diferentes sistemas de instalación"
+    ],
+    "opciones": [
+      "Manual",
+      "Motorización",
+      "Diferentes telas",
+      "Screen exterior"
+    ],
+    "featured": false
+  },
+  "peliculas-solares": {
+    "tagline": "Protección Invisible",
+    "idealPara": [
+      "Oficinas",
+      "Edificios corporativos",
+      "Hogares con alta exposición solar",
+      "Vehículos"
+    ],
+    "beneficios": [
+      "Reducción de calor hasta 80%",
+      "Protección UV 99%",
+      "Ahorro energético comprobado",
+      "Instalación sin obra",
+      "Protección del vidrio"
+    ],
+    "especificaciones": [
+      "Bloqueo UV 99%",
+      "Reducción de calor hasta 80%",
+      "Instalación sin obra",
+      "No sacrifica visibilidad",
+      "Diferentes niveles de opacidad"
+    ],
+    "opciones": [
+      "Transparente",
+      "Semi-opaca",
+      "Espejada",
+      "Diferentes niveles UV"
+    ],
+    "featured": false
+  }
+}

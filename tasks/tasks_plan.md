@@ -1,5 +1,15 @@
 # Task Plan — Tenndalux
 
+## Productos administrables — 2026-10-31
+
+- [x] Modelo con cinco categorías fijas y carga inicial de 15 productos.
+- [x] Admin limitado a cuatro campos, sin altas/bajas y con permisos propios.
+- [x] API de lectura compartida por Productos y Servicios, con reintento/vacío.
+- [x] Ruta publicada del favicon y compatibilidad raíz preparada para Nginx.
+- [x] Pruebas de backend y actualización del mapa de flujos.
+- [ ] Completar validación de interfaz/export y entregar PR abierto con CI verde.
+- [ ] Operador: merge/deploy, migraciones, dos permisos y regla Nginx.
+
 ## Requisitos del cliente — 06/10/2026
 
 - PDFs de garantía: carga en Django Admin, publicación y orden; página pública

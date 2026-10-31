@@ -2,6 +2,17 @@ from django import forms
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils.safestring import mark_safe
+from django_attachments.forms import RasterImageField
+
+from core_app.models import Product
+
+
+class ProductAdminForm(forms.ModelForm):
+    image = RasterImageField(required=False, label='Imagen')
+
+    class Meta:
+        model = Product
+        fields = ('name', 'category', 'description', 'image')
 
 
 class ContentBlocksWidget(forms.Textarea):

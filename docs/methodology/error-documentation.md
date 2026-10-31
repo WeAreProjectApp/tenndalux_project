@@ -1,5 +1,14 @@
 # Error Documentation — Tenndalux
 
+### [ERR-012] Favicon de marca publicado en otra ruta
+- **Fecha**: 2026-10-31.
+- **Causa**: el HTML público referenciaba `/favicon.ico?v=tenndalux-1` (404),
+  mientras el mismo ICO del repositorio sí respondía 200 en `/static/favicon.ico`.
+- **Corrección**: apuntar a la ruta estática publicada, renovar la versión de
+  caché y preparar una redirección exacta para la petición convencional raíz.
+- **Validación**: probar el enlace y los bytes del ICO en navegador y su copia
+  al export. La regla Nginx y el deploy los aplica el operador.
+
 ### [ERR-011] Favicon ausente e imagen Home desconectada
 - **Date**: 2026-10-06
 - **Context**: La web enlazaba un favicon que devolvía 404; la portada no

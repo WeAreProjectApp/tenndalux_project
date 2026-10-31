@@ -16,13 +16,14 @@ from django.contrib.auth.admin import GroupAdmin, UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import Group
 from django.shortcuts import redirect
 from django.utils.translation import gettext_lazy as _
+from django.utils.html import format_html
 from rest_framework_simplejwt.token_blacklist.admin import BlacklistedTokenAdmin, OutstandingTokenAdmin
 from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, OutstandingToken
 
 from django_attachments.admin import AttachmentAdmin, AttachmentsAdminMixin, LibraryAdmin
 from django_attachments.models import Attachment, Library
 
-from .forms import ContentBlocksWidget
+from .forms import ContentBlocksWidget, ProductAdminForm
 
 from .models import (
     User,
@@ -41,6 +42,7 @@ from .models import (
     HomePage,
     AboutPage,
     WarrantyDocument,
+    Product,
 )
 
 
@@ -65,6 +67,27 @@ class HiddenFromIndexMixin:
     """
 
     def has_module_permission(self, request):
+        return False
+
+
+@admin.register(Product)
+class ProductAdmin(admin.ModelAdmin):
+    form = ProductAdminForm
+    fields = ('name', 'category', 'description', 'image_preview', 'image')
+    readonly_fields = ('image_preview',)
+    list_display = ('name', 'category', 'image_preview', 'updated_at')
+    list_filter = ('category',)
+    search_fields = ('name',)
+    actions = None
+
+    @admin.display(description='Imagen actual')
+    def image_preview(self, obj):
+        return format_html('<img src="{}" alt="{}" width="120">', obj.image_url, obj.name)
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
         return False
 
 

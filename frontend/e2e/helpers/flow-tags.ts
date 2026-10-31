@@ -30,6 +30,8 @@ export const FlowTags = {
   PUBLIC_HOME_HERO_IMAGE: ['@flow:public-home-hero-image', '@module:public', '@priority:P1'],
   ADMIN_WARRANTY_DOCUMENT_PUBLISH: ['@flow:admin-warranty-document-publish', '@module:django-admin', '@priority:P1'],
   ADMIN_HOME_HERO_IMAGE_UPDATE: ['@flow:admin-home-hero-image-update', '@module:django-admin', '@priority:P1'],
+  ADMIN_PRODUCT_EDIT: ['@flow:admin-product-edit', '@module:django-admin', '@priority:P1'],
+  PUBLIC_FAVICON: ['@flow:public-favicon', '@module:public', '@priority:P3'],
 };
 
 export const RoleTags = {

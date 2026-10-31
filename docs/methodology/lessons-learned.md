@@ -1,5 +1,12 @@
 # Lessons Learned — Tenndalux
 
+> **Lección 2026-10-31:** las categorías de Productos son opciones comerciales
+> fijas, distintas de las categorías del Portafolio. Separar el modelo evita
+> habilitar administración de taxonomía para cambiar la categoría de una ficha.
+> Los identificadores estables permiten compartir nombre/foto/descripción entre
+> dos presentaciones sin volver editables sus listas técnicas ni depender del
+> nombre visible para relacionarlas.
+
 > **Lección 2026-10-06:** que una imagen figure en Django Admin no prueba que
 > el frontend la use: una `Library` se serializa como id hasta exponer su
 > adjunto principal. En un export estático, consultar su URL desde el cliente

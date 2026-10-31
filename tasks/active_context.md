@@ -1,5 +1,17 @@
 # Active context
 
+## Productos administrables — 2026-10-31
+
+Rama propia `feat/31102026-product-admin`, base `origin/master`. Agregar los
+15 productos existentes al administrador con edición de nombre, categoría fija,
+descripción e imagen; sin altas ni bajas. Conservar los accesos del cliente.
+Productos y Servicios compartirán esos datos, con fotos locales iniciales de
+Servicios y textos de Productos. La información técnica permanece fija.
+El favicon público responde 404 en `/favicon.ico`, pero su archivo de marca
+responde 200 en `/static/favicon.ico`; corregir referencia y compatibilidad.
+Entrega: PR abierto con CI verde. Migraciones, permisos y deploy los aplica
+el operador; no se usa la base de producción desde este worktree.
+
 ## Requisitos del cliente — 2026-10-06
 
 Rama propia `feat/06102026-cms-client-requirements`, base `origin/master`.

@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test';
 import { FlowTags, RoleTags } from '../helpers/flow-tags';
 import { blogPosts, routeCatalogue } from './catalogue-fixtures';
 import { VIEWPORTS, viewportUse, type ViewportAlias } from '../helpers/viewports';
+import { routeProducts } from '../helpers/products';
 
 async function expectPageScroll(page: import('@playwright/test').Page) {
   const before = await page.evaluate(() => window.scrollY);
@@ -11,6 +12,7 @@ async function expectPageScroll(page: import('@playwright/test').Page) {
 }
 
 test.beforeEach(async ({ page }) => {
+  await routeProducts(page);
   await routeCatalogue(page, '/blog/posts/', [blogPosts[0]]);
   await page.goto('/blog/', { waitUntil: 'domcontentloaded' });
   await expect(page.getByRole('heading', { name: 'Portada de diseño', exact: true })).toHaveText('Portada de diseño');
@@ -37,7 +39,7 @@ test('visitor switches the available service solutions', {
   await page.getByRole('button', { name: 'Recubrimientos', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Recubrimientos para Paredes', exact: true })).toHaveText('Recubrimientos para Paredes');
   await page.getByRole('button', { name: 'Exteriores', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Toldos', exact: true })).toHaveText('Toldos');
+  await expect(page.getByRole('heading', { name: 'Toldos de Brazos Extensibles', exact: true })).toHaveText('Toldos de Brazos Extensibles');
   await page.getByRole('button', { name: 'Tecnología', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Automatización Inteligente', exact: true })).toHaveText('Automatización Inteligente');
   await page.getByRole('button', { name: 'Cortinas', exact: true }).click();
@@ -46,7 +48,7 @@ test('visitor switches the available service solutions', {
 });
 
 // Bug caught: the compact exterior card opens details for an unrelated solution.
-test('visitor reads the compact Toldos solution details', {
+test('visitor reads the compact extensible awning details', {
   tag: [...FlowTags.PUBLIC_SERVICES_EXTERIOR_MOBILE_DETAIL, RoleTags.GUEST, '@outcome:display'],
 }, async ({ page }) => {
   await page.setViewportSize(VIEWPORTS.compact);
@@ -54,12 +56,12 @@ test('visitor reads the compact Toldos solution details', {
   await expect(page).toHaveURL(/\/servicios\/$/);
   await page.getByRole('button', { name: 'Exteriores', exact: true }).click();
 
-  await page.getByRole('button', { name: 'Toldos', exact: true }).click();
+  await page.getByRole('button', { name: 'Toldos de Brazos Extensibles', exact: true }).click();
 
-  const dialog = page.getByRole('dialog', { name: 'Toldos', exact: true });
-  await expect(dialog.getByRole('heading', { name: 'Toldos', exact: true })).toHaveText('Toldos');
+  const dialog = page.getByRole('dialog', { name: 'Toldos de Brazos Extensibles', exact: true });
+  await expect(dialog.getByRole('heading', { name: 'Toldos de Brazos Extensibles', exact: true })).toHaveText('Toldos de Brazos Extensibles');
   await expect(dialog).toContainText('Sistema Cofrex con cofre protector (hasta 6 m x 3 m)');
-  await expect(dialog.getByRole('link', { name: 'Cotizar Toldos', exact: true })).toHaveAttribute('href', /wa\.me\/.*Toldos/);
+  await expect(dialog.getByRole('link', { name: 'Cotizar Toldos de Brazos Extensibles', exact: true })).toHaveAttribute('href', /wa\.me\/.*Toldos/);
 });
 
 // Bug caught: closing the compact bottom sheet leaves scrolling locked.
@@ -70,8 +72,8 @@ test('visitor closes the compact exterior bottom sheet through its backdrop', {
   await page.getByTestId('site-footer').getByRole('link', { name: 'Servicios', exact: true }).click();
   await expect(page).toHaveURL(/\/servicios\/$/);
   await page.getByRole('button', { name: 'Exteriores', exact: true }).click();
-  await page.getByRole('button', { name: 'Toldos', exact: true }).click();
-  await expect(page.getByRole('dialog', { name: 'Toldos', exact: true })).toContainText('Sistema Cofrex');
+  await page.getByRole('button', { name: 'Toldos de Brazos Extensibles', exact: true }).click();
+  await expect(page.getByRole('dialog', { name: 'Toldos de Brazos Extensibles', exact: true })).toContainText('Sistema Cofrex');
   await expect(page.locator('body')).toHaveCSS('overflow', 'hidden');
 
   await page.getByRole('button', { name: 'Cerrar detalles', exact: true }).click({ position: { x: 10, y: 100 } });
@@ -94,10 +96,10 @@ for (const alias of ['portrait', 'landscape', 'desktop', 'wide'] as ViewportAlia
       await expect(page).toHaveURL(/\/servicios\/$/);
       await page.getByRole('button', { name: 'Exteriores', exact: true }).click();
 
-      await expect(page.getByRole('heading', { name: 'Toldos', exact: true })).toHaveText('Toldos');
+      await expect(page.getByRole('heading', { name: 'Toldos de Brazos Extensibles', exact: true })).toHaveText('Toldos de Brazos Extensibles');
       await expect(page.getByRole('heading', { name: 'Pérgolas', exact: true })).toHaveText('Pérgolas');
       await expect(page.getByText('Sistema Cofrex con cofre protector (hasta 6 m x 3 m)', { exact: true })).toHaveText('Sistema Cofrex con cofre protector (hasta 6 m x 3 m)');
-      await expect(page.getByRole('button', { name: 'Toldos', exact: true })).toHaveCount(0);
+      await expect(page.getByRole('button', { name: 'Toldos de Brazos Extensibles', exact: true })).toHaveCount(0);
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
     });
   });
@@ -113,8 +115,8 @@ test.describe('exterior detail lifecycle @ compact', () => {
     await page.getByTestId('site-footer').getByRole('link', { name: 'Servicios', exact: true }).click();
     await page.getByRole('button', { name: 'Exteriores', exact: true }).click();
     const previousOverflow = await page.evaluate(() => document.body.style.overflow);
-    await page.getByRole('button', { name: 'Toldos', exact: true }).click();
-    const dialog = page.getByRole('dialog', { name: 'Toldos', exact: true });
+    await page.getByRole('button', { name: 'Toldos de Brazos Extensibles', exact: true }).click();
+    const dialog = page.getByRole('dialog', { name: 'Toldos de Brazos Extensibles', exact: true });
     await expect(dialog).toContainText('Sistema Cofrex con cofre protector (hasta 6 m x 3 m)');
 
     // Resizing is the interaction under test, after the compact sheet is open.
@@ -126,7 +128,7 @@ test.describe('exterior detail lifecycle @ compact', () => {
 
     await page.setViewportSize(VIEWPORTS.compact);
     await expect(dialog).toHaveCount(0);
-    await page.getByRole('button', { name: 'Toldos', exact: true }).click();
+    await page.getByRole('button', { name: 'Toldos de Brazos Extensibles', exact: true }).click();
     await expect(dialog).toContainText('Sistema Cofrex');
     await page.getByRole('button', { name: 'Cerrar detalles', exact: true }).click({ position: { x: 10, y: 100 } });
     await expect(dialog).toHaveCount(0);
@@ -139,8 +141,8 @@ test.describe('exterior detail lifecycle @ compact', () => {
     await page.getByTestId('site-footer').getByRole('link', { name: 'Servicios', exact: true }).click();
     await page.getByRole('button', { name: 'Exteriores', exact: true }).click();
     const previousOverflow = await page.evaluate(() => document.body.style.overflow);
-    await page.getByRole('button', { name: 'Toldos', exact: true }).click();
-    await expect(page.getByRole('dialog', { name: 'Toldos', exact: true })).toContainText('Sistema Cofrex');
+    await page.getByRole('button', { name: 'Toldos de Brazos Extensibles', exact: true }).click();
+    await expect(page.getByRole('dialog', { name: 'Toldos de Brazos Extensibles', exact: true })).toContainText('Sistema Cofrex');
     await expect(page.locator('body')).toHaveCSS('overflow', 'hidden');
 
     await page.goBack();

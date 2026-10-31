@@ -1,0 +1,107 @@
+[
+  {
+    "key": "ondessence",
+    "name": "Cortina Ondessence",
+    "description": "La evolución moderna de la cortina tradicional con sistema Ripplefold",
+    "category": "cortinas-diseno",
+    "image_url": "/products/ondessence/ondessence-principal.webp"
+  },
+  {
+    "key": "luminux",
+    "name": "Luminux",
+    "description": "Cortina de velo con diseño escultural que combina luz difusa y privacidad",
+    "category": "cortinas-diseno",
+    "image_url": "/products/luminux/luminux-m.webp"
+  },
+  {
+    "key": "dunes",
+    "name": "Dunes",
+    "description": "Cortina de velo con ondas independientes para acabado visual refinado",
+    "category": "cortinas-diseno",
+    "image_url": "/products/dunes/dunes-principal.webp"
+  },
+  {
+    "key": "celulares",
+    "name": "Persianas Celulares",
+    "description": "Sistema con cámara de aire para aislamiento térmico y acústico superior",
+    "category": "soluciones-practicas",
+    "image_url": "/products/celulares/celular-principal.webp"
+  },
+  {
+    "key": "enrollables",
+    "name": "Cortinas Enrollables",
+    "description": "Solución limpia y moderna para control de luz con múltiples opciones de tela",
+    "category": "soluciones-practicas",
+    "image_url": "/products/enrollables/enrollable-screen.webp"
+  },
+  {
+    "key": "roller-duo",
+    "name": "Roller Dúo",
+    "description": "Sistema de doble capa con franjas alternadas para control de luz sin movimiento",
+    "category": "soluciones-practicas",
+    "image_url": "/products/roller-duo/roller-duo-principal.webp"
+  },
+  {
+    "key": "paneles",
+    "name": "Paneles Deslizantes",
+    "description": "Sistema modular ideal para grandes ventanales y divisores de ambiente",
+    "category": "soluciones-practicas",
+    "image_url": "/products/paneles/panel-principal.webp"
+  },
+  {
+    "key": "horizontales",
+    "name": "Persianas Horizontales",
+    "description": "Persianas en madera Basswood, aluminio y poliéster con acabados premium",
+    "category": "persianas",
+    "image_url": "/products/horizontales/horizontal-principal.webp"
+  },
+  {
+    "key": "verticales",
+    "name": "Persianas Verticales",
+    "description": "Sistema adaptable incluso a ventanas inclinadas con lamas de 9 y 13 cm",
+    "category": "persianas",
+    "image_url": "/products/dunes/dunes-giro.webp"
+  },
+  {
+    "key": "recubrimientos",
+    "name": "Recubrimientos para Paredes",
+    "description": "Vinilo, textil y ecológico. Transforma tus espacios con texturas premium",
+    "category": "recubrimientos",
+    "image_url": "/products/recubrimientos/papel-tapiz.webp"
+  },
+  {
+    "key": "toldos-verticales",
+    "name": "Toldos Verticales",
+    "description": "Mecanismos premium en acero para protección total de terrazas y balcones",
+    "category": "exteriores",
+    "image_url": "/products/exterior/toldo-principal.webp"
+  },
+  {
+    "key": "toldos-extensibles",
+    "name": "Toldos de Brazos Extensibles",
+    "description": "Sistemas Cofrex, Crab y PTP para máxima proyección y durabilidad",
+    "category": "exteriores",
+    "image_url": "/products/exterior/toldo-principal.webp"
+  },
+  {
+    "key": "pergolas",
+    "name": "Pérgolas",
+    "description": "Pérgolas retráctiles y bioclimáticas con ingeniería estructural premium",
+    "category": "exteriores",
+    "image_url": "/products/exterior/toldos-exterior.webp"
+  },
+  {
+    "key": "cortinas-exteriores",
+    "name": "Cortinas Exteriores",
+    "description": "Protección solar y privacidad para espacios exteriores",
+    "category": "exteriores",
+    "image_url": "/products/exterior/toldos-exterior-2.webp"
+  },
+  {
+    "key": "peliculas-solares",
+    "name": "Películas Solares",
+    "description": "Bloqueo UV 99% y protección de vidrio sin sacrificar visibilidad",
+    "category": "exteriores",
+    "image_url": "/products/general/uso-general.webp"
+  }
+]
