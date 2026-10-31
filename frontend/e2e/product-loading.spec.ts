@@ -3,12 +3,14 @@ import { FlowTags } from './helpers/flow-tags';
 import products from './fixtures/products.json';
 
 async function visitCatalogue(page: Page, start: string, navigation: Locator) {
-  const initialRead = page.waitForResponse('**/api/products/');
+  const initialRead = page.waitForResponse((response) => response.request().method() === 'GET' && new URL(response.url()).pathname === '/api/products/');
   await page.goto(start, { waitUntil: 'domcontentloaded' });
   await initialRead;
-  const catalogueRead = page.waitForResponse('**/api/products/');
+  await page.getByText('Cargando productos…', { exact: true }).waitFor({ state: 'hidden' });
+  const catalogueRead = page.waitForResponse((response) => response.request().method() === 'GET' && new URL(response.url()).pathname === '/api/products/');
   await navigation.click();
   await catalogueRead;
+  await page.getByText('Cargando productos…', { exact: true }).waitFor({ state: 'hidden' });
 }
 
 test('visitor retries the Products catalogue after an API outage', {

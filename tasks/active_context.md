@@ -12,6 +12,14 @@ responde 200 en `/static/favicon.ico`; corregir referencia y compatibilidad.
 Entrega: PR abierto con CI verde. Migraciones, permisos y deploy los aplica
 el operador; no se usa la base de producción desde este worktree.
 
+Implementación en PR #88. Verificación funcional: 45 pruebas backend, 16 unit/
+componentes y ocho casos nuevos de navegador, incluida una foto real guardada
+en Django y leída por ambas páginas. Catálogo: una consulta para los 15 productos.
+Gate estricto 100/100; mapa de 32 flujos sin huecos ni junk-only. Una respuesta
+API malformada conserva la página y muestra Reintentar. El operador pidió
+cerrar con `$merge-queue` tras el CI verde; publicación y permisos siguen siendo
+operaciones manuales. El estado de integración se consulta en el PR.
+
 ## Requisitos del cliente — 2026-10-06
 
 Rama propia `feat/06102026-cms-client-requirements`, base `origin/master`.
