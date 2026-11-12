@@ -21,4 +21,4 @@ jobs:
           sudo apt-get install -y -qq pkg-config default-libmysqlclient-dev ffmpeg
           pip install -r requirements.txt
       - name: Verify hosting document adapter
-        run: pytest core_app/tests/test_hosting_guard.py --no-cov -q
+        run: pytest core_app/tests/views/test_hosting_guard.py --no-cov -q
