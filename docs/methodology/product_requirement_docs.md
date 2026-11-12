@@ -1,3 +1,5 @@
+> **PA-264:** adaptador de presentación de hosting preparado, apagado por defecto. Su configuración se recibe desde ProjectApp y se comprueba por destino. No se modificaron servicios ni datos. Contrato y validación pendiente: `docs/HOSTING_CONTROL.md`.
+
 # Product Requirements — Tenndalux
 
 ## Catálogo administrable — 31/10/2026

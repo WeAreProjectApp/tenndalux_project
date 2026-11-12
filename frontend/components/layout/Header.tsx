@@ -143,6 +143,7 @@ function HeaderContent() {
     <>
       {/* Floating header with glassmorphism */}
       <header
+        data-hosting-offset="top"
         role="banner"
         inert={isMenuOpen}
         className={`fixed top-0 w-full z-50 transition-all duration-500 ${

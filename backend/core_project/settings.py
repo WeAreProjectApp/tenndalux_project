@@ -64,6 +64,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'hosting_guard.middleware.HostingControlMiddleware',
     'corsheaders.middleware.CorsMiddleware',  # CORS must be before CommonMiddleware
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -351,3 +352,9 @@ if IS_PRODUCTION:
     from .settings_prod import *  # noqa: F401, F403
 else:
     from .settings_dev import *  # noqa: F401, F403
+
+# PA-264: only opt in on the enrolled production, never staging or DEV.
+HOSTING_CONTROL_ENABLED = config('HOSTING_CONTROL_ENABLED', default=False, cast=bool)
+HOSTING_CONTROL_TARGET = config('HOSTING_CONTROL_TARGET', default='')
+HOSTING_CONTROL_STATE_FILE = config('HOSTING_CONTROL_STATE_FILE', default='')
+HOSTING_CONTROL_EXEMPT_PATHS = ('/api/', '/admin/', '/admin-gallery/', '/health/')
